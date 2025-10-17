@@ -1498,7 +1498,7 @@ class EVLTransformer(nn.Module):
     def __init__(
         self, config,
         backbone_type: str = 'clip',
-        backbone_path: str = '/home/jingyinuo/.cache/clip/ViT-B-16.pt',
+        backbone_path: str = '~/.cache/clip/ViT-B-16.pt',
         backbone_mode: str = 'freeze_fp16',
         decoder_num_layers: int = 4,
         decoder_qkv_dim: int = 768,

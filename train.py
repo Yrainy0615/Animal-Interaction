@@ -18,7 +18,8 @@ from utils.logger import create_logger
 import time
 import numpy as np
 import random
-from apex import amp
+# from apex import amp  # Replaced with torch.cuda.amp
+from torch.cuda.amp import autocast, GradScaler
 from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 from datasets.blending import CutmixMixupBlending, one_hot
 from utils.config import get_config
@@ -53,7 +54,7 @@ def get_trainable_para_num(model):
             lst.append(para.nelement())
     print(f"trainable paras number: {sum(lst)}")
 
-def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_loader, text_labels, animal_labels, config, mixup_fn, train_data, logger):
+def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_loader, text_labels, animal_labels, config, mixup_fn, train_data, logger, scaler=None):
     get_para_num(model)
     get_trainable_para_num(model)
     model.train()
@@ -89,41 +90,53 @@ def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_load
         if texts.shape[0] == 1:
             texts = texts.view(1, -1)
         
-        if config.MODEL.MODEL_NAME == 'XCLIP':
-            output, _ = model(images, texts, animal_labels, animal_pred, edges)
-            
-        elif config.MODEL.MODEL_NAME == 'VideoPrompt':
-        # for id in action_id:
-            name_map = pd.read_csv(config.DATA.LABEL_LIST).values.tolist()
-            inp_actionlist = [name_map[i][1] for i in range(len(name_map))]
-            output = model(images, inp_actionlist)
-            
-        else:
-            images = pack_pathway_output(config, images)
-            output = model(images)
+        # Use autocast for mixed precision forward pass
+        use_amp = config.TRAIN.OPT_LEVEL != 'O0' and scaler is not None
         
-        total_loss = criterion(output, label_id)
-        total_loss = total_loss / config.TRAIN.ACCUMULATION_STEPS
+        with autocast(enabled=use_amp):
+            if config.MODEL.MODEL_NAME == 'XCLIP':
+                output, _ = model(images, texts, animal_labels, animal_pred, edges)
+                
+            elif config.MODEL.MODEL_NAME == 'VideoPrompt':
+            # for id in action_id:
+                name_map = pd.read_csv(config.DATA.LABEL_LIST).values.tolist()
+                inp_actionlist = [name_map[i][1] for i in range(len(name_map))]
+                output = model(images, inp_actionlist)
+                
+            else:
+                images = pack_pathway_output(config, images)
+                output = model(images)
+            
+            total_loss = criterion(output, label_id)
+            total_loss = total_loss / config.TRAIN.ACCUMULATION_STEPS
 
         if config.TRAIN.ACCUMULATION_STEPS == 1:
             optimizer.zero_grad()
-        if config.TRAIN.OPT_LEVEL != 'O0': # 纯FP32训练
-            with amp.scale_loss(total_loss, optimizer) as scaled_loss:
-                scaled_loss.requires_grad_(True)
-                scaled_loss.backward()
+        
+        # Use GradScaler for backward pass with mixed precision
+        if use_amp:
+            scaler.scale(total_loss).backward()
         else:
             total_loss.backward()
             
         if config.TRAIN.ACCUMULATION_STEPS > 1:
             if (idx + 1) % config.TRAIN.ACCUMULATION_STEPS == 0:
-                optimizer.step()
+                if use_amp:
+                    scaler.step(optimizer)
+                    scaler.update()
+                else:
+                    optimizer.step()
                 optimizer.zero_grad()
                 if config.TRAIN.LR_POLICY == 'cosineannealingwarmrestarts':
                     lr_scheduler.step(epoch * num_steps + idx)
                 else:
                     lr_scheduler.step_update(epoch * num_steps + idx)
         else:
-            optimizer.step()
+            if use_amp:
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                optimizer.step()
             if config.TRAIN.LR_POLICY == 'cosineannealingwarmrestarts':
                     lr_scheduler.step(epoch * num_steps + idx)
             else:

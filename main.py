@@ -18,7 +18,8 @@ from utils.logger import create_logger
 import time
 import numpy as np
 import random
-from apex import amp
+# from apex import amp  # Replaced with torch.cuda.amp
+from torch.cuda.amp import autocast, GradScaler
 from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 from datasets.blending import CutmixMixupBlending, one_hot
 from utils.config import get_config
@@ -147,8 +148,10 @@ def main(config):
         mixup_fn = LabelSmoothing(num_classes=config.DATA.NUM_CLASSES,
                                     smoothing=config.AUG.LABEL_SMOOTH) 
 
+    # Initialize GradScaler for mixed precision training with torch.cuda.amp
+    scaler = None
     if config.TRAIN.OPT_LEVEL != 'O0':
-        model, optimizer = amp.initialize(models=model, optimizers=optimizer, opt_level=config.TRAIN.OPT_LEVEL)
+        scaler = GradScaler()
     
     model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[config.LOCAL_RANK], broadcast_buffers=False, find_unused_parameters=True)
 
@@ -185,7 +188,7 @@ def main(config):
 
     for epoch in range(start_epoch, config.TRAIN.EPOCHS):
         train_loader.sampler.set_epoch(epoch)
-        train.train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_loader, text_labels, animal_labels, config, mixup_fn, train_data, logger)
+        train.train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_loader, text_labels, animal_labels, config, mixup_fn, train_data, logger, scaler)
 
         map, acc1  = val.validate(val_loader, val_data, text_labels, animal_labels, model, config, logger, vis=False)
     

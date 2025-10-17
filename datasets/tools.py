@@ -99,11 +99,11 @@ def compute_freq(file, dataset):
 # #     writer.writerow([key, freq[key], label_freq[key.split(',')[0]], animal_freq[key.split(',')[1]]])
 # # f.close()
 
-import csv
+# import csv
 
-f = open('description_ak.csv','w', newline='')
+# f = open('description_ak.csv','w', newline='')
 
-writer = csv.writer(f)
+# writer = csv.writer(f)
 
 # for animal in animal_freq.keys():
 #     label = []
@@ -114,17 +114,17 @@ writer = csv.writer(f)
 #     writer.writerow([animal, animal_freq[animal], len(label)])
 # f.close()
 
-with open('/mnt/sdb/data/jingyinuo/code/Video-QA/vicuna/fastchat/serve/action_ak.txt', 'r') as file:
-    lines = file.readlines()
-for line in lines:
-    if line[:6] == 'Action':
-        action = line[8:-2]
-    elif line[:11] == 'Description':
-        description = line[13:-1]
-        writer.writerow([action, description])
-    else:
-        pass
-f.close()
+# with open('/mnt/sdb/data/jingyinuo/code/Video-QA/vicuna/fastchat/serve/action_ak.txt', 'r') as file:
+#     lines = file.readlines()
+# for line in lines:
+#     if line[:6] == 'Action':
+#         action = line[8:-2]
+#     elif line[:11] == 'Description':
+#         description = line[13:-1]
+#         writer.writerow([action, description])
+#     else:
+#         pass
+# f.close()
         
 
 # keys = freq.keys()

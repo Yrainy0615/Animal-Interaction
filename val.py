@@ -18,7 +18,8 @@ from utils.logger import create_logger
 import time
 import numpy as np
 import random
-from apex import amp
+# from apex import amp  # Replaced with torch.cuda.amp (not used in validation)
+from torch.cuda.amp import autocast
 from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 from datasets.blending import CutmixMixupBlending, one_hot
 from utils.config import get_config
@@ -89,26 +90,27 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
                 label_id = label_id.cuda(non_blocking=True)
                 image_input = image.cuda(non_blocking=True) 
 
-                if config.TRAIN.OPT_LEVEL == 'O2':
-                    image_input = image_input.half()
+                # Use autocast for mixed precision inference
+                use_amp = config.TRAIN.OPT_LEVEL != 'O0'
                 
-                if config.MODEL.MODEL_NAME == 'XCLIP':
-                    animal_labels = animal_labels.cuda(non_blocking=True)
-                    animal_pred = animal_pred.cuda(non_blocking=True)
-                    
-                    animal_classes = val_data.animal_classes
-                    
-                    output, vf = model(image_input, text_inputs, animal_labels, animal_pred, edges, filename, config.PRED) # + output
-                    ani_map_meter.update_predictions(animal_pred, animal_gt)
-                    
-                elif config.MODEL.MODEL_NAME == 'VideoPrompt':
-                # for id in action_id:
-                    name_map = pd.read_csv(config.DATA.LABEL_LIST).values.tolist()
-                    inp_actionlist = [name_map[i][1] for i in range(len(name_map))]
-                    output = model(image_input, inp_actionlist)
-                else:
-                    image_input = pack_pathway_output(config, image_input)
-                    output = model(image_input)
+                with autocast(enabled=use_amp):
+                    if config.MODEL.MODEL_NAME == 'XCLIP':
+                        animal_labels = animal_labels.cuda(non_blocking=True)
+                        animal_pred = animal_pred.cuda(non_blocking=True)
+                        
+                        animal_classes = val_data.animal_classes
+                        
+                        output, vf = model(image_input, text_inputs, animal_labels, animal_pred, edges, filename, config.PRED) # + output
+                        ani_map_meter.update_predictions(animal_pred, animal_gt)
+                        
+                    elif config.MODEL.MODEL_NAME == 'VideoPrompt':
+                    # for id in action_id:
+                        name_map = pd.read_csv(config.DATA.LABEL_LIST).values.tolist()
+                        inp_actionlist = [name_map[i][1] for i in range(len(name_map))]
+                        output = model(image_input, inp_actionlist)
+                    else:
+                        image_input = pack_pathway_output(config, image_input)
+                        output = model(image_input)
         
                 similarity = output.view(b, -1).softmax(dim=-1)
                 tot_similarity += similarity
