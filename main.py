@@ -1,4 +1,14 @@
 import os
+# Suppress transformers and other library messages
+os.environ['TRANSFORMERS_VERBOSITY'] = 'error'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+import re
+import logging
+
+# Suppress transformers logging
+logging.getLogger('transformers').setLevel(logging.ERROR)
+
 import torch
 import torch.nn as nn
 import torch.backends.cudnn as cudnn
@@ -173,13 +183,54 @@ def main(config):
         print("########## using descrition ##########")
         text_labels = generate_text(pd.read_csv(config.DATA.description).values.tolist()) #[140,77]
     else:
-        text_labels = generate_text(pd.read_csv(config.DATA.LABEL_LIST).values.tolist()) #[140,77]
+        text_labels = generate_text(pd.read_csv(config.DATA.LABEL_LIST, header=None, delimiter="\s+").values.tolist()) #[140,77]
     print(text_labels.shape)
     if config.DATA.animal_description:
         print("########## using animal descrition ##########")
         animal_labels = generate_text(pd.read_csv(config.DATA.animal_description).values.tolist())
     else:
-        animal_labels = generate_text(pd.read_csv(config.DATA.ANIMAL_LABEL_LIST).values.tolist())
+        # animal_labels = generate_text(pd.read_csv(config.DATA.ANIMAL_LABEL_LIST, header=None, delimiter="\s+").values.tolist()) # 元のコード
+
+        # genus_to_id.txt (2列形式) を手動でパースする 
+        filepath = config.DATA.ANIMAL_LABEL_LIST
+        data_rows = []
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                for line_num, line in enumerate(f, 1):
+                    line_stripped = line.strip()
+                    if not line_stripped:
+                        continue
+                    
+                    # 1つ以上の空白文字で分割
+                    row_data = re.split(r'\s+', line_stripped)
+                    
+                    if len(row_data) == 2:
+                        # ケース1: 期待通り (例: ['lama', '60'])
+                        data_rows.append(row_data)
+                    elif len(row_data) > 2:
+                        # ケース2: 名前にスペースを含む (例: ['sea', 'lion', '65'])
+                        
+                        # 最後の要素を ID とする
+                        label_id = row_data[-1]
+                        # それ以前の要素をすべて結合して Name とする
+                        name = ' '.join(row_data[:-1])
+                        
+                        reconstructed_row = [name, label_id]
+                        data_rows.append(reconstructed_row)
+                    else:
+                        # 列数が不正 (1列以下)
+                        logger.warning(f"Skipping malformed line {line_num} in {filepath}: '{line_stripped}'")
+            
+            # generate_text には .values.tolist() 形式 (リストのリスト) を渡す
+            animal_labels = generate_text(data_rows)
+
+        except FileNotFoundError:
+            logger.error(f"File not found: {filepath}")
+            # エラー発生時はプログラムを停止させる
+            raise
+        except Exception as e:
+            logger.error(f"Error processing file {filepath}: {e}")
+            raise
     print(animal_labels.shape)
     if config.TEST.ONLY_TEST:
         map, acc1  = val.validate(val_loader, val_data, text_labels, animal_labels, model, config, logger, vis=False)
@@ -245,6 +296,12 @@ if __name__ == '__main__':
     Path(config.OUTPUT).mkdir(parents=True, exist_ok=True) 
     
     # logger
+    import os
+    if 'LOCAL_RANK' in os.environ:
+        config.defrost()
+        config.LOCAL_RANK = int(os.environ['LOCAL_RANK'])
+        config.freeze()
+
     logger = create_logger(output_dir=config.OUTPUT, dist_rank=dist.get_rank(), name=f"{config.MODEL.ARCH}")
     logger.info(f"working dir: {config.OUTPUT}")
     

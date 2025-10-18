@@ -670,7 +670,7 @@ def generate_text(data):
     else:
         text_aug = f"{{}}"
         # classes = torch.cat([clip.tokenize(text_aug.format(c), context_length=77) for i, c in data])
-        classes = torch.cat([clip.tokenize(text_aug.format(c), truncate=True) for i, c in data])
+        classes = torch.cat([clip.tokenize(text_aug.format(row[0] if isinstance(row, list) else row), truncate=True) for row in data])
         if (classes.shape[0] % 50) == 0:
             classes = classes.reshape(int(classes.shape[0]/50), 50, 77)
     return classes

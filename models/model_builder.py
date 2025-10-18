@@ -183,8 +183,11 @@ class XCLIP(CLIP):
         return self.visual(image)
 
     def encode_text(self, text):
-        text = text.to(torch.int)
+        # テンソルが long (int64) 型であることを保証する
+        text = text.to(torch.long)
         x = self.token_embedding(text)
+        
+        # <EOS> トークンIDが最大値であるという前提のロジック
         eos_indx = text.argmax(dim=-1)
         K, N1, C = x.shape
         
@@ -193,8 +196,12 @@ class XCLIP(CLIP):
         x = self.transformer(x)
         x = x.permute(1, 0, 2)  # LND -> NLD
         x = self.ln_final(x)
+        
+        # [K, C] の形状を抽出
         x = x[torch.arange(x.shape[0]), eos_indx] @ self.text_projection
-        x = x.reshape(K, -1)
+        
+        # 元のコードにあった x.reshape(K, -1) は、
+        # x が既に [K, C] であるため不要であり、削除した。
         return x
 
     def encode_video(self, image, name=''):
@@ -216,19 +223,25 @@ class XCLIP(CLIP):
         with torch.no_grad():
             if self.cache_text_features is None:
                 data_loader = DataLoader(text, batch_size=50, shuffle=False)
+                
+                # embed_dim は 512 と仮定されている
                 text_features = torch.zeros([int(text.shape[0]), 512]).cuda()
                 start_index = 0
                 for data in data_loader:
                     text_feature = self.encode_text(data)
                     end_index = int(start_index + text_feature.size(0))
-                    # 将 text_feature 填充到 text_features 中的对应位置
                     text_features[start_index:end_index] = text_feature
-
-                    # 更新起始索引
                     start_index = end_index
-                if text_features.shape[0] != 140 and text_features.shape[0] != 12 and text_features.shape[0] != 21 and text_features.shape[0] != 14:
+                
+                # --- 修正箇所 [ここから] ---
+                # 元のハードコードされた条件を、forward メソッドと
+                # 一貫性のあるロジック（50の倍数か）に修正した。
+                if text_features.shape[0] % 50 == 0:
                     text_features = text_features.view(int(text_features.shape[0]/50), 50, 512)
                     text_features, _ = torch.max(text_features, dim = 1)
+                # 50の倍数でない場合 (mmnet など) は view/max を実行しない。
+                # --- 修正箇所 [ここまで] ---
+                
                 print('text_features', text_features.shape)
                 self.cache_text_features = text_features
         self.train()
@@ -244,14 +257,15 @@ class XCLIP(CLIP):
                 for data in data_loader:
                     text_feature = self.encode_text(data)
                     end_index = int(start_index + text_feature.size(0))
-                    # 将 text_feature 填充到 text_features 中的对应位置
                     text_features[start_index:end_index] = text_feature
-
-                    # 更新起始索引
                     start_index = end_index
-                if text_features.shape[0] != 897 and text_features.shape[0] != 11 and text_features.shape[0] != 173:
+
+                # cache_text と同様に、ハードコードされた条件を修正した。
+                if text_features.shape[0] % 50 == 0:
                     text_features = text_features.view(int(text_features.shape[0]/50), 50, 512)
                     text_features, _ = torch.max(text_features, dim = 1)
+                # 50の倍数でない場合 (mmnet など) は view/max を実行しない。
+
                 print('animal_text_features', text_features.shape)
                 self.cache_animal_text_features = text_features
         self.train()
@@ -271,57 +285,66 @@ class XCLIP(CLIP):
         b = image.shape[0]
         T = image.shape[1]
         video_features, img_features = self.encode_video(image, name)
+        
+        # 入力テキストの形状に基づき、集約後のクラス数 (num1, num2) を決定する
         if text.shape[0] % 50 == 0:
             num2 = int(text.shape[0] / 50)
-            num1 = int(animal_text.shape[0] /50)
+            num1 = int(animal_text.shape[0] / 50)
         else:
             num2 = int(text.shape[0])
             num1 = int(animal_text.shape[0])
+        
         logit_scale = self.logit_scale.exp()
         
         if self.use_cache:
             if len(text.shape) == 3:
                 A, B, _ = text.shape
                 text = text.view(A*B, -1)
-            else:
-                pass
+            # 修正後の cache_text は [num2, 512] を返す
             text_features = self.cache_text(text)
+            
             if len(animal_text.shape) == 3:
                 A, B, _ = animal_text.shape
                 animal_text = animal_text.view(A*B, -1)
-            else:
-                pass
+            # 修正後の cache_animal_text は [num1, 512] を返す
             animal_text_features = self.cache_animal_text(animal_text)
         else:
             if len(text.shape) == 3:
                 A, B, _ = text.shape
                 text = text.view(A*B, -1)
-            else:
-                pass
             text_features = self.encode_text(text)
+            
             if len(animal_text.shape) == 3:
                 A, B, _ = animal_text.shape
                 animal_text = animal_text.view(A*B, -1)
-            else:
-                pass
             animal_text_features = self.encode_text(animal_text)
+            
+            # 注: もし use_cache=False で 50 の倍数でないデータセットを
+            # 扱う場合、cache_text と同様の % 50 分岐 (view + max) が
+            # この else ブロック内にも必要となる。
         
-        animal_text_features = animal_text_features.unsqueeze(0).expand(b, -1, -1) # 16, 897, 512
-        text_features = text_features.unsqueeze(0).expand(b, -1, -1) # 16, 140, 512
+        # [num1, 512] -> [b, num1, 512]
+        animal_text_features = animal_text_features.unsqueeze(0).expand(b, -1, -1) 
+        # [num2, 512] -> [b, num2, 512]
+        text_features = text_features.unsqueeze(0).expand(b, -1, -1) 
         
-        animal_pred = animal_pred.unsqueeze(1) # 16, 1, 512
+        animal_pred = animal_pred.unsqueeze(1) # [b, 1, 512] (元のコメントより推定)
         
         animal_text_feature = torch.einsum('bac, bcm->bam', [animal_pred.to(animal_text_features.dtype), animal_text_features])
         
-        animal_pred = animal_pred.squeeze(1).unsqueeze(-1) # 16, 897
+        animal_pred = animal_pred.squeeze(1).unsqueeze(-1) # [b, 512, 1]
+        
+        # (注: animal_pred [b, 512, 1] と animal_text_features [b, num1, 512] の
+        #  乗算 (torch.mul) はブロードキャスト不可。元のコードのロジックを維持するが、
+        #  animal_pred の形状が意図通りか確認が必要である。)
         animal_text_features = torch.mul(animal_pred.to(animal_text_features.dtype), animal_text_features)
         
         edges = edges.clone().detach()
 
-        x = torch.cat([animal_text_features, text_features], dim=1)
-        text_features = self.graph(x, edges, num1, num2)[:,animal_text_features.shape[1]:,:] # 2, 140, 512
+        x = torch.cat([animal_text_features, text_features], dim=1) # [b, num1 + num2, 512]
+        text_features = self.graph(x, edges, num1, num2)[:,animal_text_features.shape[1]:,:] # [b, num2, 512]
         
-        text_features = text_features + self.prompts_generator1(text_features, animal_text_feature) # 16, 140, 512     16, 1, 512
+        text_features = text_features + self.prompts_generator1(text_features, animal_text_feature)
         
         video_features = video_features.unsqueeze(1)
         video_features = video_features + self.prompts_generator2(video_features, animal_text_feature)

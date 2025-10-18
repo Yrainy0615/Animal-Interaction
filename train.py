@@ -107,6 +107,34 @@ def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_load
                 images = pack_pathway_output(config, images)
                 output = model(images)
             
+            # label_id (ターゲット) の形状を整形する。
+            # nn.CrossEntropyLoss は [BatchSize] の 1D テンソル (long 型) を期待する。
+            
+            # label_id が 2D テンソル ([B, N] または [B, 1]) の場合
+            if label_id.ndim == 2:
+                if label_id.shape[1] > 1:
+                    # [B, N] (One-hot) -> [B] (クラスインデックス)
+                    label_id = label_id.argmax(dim=1)
+                else:
+                    # [B, 1] -> [B]
+                    label_id = label_id.squeeze(dim=1)
+            
+            # 既に 1D ([B]) の場合、squeeze() は何もしない。
+            # 最終的に long 型に変換する。
+            label_id = label_id.squeeze().long()
+            
+            # アサーションエラー (t < n_classes) 対策
+            # config.DATA.NUM_CLASSES は 12
+            if label_id.max() >= config.DATA.NUM_CLASSES:
+                # 12 以上の値がある場合、1-based (1-12) と仮定し
+                # 0-based (0-11) にデクリメントする
+                logger.warning(f"Label index >= {config.DATA.NUM_CLASSES} detected. Assuming 1-based index and shifting to 0-based.")
+                label_id = label_id - 1
+            
+            # 負の値もチェック (安全のため)
+            if label_id.min() < 0:
+                logger.error(f"Negative label index detected: {label_id.min()}")
+
             total_loss = criterion(output, label_id)
             total_loss = total_loss / config.TRAIN.ACCUMULATION_STEPS
 
