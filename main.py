@@ -65,7 +65,7 @@ def parse_option():
 
     parser.add_argument("--local_rank", type=int, default=-1, help='local rank for DistributedDataParallel')
     parser.add_argument('--loss', type=str, default='ce')
-    parser.add_argument('--dataset', type=str, default='AK')
+    parser.add_argument('--dataset', type=str, default=None)
     parser.add_argument('--description', type=str, default=None)
     parser.add_argument('--animal_description', type=str, default=None)
     parser.add_argument('--pred', action='store_true')

@@ -1,5 +1,5 @@
-[2025-10-17 19:13:09 ViT-B/16] (main.py 249): INFO working dir: exp
-[2025-10-17 19:13:09 ViT-B/16] (main.py 253): INFO AUG:
+[2025-10-18 10:08:41 ViT-B/16] (main.py 249): INFO working dir: exp
+[2025-10-18 10:08:41 ViT-B/16] (main.py 253): INFO AUG:
   COLOR_JITTER: 0.8
   CUTMIX: 1.0
   GRAY_SCALE: 0.2
@@ -107,6 +107,3417 @@ TEST:
   NUM_CLIP: 1
   NUM_CROP: 1
   ONLY_TEST: True
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:10:02 ViT-B/16] (main.py 249): INFO working dir: exp
+[2025-10-18 10:10:02 ViT-B/16] (main.py 253): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: AK
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: -1
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: True
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:11:00 ViT-B/16] (main.py 249): INFO working dir: exp
+[2025-10-18 10:11:00 ViT-B/16] (main.py 253): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: -1
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: True
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:11:20 ViT-B/16] (tools.py 337): INFO Loading network weights from /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth.
+[2025-10-18 10:11:39 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.weight torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:11:39 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.bias torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:11:39 ViT-B/16] (tools.py 491): INFO Network weights graph.layers.1.weight not loaded.
+[2025-10-18 10:11:39 ViT-B/16] (tools.py 523): INFO => loaded successfully '/mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth' (epoch 28)
+[2025-10-18 10:12:30 ViT-B/16] (main.py 249): INFO working dir: exp
+[2025-10-18 10:12:30 ViT-B/16] (main.py 253): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: -1
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: True
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:12:36 ViT-B/16] (tools.py 337): INFO Loading network weights from /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth.
+[2025-10-18 10:12:38 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.weight torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:12:38 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.bias torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:12:38 ViT-B/16] (tools.py 491): INFO Network weights graph.layers.1.weight not loaded.
+[2025-10-18 10:12:38 ViT-B/16] (tools.py 523): INFO => loaded successfully '/mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth' (epoch 28)
+[2025-10-18 10:16:26 ViT-B/16] (main.py 249): INFO working dir: exp
+[2025-10-18 10:16:26 ViT-B/16] (main.py 253): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: -1
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: True
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:16:32 ViT-B/16] (tools.py 337): INFO Loading network weights from /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth.
+[2025-10-18 10:16:34 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.weight torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:16:34 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.bias torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:16:34 ViT-B/16] (tools.py 491): INFO Network weights graph.layers.1.weight not loaded.
+[2025-10-18 10:16:34 ViT-B/16] (tools.py 523): INFO => loaded successfully '/mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth' (epoch 28)
+[2025-10-18 10:16:38 ViT-B/16] (val.py 72): INFO 1 views inference
+[2025-10-18 10:18:44 ViT-B/16] (main.py 249): INFO working dir: exp
+[2025-10-18 10:18:44 ViT-B/16] (main.py 253): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: -1
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: True
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:18:50 ViT-B/16] (tools.py 337): INFO Loading network weights from /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth.
+[2025-10-18 10:18:51 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.weight torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:18:51 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.bias torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:18:51 ViT-B/16] (tools.py 491): INFO Network weights graph.layers.1.weight not loaded.
+[2025-10-18 10:18:51 ViT-B/16] (tools.py 523): INFO => loaded successfully '/mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth' (epoch 28)
+[2025-10-18 10:18:55 ViT-B/16] (val.py 72): INFO 1 views inference
+[2025-10-18 10:21:49 ViT-B/16] (main.py 249): INFO working dir: exp
+[2025-10-18 10:21:49 ViT-B/16] (main.py 253): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: -1
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: True
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:21:55 ViT-B/16] (tools.py 337): INFO Loading network weights from /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth.
+[2025-10-18 10:21:57 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.weight torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:21:57 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.bias torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:21:57 ViT-B/16] (tools.py 491): INFO Network weights graph.layers.1.weight not loaded.
+[2025-10-18 10:21:57 ViT-B/16] (tools.py 523): INFO => loaded successfully '/mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth' (epoch 28)
+[2025-10-18 10:22:01 ViT-B/16] (val.py 72): INFO 1 views inference
+[2025-10-18 10:23:40 ViT-B/16] (main.py 260): INFO working dir: exp
+[2025-10-18 10:23:40 ViT-B/16] (main.py 264): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: True
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:23:46 ViT-B/16] (tools.py 337): INFO Loading network weights from /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth.
+[2025-10-18 10:23:47 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.weight torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:23:47 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.bias torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:23:47 ViT-B/16] (tools.py 491): INFO Network weights graph.layers.1.weight not loaded.
+[2025-10-18 10:23:48 ViT-B/16] (tools.py 523): INFO => loaded successfully '/mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth' (epoch 28)
+[2025-10-18 10:23:52 ViT-B/16] (val.py 72): INFO 1 views inference
+[2025-10-18 10:25:13 ViT-B/16] (main.py 260): INFO working dir: exp
+[2025-10-18 10:25:13 ViT-B/16] (main.py 264): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: True
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:25:19 ViT-B/16] (tools.py 337): INFO Loading network weights from /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth.
+[2025-10-18 10:25:20 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.weight torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:25:20 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.bias torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:25:20 ViT-B/16] (tools.py 491): INFO Network weights graph.layers.1.weight not loaded.
+[2025-10-18 10:25:20 ViT-B/16] (tools.py 523): INFO => loaded successfully '/mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth' (epoch 28)
+[2025-10-18 10:25:25 ViT-B/16] (val.py 76): INFO 1 views inference
+[2025-10-18 10:28:19 ViT-B/16] (main.py 260): INFO working dir: exp
+[2025-10-18 10:28:19 ViT-B/16] (main.py 264): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: True
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:28:25 ViT-B/16] (tools.py 337): INFO Loading network weights from /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth.
+[2025-10-18 10:28:26 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.weight torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:28:26 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.bias torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:28:26 ViT-B/16] (tools.py 491): INFO Network weights graph.layers.1.weight not loaded.
+[2025-10-18 10:28:26 ViT-B/16] (tools.py 523): INFO => loaded successfully '/mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth' (epoch 28)
+[2025-10-18 10:28:30 ViT-B/16] (val.py 76): INFO 1 views inference
+[2025-10-18 10:30:01 ViT-B/16] (main.py 260): INFO working dir: exp
+[2025-10-18 10:30:01 ViT-B/16] (main.py 264): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: True
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:30:07 ViT-B/16] (tools.py 337): INFO Loading network weights from /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth.
+[2025-10-18 10:30:08 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.weight torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:30:08 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.bias torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:30:08 ViT-B/16] (tools.py 491): INFO Network weights graph.layers.1.weight not loaded.
+[2025-10-18 10:30:08 ViT-B/16] (tools.py 523): INFO => loaded successfully '/mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth' (epoch 28)
+[2025-10-18 10:30:12 ViT-B/16] (val.py 76): INFO 1 views inference
+[2025-10-18 10:30:15 ViT-B/16] (val.py 199): INFO Test: [0/1920]	Acc@1: 0.000	mAP: 0.500000	
+[2025-10-18 10:30:22 ViT-B/16] (val.py 199): INFO Test: [50/1920]	Acc@1: 0.039	mAP: 0.100000	
+[2025-10-18 10:30:28 ViT-B/16] (val.py 199): INFO Test: [100/1920]	Acc@1: 0.059	mAP: 0.083333	
+[2025-10-18 10:30:35 ViT-B/16] (val.py 199): INFO Test: [150/1920]	Acc@1: 0.073	mAP: 0.083333	
+[2025-10-18 10:30:41 ViT-B/16] (val.py 199): INFO Test: [200/1920]	Acc@1: 0.062	mAP: 0.083333	
+[2025-10-18 10:30:48 ViT-B/16] (val.py 199): INFO Test: [250/1920]	Acc@1: 0.060	mAP: 0.083333	
+[2025-10-18 10:30:55 ViT-B/16] (val.py 199): INFO Test: [300/1920]	Acc@1: 0.066	mAP: 0.083333	
+[2025-10-18 10:31:01 ViT-B/16] (val.py 199): INFO Test: [350/1920]	Acc@1: 0.061	mAP: 0.083333	
+[2025-10-18 10:31:08 ViT-B/16] (val.py 199): INFO Test: [400/1920]	Acc@1: 0.064	mAP: 0.083333	
+[2025-10-18 10:31:14 ViT-B/16] (val.py 199): INFO Test: [450/1920]	Acc@1: 0.065	mAP: 0.083333	
+[2025-10-18 10:31:21 ViT-B/16] (val.py 199): INFO Test: [500/1920]	Acc@1: 0.062	mAP: 0.083333	
+[2025-10-18 10:31:28 ViT-B/16] (val.py 199): INFO Test: [550/1920]	Acc@1: 0.064	mAP: 0.083333	
+[2025-10-18 10:31:34 ViT-B/16] (val.py 199): INFO Test: [600/1920]	Acc@1: 0.067	mAP: 0.083333	
+[2025-10-18 10:31:41 ViT-B/16] (val.py 199): INFO Test: [650/1920]	Acc@1: 0.071	mAP: 0.083333	
+[2025-10-18 10:31:48 ViT-B/16] (val.py 199): INFO Test: [700/1920]	Acc@1: 0.071	mAP: 0.083333	
+[2025-10-18 10:31:55 ViT-B/16] (val.py 199): INFO Test: [750/1920]	Acc@1: 0.072	mAP: 0.083333	
+[2025-10-18 10:32:02 ViT-B/16] (val.py 199): INFO Test: [800/1920]	Acc@1: 0.071	mAP: 0.083333	
+[2025-10-18 10:32:09 ViT-B/16] (val.py 199): INFO Test: [850/1920]	Acc@1: 0.069	mAP: 0.083333	
+[2025-10-18 10:32:17 ViT-B/16] (val.py 199): INFO Test: [900/1920]	Acc@1: 0.070	mAP: 0.083333	
+[2025-10-18 10:32:24 ViT-B/16] (val.py 199): INFO Test: [950/1920]	Acc@1: 0.070	mAP: 0.083333	
+[2025-10-18 10:32:32 ViT-B/16] (val.py 199): INFO Test: [1000/1920]	Acc@1: 0.069	mAP: 0.083333	
+[2025-10-18 10:32:39 ViT-B/16] (val.py 199): INFO Test: [1050/1920]	Acc@1: 0.070	mAP: 0.083333	
+[2025-10-18 10:32:46 ViT-B/16] (val.py 199): INFO Test: [1100/1920]	Acc@1: 0.073	mAP: 0.083333	
+[2025-10-18 10:32:54 ViT-B/16] (val.py 199): INFO Test: [1150/1920]	Acc@1: 0.072	mAP: 0.083333	
+[2025-10-18 10:33:02 ViT-B/16] (val.py 199): INFO Test: [1200/1920]	Acc@1: 0.071	mAP: 0.083333	
+[2025-10-18 10:33:09 ViT-B/16] (val.py 199): INFO Test: [1250/1920]	Acc@1: 0.071	mAP: 0.083333	
+[2025-10-18 10:33:17 ViT-B/16] (val.py 199): INFO Test: [1300/1920]	Acc@1: 0.072	mAP: 0.083333	
+[2025-10-18 10:33:24 ViT-B/16] (val.py 199): INFO Test: [1350/1920]	Acc@1: 0.073	mAP: 0.083333	
+[2025-10-18 10:33:32 ViT-B/16] (val.py 199): INFO Test: [1400/1920]	Acc@1: 0.072	mAP: 0.083333	
+[2025-10-18 10:33:40 ViT-B/16] (val.py 199): INFO Test: [1450/1920]	Acc@1: 0.072	mAP: 0.083333	
+[2025-10-18 10:33:47 ViT-B/16] (val.py 199): INFO Test: [1500/1920]	Acc@1: 0.072	mAP: 0.083333	
+[2025-10-18 10:33:55 ViT-B/16] (val.py 199): INFO Test: [1550/1920]	Acc@1: 0.073	mAP: 0.083333	
+[2025-10-18 10:34:03 ViT-B/16] (val.py 199): INFO Test: [1600/1920]	Acc@1: 0.074	mAP: 0.083333	
+[2025-10-18 10:34:10 ViT-B/16] (val.py 199): INFO Test: [1650/1920]	Acc@1: 0.074	mAP: 0.083333	
+[2025-10-18 10:34:19 ViT-B/16] (val.py 199): INFO Test: [1700/1920]	Acc@1: 0.075	mAP: 0.083333	
+[2025-10-18 10:34:26 ViT-B/16] (val.py 199): INFO Test: [1750/1920]	Acc@1: 0.076	mAP: 0.083333	
+[2025-10-18 10:34:34 ViT-B/16] (val.py 199): INFO Test: [1800/1920]	Acc@1: 0.075	mAP: 0.083333	
+[2025-10-18 10:34:42 ViT-B/16] (val.py 199): INFO Test: [1850/1920]	Acc@1: 0.075	mAP: 0.083333	
+[2025-10-18 10:34:50 ViT-B/16] (val.py 199): INFO Test: [1900/1920]	Acc@1: 0.074	mAP: 0.083333	
+[2025-10-18 10:34:53 ViT-B/16] (val.py 219): INFO  * Acc@1 0.0742 Acc@5 0.6003
+[2025-10-18 10:34:53 ViT-B/16] (val.py 220): INFO  * f1@3 0.0695 p3 0.0464 r3 0.1391 f1@5 0.0218 p5 0.0116 r5 0.2500 map 0.0833
+[2025-10-18 10:34:53 ViT-B/16] (val.py 232): INFO Acc1: * hd 0.0000 md 0.0000 ta 0.2351
+[2025-10-18 10:34:53 ViT-B/16] (val.py 233): INFO Acc5: * hd 0.5760 md 1.0000 ta 0.2351
+[2025-10-18 10:34:53 ViT-B/16] (main.py 186): INFO Accuracy of the network on the 3841 test videos: 0.0833 0.0742
+[2025-10-18 10:37:48 ViT-B/16] (main.py 260): INFO working dir: exp
+[2025-10-18 10:37:48 ViT-B/16] (main.py 264): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: True
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:37:54 ViT-B/16] (tools.py 337): INFO Loading network weights from /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth.
+[2025-10-18 10:37:55 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.weight torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:37:55 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.bias torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:37:55 ViT-B/16] (tools.py 491): INFO Network weights graph.layers.1.weight not loaded.
+[2025-10-18 10:37:55 ViT-B/16] (tools.py 523): INFO => loaded successfully '/mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth' (epoch 28)
+[2025-10-18 10:37:59 ViT-B/16] (val.py 76): INFO 1 views inference
+[2025-10-18 10:38:03 ViT-B/16] (val.py 199): INFO Test: [0/1920]	Acc@1: 0.000	mAP: 0.500000	
+[2025-10-18 10:38:10 ViT-B/16] (val.py 199): INFO Test: [50/1920]	Acc@1: 0.039	mAP: 0.100000	
+[2025-10-18 10:38:16 ViT-B/16] (val.py 199): INFO Test: [100/1920]	Acc@1: 0.059	mAP: 0.083333	
+[2025-10-18 10:38:22 ViT-B/16] (val.py 199): INFO Test: [150/1920]	Acc@1: 0.073	mAP: 0.083333	
+[2025-10-18 10:38:29 ViT-B/16] (val.py 199): INFO Test: [200/1920]	Acc@1: 0.062	mAP: 0.083333	
+[2025-10-18 10:38:35 ViT-B/16] (val.py 199): INFO Test: [250/1920]	Acc@1: 0.060	mAP: 0.083333	
+[2025-10-18 10:38:42 ViT-B/16] (val.py 199): INFO Test: [300/1920]	Acc@1: 0.066	mAP: 0.083333	
+[2025-10-18 10:38:48 ViT-B/16] (val.py 199): INFO Test: [350/1920]	Acc@1: 0.061	mAP: 0.083333	
+[2025-10-18 10:38:55 ViT-B/16] (val.py 199): INFO Test: [400/1920]	Acc@1: 0.064	mAP: 0.083333	
+[2025-10-18 10:39:01 ViT-B/16] (val.py 199): INFO Test: [450/1920]	Acc@1: 0.065	mAP: 0.083333	
+[2025-10-18 10:39:08 ViT-B/16] (val.py 199): INFO Test: [500/1920]	Acc@1: 0.062	mAP: 0.083333	
+[2025-10-18 10:39:15 ViT-B/16] (val.py 199): INFO Test: [550/1920]	Acc@1: 0.064	mAP: 0.083333	
+[2025-10-18 10:39:21 ViT-B/16] (val.py 199): INFO Test: [600/1920]	Acc@1: 0.067	mAP: 0.083333	
+[2025-10-18 10:39:28 ViT-B/16] (val.py 199): INFO Test: [650/1920]	Acc@1: 0.071	mAP: 0.083333	
+[2025-10-18 10:39:35 ViT-B/16] (val.py 199): INFO Test: [700/1920]	Acc@1: 0.071	mAP: 0.083333	
+[2025-10-18 10:39:41 ViT-B/16] (val.py 199): INFO Test: [750/1920]	Acc@1: 0.072	mAP: 0.083333	
+[2025-10-18 10:39:48 ViT-B/16] (val.py 199): INFO Test: [800/1920]	Acc@1: 0.071	mAP: 0.083333	
+[2025-10-18 10:39:54 ViT-B/16] (val.py 199): INFO Test: [850/1920]	Acc@1: 0.069	mAP: 0.083333	
+[2025-10-18 10:40:01 ViT-B/16] (val.py 199): INFO Test: [900/1920]	Acc@1: 0.070	mAP: 0.083333	
+[2025-10-18 10:40:08 ViT-B/16] (val.py 199): INFO Test: [950/1920]	Acc@1: 0.070	mAP: 0.083333	
+[2025-10-18 10:40:14 ViT-B/16] (val.py 199): INFO Test: [1000/1920]	Acc@1: 0.069	mAP: 0.083333	
+[2025-10-18 10:40:21 ViT-B/16] (val.py 199): INFO Test: [1050/1920]	Acc@1: 0.070	mAP: 0.083333	
+[2025-10-18 10:40:28 ViT-B/16] (val.py 199): INFO Test: [1100/1920]	Acc@1: 0.073	mAP: 0.083333	
+[2025-10-18 10:40:35 ViT-B/16] (val.py 199): INFO Test: [1150/1920]	Acc@1: 0.072	mAP: 0.083333	
+[2025-10-18 10:40:41 ViT-B/16] (val.py 199): INFO Test: [1200/1920]	Acc@1: 0.071	mAP: 0.083333	
+[2025-10-18 10:40:48 ViT-B/16] (val.py 199): INFO Test: [1250/1920]	Acc@1: 0.071	mAP: 0.083333	
+[2025-10-18 10:40:55 ViT-B/16] (val.py 199): INFO Test: [1300/1920]	Acc@1: 0.072	mAP: 0.083333	
+[2025-10-18 10:41:02 ViT-B/16] (val.py 199): INFO Test: [1350/1920]	Acc@1: 0.073	mAP: 0.083333	
+[2025-10-18 10:41:08 ViT-B/16] (val.py 199): INFO Test: [1400/1920]	Acc@1: 0.072	mAP: 0.083333	
+[2025-10-18 10:41:15 ViT-B/16] (val.py 199): INFO Test: [1450/1920]	Acc@1: 0.072	mAP: 0.083333	
+[2025-10-18 10:41:22 ViT-B/16] (val.py 199): INFO Test: [1500/1920]	Acc@1: 0.072	mAP: 0.083333	
+[2025-10-18 10:41:29 ViT-B/16] (val.py 199): INFO Test: [1550/1920]	Acc@1: 0.073	mAP: 0.083333	
+[2025-10-18 10:41:36 ViT-B/16] (val.py 199): INFO Test: [1600/1920]	Acc@1: 0.074	mAP: 0.083333	
+[2025-10-18 10:41:42 ViT-B/16] (val.py 199): INFO Test: [1650/1920]	Acc@1: 0.074	mAP: 0.083333	
+[2025-10-18 10:41:49 ViT-B/16] (val.py 199): INFO Test: [1700/1920]	Acc@1: 0.075	mAP: 0.083333	
+[2025-10-18 10:41:56 ViT-B/16] (val.py 199): INFO Test: [1750/1920]	Acc@1: 0.076	mAP: 0.083333	
+[2025-10-18 10:42:03 ViT-B/16] (val.py 199): INFO Test: [1800/1920]	Acc@1: 0.075	mAP: 0.083333	
+[2025-10-18 10:42:10 ViT-B/16] (val.py 199): INFO Test: [1850/1920]	Acc@1: 0.075	mAP: 0.083333	
+[2025-10-18 10:42:17 ViT-B/16] (val.py 199): INFO Test: [1900/1920]	Acc@1: 0.074	mAP: 0.083333	
+[2025-10-18 10:42:20 ViT-B/16] (val.py 219): INFO  * Acc@1 0.0742 Acc@5 0.6003
+[2025-10-18 10:42:20 ViT-B/16] (val.py 220): INFO  * f1@3 0.0695 p3 0.0464 r3 0.1391 f1@5 0.0218 p5 0.0116 r5 0.2500 map 0.0833
+[2025-10-18 10:42:20 ViT-B/16] (val.py 232): INFO Acc1: * hd 0.0000 md 0.0000 ta 0.2351
+[2025-10-18 10:42:20 ViT-B/16] (val.py 233): INFO Acc5: * hd 0.5760 md 1.0000 ta 0.2351
+[2025-10-18 10:42:20 ViT-B/16] (main.py 186): INFO Accuracy of the network on the 3841 test videos: 0.0833 0.0742
+[2025-10-18 10:44:20 ViT-B/16] (main.py 260): INFO working dir: exp
+[2025-10-18 10:44:20 ViT-B/16] (main.py 264): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: AK
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:45:09 ViT-B/16] (main.py 260): INFO working dir: exp
+[2025-10-18 10:45:09 ViT-B/16] (main.py 264): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: AK
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:55:08 ViT-B/16] (main.py 260): INFO working dir: exp
+[2025-10-18 10:55:08 ViT-B/16] (main.py 264): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: AK
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:56:04 ViT-B/16] (main.py 260): INFO working dir: exp
+[2025-10-18 10:56:04 ViT-B/16] (main.py 264): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:56:56 ViT-B/16] (main.py 260): INFO working dir: exp
+[2025-10-18 10:56:56 ViT-B/16] (main.py 264): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:57:31 ViT-B/16] (main.py 260): INFO working dir: exp
+[2025-10-18 10:57:31 ViT-B/16] (main.py 264): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:58:46 ViT-B/16] (main.py 260): INFO working dir: exp
+[2025-10-18 10:58:46 ViT-B/16] (main.py 264): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: True
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 10:58:52 ViT-B/16] (tools.py 337): INFO Loading network weights from /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth.
+[2025-10-18 10:58:54 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.weight torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:58:54 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.bias torch.Size([256]) -> torch.Size([512])
+[2025-10-18 10:58:54 ViT-B/16] (tools.py 491): INFO Network weights graph.layers.1.weight not loaded.
+[2025-10-18 10:58:54 ViT-B/16] (tools.py 523): INFO => loaded successfully '/mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth' (epoch 28)
+[2025-10-18 10:58:58 ViT-B/16] (val.py 76): INFO 1 views inference
+[2025-10-18 10:59:01 ViT-B/16] (val.py 199): INFO Test: [0/1920]	Acc@1: 0.000	mAP: 0.500000	
+[2025-10-18 10:59:08 ViT-B/16] (val.py 199): INFO Test: [50/1920]	Acc@1: 0.039	mAP: 0.100000	
+[2025-10-18 10:59:14 ViT-B/16] (val.py 199): INFO Test: [100/1920]	Acc@1: 0.059	mAP: 0.083333	
+[2025-10-18 10:59:21 ViT-B/16] (val.py 199): INFO Test: [150/1920]	Acc@1: 0.073	mAP: 0.083333	
+[2025-10-18 10:59:27 ViT-B/16] (val.py 199): INFO Test: [200/1920]	Acc@1: 0.062	mAP: 0.083333	
+[2025-10-18 10:59:34 ViT-B/16] (val.py 199): INFO Test: [250/1920]	Acc@1: 0.060	mAP: 0.083333	
+[2025-10-18 10:59:40 ViT-B/16] (val.py 199): INFO Test: [300/1920]	Acc@1: 0.066	mAP: 0.083333	
+[2025-10-18 10:59:47 ViT-B/16] (val.py 199): INFO Test: [350/1920]	Acc@1: 0.061	mAP: 0.083333	
+[2025-10-18 10:59:53 ViT-B/16] (val.py 199): INFO Test: [400/1920]	Acc@1: 0.064	mAP: 0.083333	
+[2025-10-18 11:00:00 ViT-B/16] (val.py 199): INFO Test: [450/1920]	Acc@1: 0.065	mAP: 0.083333	
+[2025-10-18 11:00:06 ViT-B/16] (val.py 199): INFO Test: [500/1920]	Acc@1: 0.062	mAP: 0.083333	
+[2025-10-18 11:01:08 ViT-B/16] (main.py 260): INFO working dir: exp
+[2025-10-18 11:01:08 ViT-B/16] (main.py 264): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 12:35:10 ViT-B/16] (main.py 249): INFO working dir: exp
+[2025-10-18 12:35:10 ViT-B/16] (main.py 253): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: -1
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 12:37:50 ViT-B/16] (main.py 249): INFO working dir: exp
+[2025-10-18 12:37:50 ViT-B/16] (main.py 253): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: -1
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 12:38:19 ViT-B/16] (main.py 249): INFO working dir: exp
+[2025-10-18 12:38:19 ViT-B/16] (main.py 253): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: -1
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 4
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 16
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-18 12:38:25 ViT-B/16] (tools.py 337): INFO Loading network weights from /mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth.
+[2025-10-18 12:38:26 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.weight torch.Size([256]) -> torch.Size([512])
+[2025-10-18 12:38:26 ViT-B/16] (tools.py 586): INFO graph.layers.1.norm.bias torch.Size([256]) -> torch.Size([512])
+[2025-10-18 12:38:26 ViT-B/16] (tools.py 491): INFO Network weights graph.layers.1.weight not loaded.
+[2025-10-18 12:38:26 ViT-B/16] (tools.py 523): INFO => loaded successfully '/mnt/nfs/mammal_net/models/Animal-CLIP/mmnet_best.pth' (epoch 28)
+[2025-10-18 12:38:43 ViT-B/16] (main.py 249): INFO working dir: exp
+[2025-10-18 12:38:43 ViT-B/16] (main.py 253): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: -1
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  MODEL_NAME: XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
   TEST_LONG_TAIL: True
   TSNE: False
 TRAIN:

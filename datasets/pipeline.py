@@ -1974,7 +1974,7 @@ class SampleFrames:
         avg_interval = (num_frames - ori_clip_len + 1) / float(self.num_clips)
         if num_frames > ori_clip_len - 1:
             base_offsets = np.arange(self.num_clips) * avg_interval
-            clip_offsets = (base_offsets + avg_interval / 2.0).astype(np.int)
+            clip_offsets = (base_offsets + avg_interval / 2.0).astype(np.int32)
             if self.twice_sample:
                 clip_offsets = np.concatenate([clip_offsets, base_offsets])
         else:
@@ -2058,7 +2058,7 @@ class SampleFrames:
             start_index = results['start_index']
             frame_inds = np.concatenate(frame_inds) + start_index
 
-        results['frame_inds'] = frame_inds.astype(np.int)
+        results['frame_inds'] = frame_inds.astype(np.int32)
         results['clip_len'] = self.clip_len
         results['frame_interval'] = self.frame_interval
         results['num_clips'] = self.num_clips

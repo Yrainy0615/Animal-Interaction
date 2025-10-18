@@ -41,7 +41,10 @@ import pandas as pd
 
 import json
 
-import open_clip
+try:
+    import open_clip
+except ImportError:
+    open_clip = None  # open_clip not available
 
 from PIL import Image
 
@@ -56,6 +59,10 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
     map_meter = AverageMeter()
     ani_map_meter = AverageMeter()
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    
+    # Initialize nu and tot for noi calculation
+    nu = 0
+    tot = 0
     
     from torchmetrics.classification import MultilabelAccuracy
     eval_metric = MultilabelAccuracy(num_labels=140, average='micro').to(device)
@@ -143,19 +150,27 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
             acc5_meter.update(float(acc5) / b, b)
             
             if noi == True:
-                rela = {}
-                fin = open(config.DATA.RELATION_FILE, 'r')
-                for line in fin:
-                    animal, labels, num = line.strip().split("	")
-                    labels = eval(labels)
-                    rela[animal] = labels
-                for i in range(b):
-                    animals = torch.nonzero(animal_gt[i])
-                    if len(animals) == 1:
-                        nu = nu + 1
-                        for j in indices_5[i]:
-                            if j not in rela[animal_classes[animals][1]]:
-                                tot = tot + 1
+                try:
+                    rela = {}
+                    fin = open(config.DATA.RELATION_FILE, 'r')
+                    for line in fin:
+                        animal, labels, num = line.strip().split("	")
+                        labels = eval(labels)
+                        rela[animal] = labels
+                    for i in range(b):
+                        animals = torch.nonzero(animal_gt[i])
+                        if len(animals) == 1:
+                            nu = nu + 1
+                            for j in indices_5[i]:
+                                animal_key = animal_classes[animals[0].item()]
+                                if isinstance(animal_key, (list, tuple)) and len(animal_key) > 1:
+                                    animal_key = animal_key[1]
+                                if str(animal_key) in rela and j not in rela[str(animal_key)]:
+                                    tot = tot + 1
+                except Exception as e:
+                    # Skip noi calculation if there's any error
+                    logger.info(f"Skipping noi calculation due to error: {e}")
+                    pass
             # 结果可视化
             if vis == True:
                 print("######## vis start ########")
