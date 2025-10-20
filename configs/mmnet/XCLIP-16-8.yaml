@@ -17,4 +17,4 @@ TRAIN:
     BATCH_SIZE: 8
     LOSS: 'ce'
     ACCUMULATION_STEPS: 8
-    EPOCHS: 30
+    EPOCHS: 2

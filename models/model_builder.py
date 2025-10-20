@@ -397,8 +397,9 @@ def build_model(state_dict: dict, T=8, droppath=0., use_checkpoint=False, logger
             del state_dict[key]
 
     msg = model.load_state_dict(state_dict,strict=False)
-   
-    return model.eval()
+
+    # return model.eval()
+    return model
 
 
 def xclip_load(model_path, name: str, device: Union[str, torch.device] = "cuda" if torch.cuda.is_available() else "cpu", 

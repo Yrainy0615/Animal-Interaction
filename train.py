@@ -138,7 +138,7 @@ def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_load
             total_loss = criterion(output, label_id)
             total_loss = total_loss / config.TRAIN.ACCUMULATION_STEPS
 
-        if config.TRAIN.ACCUMULATION_STEPS == 1:
+        if (idx == 0) or (config.TRAIN.ACCUMULATION_STEPS == 1) or ((idx + 1) % config.TRAIN.ACCUMULATION_STEPS == 0):
             optimizer.zero_grad()
         
         # Use GradScaler for backward pass with mixed precision
