@@ -94,7 +94,7 @@ def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_load
         use_amp = config.TRAIN.OPT_LEVEL != 'O0' and scaler is not None
         
         with autocast(enabled=use_amp):
-            if config.MODEL.MODEL_NAME == 'XCLIP':
+            if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP']:
                 output, _ = model(images, texts, animal_labels, animal_pred, edges)
                 
             elif config.MODEL.MODEL_NAME == 'VideoPrompt':

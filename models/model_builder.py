@@ -11,6 +11,7 @@ import warnings
 sys.path.append("../")
 from clip.model import CLIP,LayerNorm,Transformer,VisionTransformer
 import clip
+from transformers import CLIPModel
 import math
 from functools import partial
 from torch.nn.init import trunc_normal_
@@ -431,6 +432,150 @@ def xclip_load(model_path, name: str, device: Union[str, torch.device] = "cuda" 
     if str(device) == "cpu":
         model.float()
     return model, model.state_dict()
+
+
+def load_finetuned_xclip_model(
+    hf_model_path: str, 
+    device: str,
+    xclip_params: dict,
+    expected_arch: str # config.MODEL.ARCH を受け取る
+) -> XCLIP:
+    """
+    Hugging Face形式のファインチューニング済みCLIPモデルをロードし、
+    OpenAI形式に変換してXCLIPモデルに読み込ませる。
+    
+    エラー抑制(try-except)は行わず、問題発生時にはエラーを送出する。
+    """
+    
+    print(f"--- Loading Fine-Tuned HF Model from {hf_model_path} ---")
+    
+    # ステップ1: HF形式のモデルをロード
+    # OSErrorが発生した場合、ここで停止する
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore") # config.json の警告を抑制
+        ft_model = CLIPModel.from_pretrained(hf_model_path).to(device)
+    
+    hf_state_dict = ft_model.state_dict()
+    
+    # --- アーキテクチャ検証 ---
+    config = ft_model.config
+    vision_layers = config.vision_config.num_hidden_layers
+    text_layers = config.text_config.num_hidden_layers
+    
+    # ViT-B (12層) の変換ロジックを前提としているため、レイヤー数を確認
+    expected_layers = 0
+    if expected_arch == 'ViT-B/32' or expected_arch == 'ViT-B/16':
+        expected_layers = 12
+    # elif expected_arch == 'ViT-L/14':
+    #     expected_layers = 24 # 注: 変換ロジックが ViT-L に未対応
+        
+    if expected_layers == 0:
+        raise ValueError(
+            f"Unsupported expected_arch: '{expected_arch}'. "
+            "Conversion logic only supports 'ViT-B/16' or 'ViT-B/32'."
+        )
+
+    if (vision_layers != expected_layers or text_layers != expected_layers):
+        raise ValueError(
+            f"Architecture mismatch: Config specifies '{expected_arch}' ({expected_layers} layers), "
+            f"but HF model has {vision_layers} vision layers "
+            f"and {text_layers} text layers. "
+            "Conversion logic will fail."
+        )
+
+    del ft_model # メモリ解放
+
+    print("--- Converting HF state_dict to OpenAI format ---")
+    
+    # ステップ2: HF state_dict を OpenAI state_dict に変換
+    # KeyError が発生した場合、ここで停止する
+    openai_state_dict = {}
+    hf_key_prefix_text = "text_model."
+    hf_key_prefix_vision = "vision_model."
+
+    # --- Text Model 変換 ---
+    openai_state_dict["token_embedding.weight"] = hf_state_dict[hf_key_prefix_text + "embeddings.token_embedding.weight"]
+    openai_state_dict["positional_embedding"] = hf_state_dict[hf_key_prefix_text + "embeddings.position_embedding.weight"]
+    
+    for i in range(text_layers):
+        q_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.q_proj.weight"]
+        k_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.k_proj.weight"]
+        v_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.v_proj.weight"]
+        openai_state_dict[f"transformer.resblocks.{i}.attn.in_proj_weight"] = torch.cat([q_w, k_w, v_w], dim=0)
+        
+        q_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.q_proj.bias"]
+        k_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.k_proj.bias"]
+        v_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.v_proj.bias"]
+        openai_state_dict[f"transformer.resblocks.{i}.attn.in_proj_bias"] = torch.cat([q_b, k_b, v_b], dim=0)
+
+        openai_state_dict[f"transformer.resblocks.{i}.attn.out_proj.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.out_proj.weight"]
+        openai_state_dict[f"transformer.resblocks.{i}.attn.out_proj.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.out_proj.bias"]
+        openai_state_dict[f"transformer.resblocks.{i}.ln_1.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm1.weight"]
+        openai_state_dict[f"transformer.resblocks.{i}.ln_1.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm1.bias"]
+        openai_state_dict[f"transformer.resblocks.{i}.mlp.c_fc.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc1.weight"]
+        openai_state_dict[f"transformer.resblocks.{i}.mlp.c_fc.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc1.bias"]
+        openai_state_dict[f"transformer.resblocks.{i}.mlp.c_proj.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc2.weight"]
+        openai_state_dict[f"transformer.resblocks.{i}.mlp.c_proj.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc2.bias"]
+        openai_state_dict[f"transformer.resblocks.{i}.ln_2.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm2.weight"]
+        openai_state_dict[f"transformer.resblocks.{i}.ln_2.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm2.bias"]
+
+    openai_state_dict["ln_final.weight"] = hf_state_dict[hf_key_prefix_text + "final_layer_norm.weight"]
+    openai_state_dict["ln_final.bias"] = hf_state_dict[hf_key_prefix_text + "final_layer_norm.bias"]
+
+    # --- Vision Model 変換 (ViT-B) ---
+    openai_state_dict["visual.conv1.weight"] = hf_state_dict[hf_key_prefix_vision + "embeddings.patch_embedding.weight"]
+    
+    openai_state_dict["visual.class_embedding"] = hf_state_dict[hf_key_prefix_vision + "embeddings.class_embedding"]
+    openai_state_dict["visual.positional_embedding"] = hf_state_dict[hf_key_prefix_vision + "embeddings.position_embedding.weight"]
+    
+    openai_state_dict["visual.ln_pre.weight"] = hf_state_dict[hf_key_prefix_vision + "pre_layrnorm.weight"]
+    openai_state_dict["visual.ln_pre.bias"] = hf_state_dict[hf_key_prefix_vision + "pre_layrnorm.bias"]
+
+    for i in range(vision_layers):
+        q_w = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.q_proj.weight"]
+        k_w = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.k_proj.weight"]
+        v_w = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.v_proj.weight"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.attn.in_proj_weight"] = torch.cat([q_w, k_w, v_w], dim=0)
+        
+        q_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.q_proj.bias"]
+        k_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.k_proj.bias"]
+        v_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.v_proj.bias"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.attn.in_proj_bias"] = torch.cat([q_b, k_b, v_b], dim=0)
+        
+        openai_state_dict[f"visual.transformer.resblocks.{i}.attn.out_proj.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.out_proj.weight"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.attn.out_proj.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.out_proj.bias"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.ln_1.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm1.weight"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.ln_1.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm1.bias"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_fc.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc1.weight"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_fc.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc1.bias"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_proj.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc2.weight"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_proj.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc2.bias"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.ln_2.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm2.weight"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.ln_2.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm2.bias"]
+
+    openai_state_dict["visual.ln_post.weight"] = hf_state_dict[hf_key_prefix_vision + "post_layernorm.weight"]
+    openai_state_dict["visual.ln_post.bias"] = hf_state_dict[hf_key_prefix_vision + "post_layernorm.bias"]
+
+    # --- Projections 変換 ---
+    openai_state_dict["text_projection"] = hf_state_dict["text_projection.weight"].T
+    openai_state_dict["visual.proj"] = hf_state_dict["visual_projection.weight"].T
+    
+    openai_state_dict["logit_scale"] = hf_state_dict["logit_scale"]
+
+    print("Conversion complete.")
+
+    # ステップ3: build_model を使用して XCLIP モデルを構築・ロード
+    print("--- Building XCLIP model with converted state_dict ---")
+    
+    # build_model は渡された state_dict からアーキテクチャを推論する
+    model = build_model(
+        openai_state_dict, 
+        **xclip_params
+    )
+    model = model.to(device)
+
+    print("XCLIP model loaded successfully with fine-tuned weights.")
+    return model
 
 
 _MODEL_STAGE_DEPTH = {50: (3, 4, 6, 3), 101: (3, 4, 23, 3)}

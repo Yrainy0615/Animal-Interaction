@@ -2975,3 +2975,2397 @@ X3D:
 [2025-10-23 18:47:08 ViT-B/16] (val.py 232): INFO Acc1: * hd 0.7889 md 0.5817 ta 0.5173
 [2025-10-23 18:47:08 ViT-B/16] (val.py 233): INFO Acc5: * hd 0.9847 md 0.9480 ta 0.8606
 [2025-10-23 18:47:08 ViT-B/16] (main.py 270): INFO Accuracy of the network on the 3841 test videos: 0.5932 0.6388
+[2025-10-26 12:56:39 ViT-B/32] (main.py 336): INFO working dir: exp
+[2025-10-26 12:56:39 ViT-B/32] (main.py 340): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/32
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  HF_FINETUNED_PATH: /mnt/nfs/ap_10k/clip_finetuned_model/
+  MIT_LAYERS: 1
+  MODEL_NAME: FT-XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  PROMPTS_ALPHA: 0.1
+  PROMPTS_LAYERS: 3
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 16
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 8
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-26 12:56:39 ViT-B/32] (main.py 115): INFO Building FT-XCLIP model using weights from: /mnt/nfs/ap_10k/clip_finetuned_model/
+[2025-10-26 12:57:48 ViT-B/32] (main.py 337): INFO working dir: exp
+[2025-10-26 12:57:48 ViT-B/32] (main.py 341): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/32
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  HF_FINETUNED_PATH: /mnt/nfs/ap_10k/clip_finetuned_model/
+  MIT_LAYERS: 1
+  MODEL_NAME: FT-XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  PROMPTS_ALPHA: 0.1
+  PROMPTS_LAYERS: 3
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 16
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 8
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-26 12:57:48 ViT-B/32] (main.py 116): INFO Building FT-XCLIP model using weights from: /mnt/nfs/ap_10k/clip_finetuned_model/
+[2025-10-26 12:59:03 ViT-B/32] (main.py 336): INFO working dir: exp
+[2025-10-26 12:59:03 ViT-B/32] (main.py 340): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/32
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  HF_FINETUNED_PATH: /mnt/nfs/ap_10k/clip_finetuned_model/
+  MIT_LAYERS: 1
+  MODEL_NAME: FT-XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  PROMPTS_ALPHA: 0.1
+  PROMPTS_LAYERS: 3
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 16
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 8
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-26 12:59:04 ViT-B/32] (main.py 115): INFO Building FT-XCLIP model using weights from: /mnt/nfs/ap_10k/clip_finetuned_model/
+[2025-10-26 13:00:30 ViT-B/32] (main.py 336): INFO working dir: exp
+[2025-10-26 13:00:30 ViT-B/32] (main.py 340): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/32
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  HF_FINETUNED_PATH: /mnt/nfs/ap_10k/clip_finetuned_model/
+  MIT_LAYERS: 1
+  MODEL_NAME: FT-XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  PROMPTS_ALPHA: 0.1
+  PROMPTS_LAYERS: 3
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 16
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 8
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-26 13:00:30 ViT-B/32] (main.py 115): INFO Building FT-XCLIP model using weights from: /mnt/nfs/ap_10k/clip_finetuned_model/
+[2025-10-26 13:04:25 ViT-B/32] (main.py 336): INFO working dir: exp
+[2025-10-26 13:04:25 ViT-B/32] (main.py 340): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/32
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  HF_FINETUNED_PATH: /mnt/nfs/ap_10k/clip_finetuned_model/
+  MIT_LAYERS: 1
+  MODEL_NAME: FT-XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  PROMPTS_ALPHA: 0.1
+  PROMPTS_LAYERS: 3
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 16
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 8
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-26 13:04:26 ViT-B/32] (main.py 115): INFO Building FT-XCLIP model using weights from: /mnt/nfs/ap_10k/clip_finetuned_model/
+[2025-10-26 13:05:26 ViT-B/32] (main.py 336): INFO working dir: exp
+[2025-10-26 13:05:26 ViT-B/32] (main.py 340): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/32
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  HF_FINETUNED_PATH: /mnt/nfs/ap_10k/clip_finetuned_model/
+  MIT_LAYERS: 1
+  MODEL_NAME: FT-XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  PROMPTS_ALPHA: 0.1
+  PROMPTS_LAYERS: 3
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 16
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 8
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-26 13:05:26 ViT-B/32] (main.py 115): INFO Building FT-XCLIP model using weights from: /mnt/nfs/ap_10k/clip_finetuned_model/
+[2025-10-26 13:06:49 ViT-B/32] (main.py 336): INFO working dir: exp
+[2025-10-26 13:06:49 ViT-B/32] (main.py 340): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/32
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  HF_FINETUNED_PATH: /mnt/nfs/ap_10k/clip_finetuned_model/
+  MIT_LAYERS: 1
+  MODEL_NAME: FT-XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  PROMPTS_ALPHA: 0.1
+  PROMPTS_LAYERS: 3
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 16
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 8
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-26 13:06:49 ViT-B/32] (main.py 115): INFO Building FT-XCLIP model using weights from: /mnt/nfs/ap_10k/clip_finetuned_model/
+[2025-10-26 13:09:45 ViT-B/32] (main.py 336): INFO working dir: exp
+[2025-10-26 13:09:45 ViT-B/32] (main.py 340): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/32
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  HF_FINETUNED_PATH: /mnt/nfs/ap_10k/clip_finetuned_model/
+  MIT_LAYERS: 1
+  MODEL_NAME: FT-XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  PROMPTS_ALPHA: 0.1
+  PROMPTS_LAYERS: 3
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 16
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 8
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-26 13:09:45 ViT-B/32] (main.py 115): INFO Building FT-XCLIP model using weights from: /mnt/nfs/ap_10k/clip_finetuned_model/
+[2025-10-26 13:12:17 ViT-B/32] (main.py 336): INFO working dir: exp
+[2025-10-26 13:12:17 ViT-B/32] (main.py 340): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/32
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  HF_FINETUNED_PATH: /mnt/nfs/ap_10k/clip_finetuned_model/
+  MIT_LAYERS: 1
+  MODEL_NAME: FT-XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  PROMPTS_ALPHA: 0.1
+  PROMPTS_LAYERS: 3
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 16
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 8
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-26 13:12:17 ViT-B/32] (main.py 115): INFO Building FT-XCLIP model using weights from: /mnt/nfs/ap_10k/clip_finetuned_model/
+[2025-10-26 13:20:39 ViT-B/32] (main.py 336): INFO working dir: exp
+[2025-10-26 13:20:39 ViT-B/32] (main.py 340): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/32
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  HF_FINETUNED_PATH: /mnt/nfs/ap_10k/clip_finetuned_model/
+  MIT_LAYERS: 1
+  MODEL_NAME: FT-XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  PROMPTS_ALPHA: 0.1
+  PROMPTS_LAYERS: 3
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 16
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 8
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-26 13:21:12 ViT-B/32] (train.py 183): INFO Train: [0/30][0/1819]	eta 12:02:06 lr 0.000000000	time 23.8191 (23.8191)	tot_loss 0.1476 (0.1476)	mem 3275MB
+[2025-10-26 13:21:42 ViT-B/32] (train.py 183): INFO Train: [0/30][50/1819]	eta 0:30:45 lr 0.000000041	time 0.5681 (1.0433)	tot_loss 0.1516 (0.1527)	mem 4892MB
+[2025-10-26 13:22:11 ViT-B/32] (train.py 183): INFO Train: [0/30][100/1819]	eta 0:23:27 lr 0.000000084	time 0.5872 (0.8189)	tot_loss 0.1562 (0.1525)	mem 4892MB
+[2025-10-26 13:22:40 ViT-B/32] (train.py 183): INFO Train: [0/30][150/1819]	eta 0:20:37 lr 0.000000126	time 0.5812 (0.7414)	tot_loss 0.1510 (0.1523)	mem 4892MB
+[2025-10-26 13:23:09 ViT-B/32] (train.py 183): INFO Train: [0/30][200/1819]	eta 0:18:54 lr 0.000000168	time 0.5731 (0.7009)	tot_loss 0.1482 (0.1521)	mem 4892MB
+[2025-10-26 13:23:43 ViT-B/32] (train.py 183): INFO Train: [0/30][250/1819]	eta 0:18:11 lr 0.000000210	time 0.5672 (0.6954)	tot_loss 0.1489 (0.1518)	mem 4892MB
+[2025-10-26 13:24:12 ViT-B/32] (train.py 183): INFO Train: [0/30][300/1819]	eta 0:17:09 lr 0.000000252	time 0.5773 (0.6779)	tot_loss 0.1469 (0.1514)	mem 4892MB
+[2025-10-26 13:24:42 ViT-B/32] (train.py 183): INFO Train: [0/30][350/1819]	eta 0:16:17 lr 0.000000295	time 0.5756 (0.6652)	tot_loss 0.1514 (0.1510)	mem 4892MB
+[2025-10-26 13:25:11 ViT-B/32] (train.py 183): INFO Train: [0/30][400/1819]	eta 0:15:30 lr 0.000000351	time 0.5534 (0.6560)	tot_loss 0.1386 (0.1505)	mem 4892MB
+[2025-10-26 13:25:40 ViT-B/32] (train.py 183): INFO Train: [0/30][450/1819]	eta 0:14:46 lr 0.000000393	time 0.6374 (0.6477)	tot_loss 0.1434 (0.1501)	mem 4892MB
+[2025-10-26 13:26:13 ViT-B/32] (train.py 183): INFO Train: [0/30][500/1819]	eta 0:14:15 lr 0.000000435	time 0.5613 (0.6487)	tot_loss 0.1472 (0.1496)	mem 4892MB
+[2025-10-26 13:26:42 ViT-B/32] (train.py 183): INFO Train: [0/30][550/1819]	eta 0:13:35 lr 0.000000478	time 0.5623 (0.6423)	tot_loss 0.1444 (0.1490)	mem 4892MB
+[2025-10-26 13:27:13 ViT-B/32] (train.py 183): INFO Train: [0/30][600/1819]	eta 0:13:00 lr 0.000000520	time 0.5589 (0.6399)	tot_loss 0.1337 (0.1484)	mem 4892MB
+[2025-10-26 13:27:42 ViT-B/32] (train.py 183): INFO Train: [0/30][650/1819]	eta 0:12:22 lr 0.000000562	time 0.5627 (0.6349)	tot_loss 0.1287 (0.1479)	mem 4892MB
+[2025-10-26 13:28:10 ViT-B/32] (train.py 183): INFO Train: [0/30][700/1819]	eta 0:11:45 lr 0.000000604	time 0.5845 (0.6305)	tot_loss 0.1494 (0.1472)	mem 4892MB
+[2025-10-26 13:28:39 ViT-B/32] (train.py 183): INFO Train: [0/30][750/1819]	eta 0:11:10 lr 0.000000647	time 0.5535 (0.6269)	tot_loss 0.1575 (0.1467)	mem 4892MB
+[2025-10-26 13:29:10 ViT-B/32] (train.py 183): INFO Train: [0/30][800/1819]	eta 0:10:38 lr 0.000000703	time 0.5443 (0.6267)	tot_loss 0.1267 (0.1463)	mem 4892MB
+[2025-10-26 13:29:39 ViT-B/32] (train.py 183): INFO Train: [0/30][850/1819]	eta 0:10:04 lr 0.000000745	time 0.5819 (0.6239)	tot_loss 0.1288 (0.1459)	mem 4892MB
+[2025-10-26 13:30:12 ViT-B/32] (train.py 183): INFO Train: [0/30][900/1819]	eta 0:09:35 lr 0.000000787	time 0.5469 (0.6261)	tot_loss 0.1461 (0.1456)	mem 4892MB
+[2025-10-26 13:30:45 ViT-B/32] (train.py 183): INFO Train: [0/30][950/1819]	eta 0:09:05 lr 0.000000829	time 0.5743 (0.6279)	tot_loss 0.1438 (0.1453)	mem 4892MB
+[2025-10-26 13:31:14 ViT-B/32] (train.py 183): INFO Train: [0/30][1000/1819]	eta 0:08:31 lr 0.000000872	time 0.5954 (0.6247)	tot_loss 0.1346 (0.1449)	mem 4892MB
+[2025-10-26 13:31:42 ViT-B/32] (train.py 183): INFO Train: [0/30][1050/1819]	eta 0:07:58 lr 0.000000914	time 0.6207 (0.6221)	tot_loss 0.1490 (0.1448)	mem 4892MB
+[2025-10-26 13:32:13 ViT-B/32] (train.py 183): INFO Train: [0/30][1100/1819]	eta 0:07:27 lr 0.000000956	time 0.5522 (0.6223)	tot_loss 0.1298 (0.1444)	mem 4892MB
+[2025-10-26 13:32:42 ViT-B/32] (train.py 183): INFO Train: [0/30][1150/1819]	eta 0:06:54 lr 0.000000998	time 0.5718 (0.6197)	tot_loss 0.1619 (0.1442)	mem 4892MB
+[2025-10-26 13:33:15 ViT-B/32] (train.py 183): INFO Train: [0/30][1200/1819]	eta 0:06:24 lr 0.000001055	time 0.5669 (0.6218)	tot_loss 0.1396 (0.1441)	mem 4892MB
+[2025-10-26 13:33:44 ViT-B/32] (train.py 183): INFO Train: [0/30][1250/1819]	eta 0:05:52 lr 0.000001097	time 0.5903 (0.6197)	tot_loss 0.1305 (0.1440)	mem 4892MB
+[2025-10-26 13:34:12 ViT-B/32] (train.py 183): INFO Train: [0/30][1300/1819]	eta 0:05:20 lr 0.000001139	time 0.5746 (0.6176)	tot_loss 0.1701 (0.1438)	mem 4892MB
+[2025-10-26 13:34:40 ViT-B/32] (train.py 183): INFO Train: [0/30][1350/1819]	eta 0:04:48 lr 0.000001181	time 0.5401 (0.6157)	tot_loss 0.1319 (0.1437)	mem 4892MB
+[2025-10-26 13:35:11 ViT-B/32] (train.py 183): INFO Train: [0/30][1400/1819]	eta 0:04:17 lr 0.000001224	time 0.6367 (0.6155)	tot_loss 0.1671 (0.1434)	mem 4892MB
+[2025-10-26 13:35:42 ViT-B/32] (train.py 183): INFO Train: [0/30][1450/1819]	eta 0:03:47 lr 0.000001266	time 0.5640 (0.6156)	tot_loss 0.1487 (0.1432)	mem 4892MB
+[2025-10-26 13:36:16 ViT-B/32] (train.py 183): INFO Train: [0/30][1500/1819]	eta 0:03:17 lr 0.000001308	time 0.5753 (0.6178)	tot_loss 0.1356 (0.1431)	mem 4892MB
+[2025-10-26 13:36:44 ViT-B/32] (train.py 183): INFO Train: [0/30][1550/1819]	eta 0:02:45 lr 0.000001350	time 0.5554 (0.6164)	tot_loss 0.1332 (0.1430)	mem 4892MB
+[2025-10-26 13:37:13 ViT-B/32] (train.py 183): INFO Train: [0/30][1600/1819]	eta 0:02:14 lr 0.000001406	time 0.5497 (0.6150)	tot_loss 0.1144 (0.1429)	mem 4892MB
+[2025-10-26 13:37:44 ViT-B/32] (train.py 183): INFO Train: [0/30][1650/1819]	eta 0:01:43 lr 0.000001449	time 0.5560 (0.6150)	tot_loss 0.1314 (0.1428)	mem 4892MB
+[2025-10-26 13:38:17 ViT-B/32] (train.py 183): INFO Train: [0/30][1700/1819]	eta 0:01:13 lr 0.000001491	time 0.5788 (0.6163)	tot_loss 0.1811 (0.1427)	mem 4892MB
+[2025-10-26 13:38:45 ViT-B/32] (train.py 183): INFO Train: [0/30][1750/1819]	eta 0:00:42 lr 0.000001533	time 0.5351 (0.6149)	tot_loss 0.1221 (0.1426)	mem 4892MB
+[2025-10-26 13:39:13 ViT-B/32] (train.py 183): INFO Train: [0/30][1800/1819]	eta 0:00:11 lr 0.000001575	time 0.5416 (0.6135)	tot_loss 0.1336 (0.1424)	mem 4892MB
+[2025-10-26 13:39:23 ViT-B/32] (train.py 190): INFO EPOCH 0 training takes 0:18:34
+[2025-10-26 13:39:31 ViT-B/32] (val.py 76): INFO 1 views inference
+[2025-10-26 13:39:33 ViT-B/32] (val.py 199): INFO Test: [0/1920]	Acc@1: 0.000	mAP: 0.500000	
+[2025-10-26 13:39:52 ViT-B/32] (val.py 199): INFO Test: [50/1920]	Acc@1: 0.245	mAP: 0.197120	
+[2025-10-26 13:40:07 ViT-B/32] (val.py 199): INFO Test: [100/1920]	Acc@1: 0.213	mAP: 0.164863	
+[2025-10-26 13:40:22 ViT-B/32] (val.py 199): INFO Test: [150/1920]	Acc@1: 0.202	mAP: 0.150957	
+[2025-10-26 13:40:36 ViT-B/32] (val.py 199): INFO Test: [200/1920]	Acc@1: 0.197	mAP: 0.140346	
+[2025-10-26 13:40:51 ViT-B/32] (val.py 199): INFO Test: [250/1920]	Acc@1: 0.199	mAP: 0.131169	
+[2025-10-26 13:41:06 ViT-B/32] (val.py 199): INFO Test: [300/1920]	Acc@1: 0.201	mAP: 0.126355	
+[2025-10-26 13:41:20 ViT-B/32] (val.py 199): INFO Test: [350/1920]	Acc@1: 0.204	mAP: 0.124311	
+[2025-10-26 13:41:35 ViT-B/32] (val.py 199): INFO Test: [400/1920]	Acc@1: 0.203	mAP: 0.123422	
+[2025-10-26 13:41:49 ViT-B/32] (val.py 199): INFO Test: [450/1920]	Acc@1: 0.207	mAP: 0.116783	
+[2025-10-26 13:42:03 ViT-B/32] (val.py 199): INFO Test: [500/1920]	Acc@1: 0.207	mAP: 0.115776	
+[2025-10-26 13:42:17 ViT-B/32] (val.py 199): INFO Test: [550/1920]	Acc@1: 0.209	mAP: 0.115621	
+[2025-10-26 13:42:32 ViT-B/32] (val.py 199): INFO Test: [600/1920]	Acc@1: 0.211	mAP: 0.114905	
+[2025-10-26 13:42:46 ViT-B/32] (val.py 199): INFO Test: [650/1920]	Acc@1: 0.216	mAP: 0.115750	
+[2025-10-26 13:43:00 ViT-B/32] (val.py 199): INFO Test: [700/1920]	Acc@1: 0.219	mAP: 0.115817	
+[2025-10-26 13:43:15 ViT-B/32] (val.py 199): INFO Test: [750/1920]	Acc@1: 0.218	mAP: 0.115927	
+[2025-10-26 13:43:29 ViT-B/32] (val.py 199): INFO Test: [800/1920]	Acc@1: 0.218	mAP: 0.114705	
+[2025-10-26 13:43:44 ViT-B/32] (val.py 199): INFO Test: [850/1920]	Acc@1: 0.216	mAP: 0.114976	
+[2025-10-26 13:43:59 ViT-B/32] (val.py 199): INFO Test: [900/1920]	Acc@1: 0.214	mAP: 0.114842	
+[2025-10-26 13:44:14 ViT-B/32] (val.py 199): INFO Test: [950/1920]	Acc@1: 0.213	mAP: 0.113252	
+[2025-10-26 13:44:28 ViT-B/32] (val.py 199): INFO Test: [1000/1920]	Acc@1: 0.213	mAP: 0.113991	
+[2025-10-26 13:44:43 ViT-B/32] (val.py 199): INFO Test: [1050/1920]	Acc@1: 0.214	mAP: 0.115553	
+[2025-10-26 13:44:57 ViT-B/32] (val.py 199): INFO Test: [1100/1920]	Acc@1: 0.213	mAP: 0.114239	
+[2025-10-26 13:45:12 ViT-B/32] (val.py 199): INFO Test: [1150/1920]	Acc@1: 0.212	mAP: 0.113679	
+[2025-10-26 13:45:27 ViT-B/32] (val.py 199): INFO Test: [1200/1920]	Acc@1: 0.210	mAP: 0.113591	
+[2025-10-26 13:45:42 ViT-B/32] (val.py 199): INFO Test: [1250/1920]	Acc@1: 0.212	mAP: 0.112826	
+[2025-10-26 13:45:56 ViT-B/32] (val.py 199): INFO Test: [1300/1920]	Acc@1: 0.211	mAP: 0.112479	
+[2025-10-26 13:46:11 ViT-B/32] (val.py 199): INFO Test: [1350/1920]	Acc@1: 0.212	mAP: 0.112864	
+[2025-10-26 13:46:25 ViT-B/32] (val.py 199): INFO Test: [1400/1920]	Acc@1: 0.213	mAP: 0.112956	
+[2025-10-26 13:46:40 ViT-B/32] (val.py 199): INFO Test: [1450/1920]	Acc@1: 0.214	mAP: 0.112568	
+[2025-10-26 13:46:55 ViT-B/32] (val.py 199): INFO Test: [1500/1920]	Acc@1: 0.214	mAP: 0.111889	
+[2025-10-26 13:47:10 ViT-B/32] (val.py 199): INFO Test: [1550/1920]	Acc@1: 0.214	mAP: 0.111979	
+[2025-10-26 13:47:25 ViT-B/32] (val.py 199): INFO Test: [1600/1920]	Acc@1: 0.214	mAP: 0.111685	
+[2025-10-26 13:47:39 ViT-B/32] (val.py 199): INFO Test: [1650/1920]	Acc@1: 0.216	mAP: 0.111611	
+[2025-10-26 13:47:54 ViT-B/32] (val.py 199): INFO Test: [1700/1920]	Acc@1: 0.217	mAP: 0.111299	
+[2025-10-26 13:48:09 ViT-B/32] (val.py 199): INFO Test: [1750/1920]	Acc@1: 0.219	mAP: 0.110940	
+[2025-10-26 13:48:23 ViT-B/32] (val.py 199): INFO Test: [1800/1920]	Acc@1: 0.217	mAP: 0.110714	
+[2025-10-26 13:48:38 ViT-B/32] (val.py 199): INFO Test: [1850/1920]	Acc@1: 0.218	mAP: 0.110578	
+[2025-10-26 13:48:53 ViT-B/32] (val.py 199): INFO Test: [1900/1920]	Acc@1: 0.218	mAP: 0.110782	
+[2025-10-26 13:48:59 ViT-B/32] (val.py 219): INFO  * Acc@1 0.2185 Acc@5 0.6940
+[2025-10-26 13:48:59 ViT-B/32] (val.py 220): INFO  * f1@3 0.2457 p3 0.1638 r3 0.4914 f1@5 0.0778 p5 0.0572 r5 0.2531 map 0.1103
+[2025-10-26 13:48:59 ViT-B/32] (val.py 232): INFO Acc1: * hd 0.5847 md 0.0000 ta 0.0000
+[2025-10-26 13:48:59 ViT-B/32] (val.py 233): INFO Acc5: * hd 1.0000 md 0.7385 ta 0.2880
+[2025-10-26 13:48:59 ViT-B/32] (main.py 279): INFO Accuracy of the network on the 3841 test videos: map: 0.1 acc1: 0.2185
+[2025-10-26 13:48:59 ViT-B/32] (main.py 287): INFO Acc1 max accuracy: 0.22
+[2025-10-26 13:48:59 ViT-B/32] (tools.py 262): INFO exp/ckpt_epoch_0.pth saving......
+[2025-10-26 13:49:02 ViT-B/32] (tools.py 264): INFO exp/ckpt_epoch_0.pth saved !!!
+[2025-10-26 13:49:23 ViT-B/32] (tools.py 268): INFO exp/best.pth saved !!!
+[2025-10-26 13:49:26 ViT-B/32] (train.py 183): INFO Train: [1/30][0/1819]	eta 1:54:57 lr 0.000001589	time 3.7920 (3.7920)	tot_loss 0.1414 (0.1414)	mem 4898MB
+[2025-10-26 13:49:57 ViT-B/32] (train.py 183): INFO Train: [1/30][50/1819]	eta 0:19:41 lr 0.000001641	time 0.5481 (0.6679)	tot_loss 0.1204 (0.1365)	mem 4898MB
+[2025-10-26 13:50:27 ViT-B/32] (train.py 183): INFO Train: [1/30][100/1819]	eta 0:18:14 lr 0.000001684	time 0.5666 (0.6368)	tot_loss 0.1316 (0.1382)	mem 4898MB
+[2025-10-26 13:50:57 ViT-B/32] (train.py 183): INFO Train: [1/30][150/1819]	eta 0:17:21 lr 0.000001726	time 0.6068 (0.6240)	tot_loss 0.1280 (0.1382)	mem 4898MB
+[2025-10-26 13:51:27 ViT-B/32] (train.py 183): INFO Train: [1/30][200/1819]	eta 0:16:41 lr 0.000001768	time 0.6066 (0.6186)	tot_loss 0.1492 (0.1374)	mem 4898MB
+[2025-10-26 13:51:56 ViT-B/32] (train.py 183): INFO Train: [1/30][250/1819]	eta 0:16:00 lr 0.000001810	time 0.5803 (0.6125)	tot_loss 0.1413 (0.1379)	mem 4898MB
+[2025-10-26 13:52:26 ViT-B/32] (train.py 183): INFO Train: [1/30][300/1819]	eta 0:15:24 lr 0.000001852	time 0.5730 (0.6084)	tot_loss 0.1340 (0.1378)	mem 4898MB
+[2025-10-26 13:52:55 ViT-B/32] (train.py 183): INFO Train: [1/30][350/1819]	eta 0:14:49 lr 0.000001895	time 0.5545 (0.6058)	tot_loss 0.1686 (0.1376)	mem 4898MB
+[2025-10-26 13:53:25 ViT-B/32] (train.py 183): INFO Train: [1/30][400/1819]	eta 0:14:16 lr 0.000001951	time 0.5898 (0.6033)	tot_loss 0.1376 (0.1376)	mem 4898MB
+[2025-10-26 13:53:55 ViT-B/32] (train.py 183): INFO Train: [1/30][450/1819]	eta 0:13:45 lr 0.000001993	time 0.7964 (0.6028)	tot_loss 0.1468 (0.1377)	mem 4898MB
+[2025-10-26 13:54:24 ViT-B/32] (train.py 183): INFO Train: [1/30][500/1819]	eta 0:13:13 lr 0.000002035	time 0.5972 (0.6018)	tot_loss 0.1219 (0.1378)	mem 4898MB
+[2025-10-26 13:54:54 ViT-B/32] (train.py 183): INFO Train: [1/30][550/1819]	eta 0:12:43 lr 0.000002078	time 0.7855 (0.6013)	tot_loss 0.1648 (0.1380)	mem 4898MB
+[2025-10-26 13:55:24 ViT-B/32] (train.py 183): INFO Train: [1/30][600/1819]	eta 0:12:11 lr 0.000002120	time 0.5748 (0.6005)	tot_loss 0.1223 (0.1376)	mem 4898MB
+[2025-10-26 13:55:53 ViT-B/32] (train.py 183): INFO Train: [1/30][650/1819]	eta 0:11:41 lr 0.000002162	time 0.5751 (0.5999)	tot_loss 0.1319 (0.1380)	mem 4898MB
+[2025-10-26 13:56:22 ViT-B/32] (train.py 183): INFO Train: [1/30][700/1819]	eta 0:11:10 lr 0.000002204	time 0.5614 (0.5988)	tot_loss 0.1152 (0.1380)	mem 4898MB
+[2025-10-26 13:56:52 ViT-B/32] (train.py 183): INFO Train: [1/30][750/1819]	eta 0:10:39 lr 0.000002247	time 0.5778 (0.5986)	tot_loss 0.1282 (0.1379)	mem 4898MB
+[2025-10-26 13:57:22 ViT-B/32] (train.py 183): INFO Train: [1/30][800/1819]	eta 0:10:09 lr 0.000002303	time 0.5652 (0.5984)	tot_loss 0.1530 (0.1380)	mem 4898MB
+[2025-10-26 13:57:51 ViT-B/32] (train.py 183): INFO Train: [1/30][850/1819]	eta 0:09:39 lr 0.000002345	time 0.5731 (0.5978)	tot_loss 0.1039 (0.1381)	mem 4898MB
+[2025-10-26 13:58:21 ViT-B/32] (train.py 183): INFO Train: [1/30][900/1819]	eta 0:09:09 lr 0.000002387	time 0.5627 (0.5977)	tot_loss 0.1551 (0.1380)	mem 4898MB
+[2025-10-26 13:58:51 ViT-B/32] (train.py 183): INFO Train: [1/30][950/1819]	eta 0:08:39 lr 0.000002429	time 0.6352 (0.5973)	tot_loss 0.1570 (0.1379)	mem 4898MB
+[2025-10-26 13:59:20 ViT-B/32] (train.py 183): INFO Train: [1/30][1000/1819]	eta 0:08:09 lr 0.000002472	time 0.5771 (0.5972)	tot_loss 0.1384 (0.1381)	mem 4898MB
+[2025-10-26 13:59:51 ViT-B/32] (train.py 183): INFO Train: [1/30][1050/1819]	eta 0:07:39 lr 0.000002514	time 0.5801 (0.5974)	tot_loss 0.1649 (0.1381)	mem 4898MB
+[2025-10-26 14:00:20 ViT-B/32] (train.py 183): INFO Train: [1/30][1100/1819]	eta 0:07:09 lr 0.000002556	time 0.5644 (0.5971)	tot_loss 0.1164 (0.1381)	mem 4898MB
+[2025-10-26 14:00:50 ViT-B/32] (train.py 183): INFO Train: [1/30][1150/1819]	eta 0:06:39 lr 0.000002598	time 0.6069 (0.5968)	tot_loss 0.1344 (0.1381)	mem 4898MB
+[2025-10-26 14:01:19 ViT-B/32] (train.py 183): INFO Train: [1/30][1200/1819]	eta 0:06:09 lr 0.000002655	time 0.5563 (0.5968)	tot_loss 0.1534 (0.1383)	mem 4898MB
+[2025-10-26 14:01:49 ViT-B/32] (train.py 183): INFO Train: [1/30][1250/1819]	eta 0:05:39 lr 0.000002697	time 0.6176 (0.5967)	tot_loss 0.1229 (0.1381)	mem 4898MB
+[2025-10-26 14:02:19 ViT-B/32] (train.py 183): INFO Train: [1/30][1300/1819]	eta 0:05:09 lr 0.000002739	time 0.5692 (0.5964)	tot_loss 0.1196 (0.1381)	mem 4898MB
+[2025-10-26 14:02:48 ViT-B/32] (train.py 183): INFO Train: [1/30][1350/1819]	eta 0:04:39 lr 0.000002781	time 0.5633 (0.5962)	tot_loss 0.1372 (0.1381)	mem 4898MB
+[2025-10-26 14:03:18 ViT-B/32] (train.py 183): INFO Train: [1/30][1400/1819]	eta 0:04:09 lr 0.000002824	time 0.6658 (0.5960)	tot_loss 0.1382 (0.1381)	mem 4898MB
+[2025-10-26 14:03:47 ViT-B/32] (train.py 183): INFO Train: [1/30][1450/1819]	eta 0:03:39 lr 0.000002866	time 0.5592 (0.5957)	tot_loss 0.1396 (0.1380)	mem 4898MB
+[2025-10-26 14:04:17 ViT-B/32] (train.py 183): INFO Train: [1/30][1500/1819]	eta 0:03:09 lr 0.000002908	time 0.5667 (0.5955)	tot_loss 0.1503 (0.1379)	mem 4898MB
+[2025-10-26 14:04:46 ViT-B/32] (train.py 183): INFO Train: [1/30][1550/1819]	eta 0:02:40 lr 0.000002950	time 0.5949 (0.5954)	tot_loss 0.1285 (0.1379)	mem 4898MB
+[2025-10-26 14:05:16 ViT-B/32] (train.py 183): INFO Train: [1/30][1600/1819]	eta 0:02:10 lr 0.000003006	time 0.5445 (0.5957)	tot_loss 0.1607 (0.1379)	mem 4898MB
+[2025-10-26 14:05:46 ViT-B/32] (train.py 183): INFO Train: [1/30][1650/1819]	eta 0:01:40 lr 0.000003049	time 0.5884 (0.5957)	tot_loss 0.1290 (0.1378)	mem 4898MB
+[2025-10-26 14:06:16 ViT-B/32] (train.py 183): INFO Train: [1/30][1700/1819]	eta 0:01:10 lr 0.000003091	time 0.6649 (0.5960)	tot_loss 0.1338 (0.1377)	mem 4898MB
+[2025-10-26 14:06:46 ViT-B/32] (train.py 183): INFO Train: [1/30][1750/1819]	eta 0:00:41 lr 0.000003133	time 0.6124 (0.5960)	tot_loss 0.1495 (0.1377)	mem 4898MB
+[2025-10-26 14:07:16 ViT-B/32] (train.py 183): INFO Train: [1/30][1800/1819]	eta 0:00:11 lr 0.000003175	time 0.6126 (0.5959)	tot_loss 0.1272 (0.1375)	mem 4898MB
+[2025-10-26 14:07:27 ViT-B/32] (train.py 190): INFO EPOCH 1 training takes 0:18:04
+[2025-10-26 14:07:32 ViT-B/32] (val.py 76): INFO 1 views inference
+[2025-10-26 14:07:34 ViT-B/32] (val.py 199): INFO Test: [0/1920]	Acc@1: 0.000	mAP: 0.500000	
+[2025-10-26 14:07:49 ViT-B/32] (val.py 199): INFO Test: [50/1920]	Acc@1: 0.275	mAP: 0.235229	
+[2025-10-26 14:08:04 ViT-B/32] (val.py 199): INFO Test: [100/1920]	Acc@1: 0.287	mAP: 0.229730	
+[2025-10-26 14:08:19 ViT-B/32] (val.py 199): INFO Test: [150/1920]	Acc@1: 0.265	mAP: 0.195483	
+[2025-10-26 14:08:33 ViT-B/32] (val.py 199): INFO Test: [200/1920]	Acc@1: 0.254	mAP: 0.187540	
+[2025-10-26 14:08:48 ViT-B/32] (val.py 199): INFO Test: [250/1920]	Acc@1: 0.257	mAP: 0.188752	
+[2025-10-26 14:09:03 ViT-B/32] (val.py 199): INFO Test: [300/1920]	Acc@1: 0.261	mAP: 0.185346	
+[2025-10-26 14:09:17 ViT-B/32] (val.py 199): INFO Test: [350/1920]	Acc@1: 0.256	mAP: 0.185626	
+[2025-10-26 14:09:32 ViT-B/32] (val.py 199): INFO Test: [400/1920]	Acc@1: 0.266	mAP: 0.188756	
+[2025-10-26 14:09:46 ViT-B/32] (val.py 199): INFO Test: [450/1920]	Acc@1: 0.259	mAP: 0.188035	
+[2025-10-26 14:10:01 ViT-B/32] (val.py 199): INFO Test: [500/1920]	Acc@1: 0.257	mAP: 0.187731	
+[2025-10-26 14:10:15 ViT-B/32] (val.py 199): INFO Test: [550/1920]	Acc@1: 0.256	mAP: 0.186674	
+[2025-10-26 14:10:30 ViT-B/32] (val.py 199): INFO Test: [600/1920]	Acc@1: 0.253	mAP: 0.182990	
+[2025-10-26 14:10:44 ViT-B/32] (val.py 199): INFO Test: [650/1920]	Acc@1: 0.253	mAP: 0.181206	
+[2025-10-26 14:10:59 ViT-B/32] (val.py 199): INFO Test: [700/1920]	Acc@1: 0.259	mAP: 0.181875	
+[2025-10-26 14:11:14 ViT-B/32] (val.py 199): INFO Test: [750/1920]	Acc@1: 0.256	mAP: 0.178603	
+[2025-10-26 14:11:28 ViT-B/32] (val.py 199): INFO Test: [800/1920]	Acc@1: 0.255	mAP: 0.177909	
+[2025-10-26 14:11:43 ViT-B/32] (val.py 199): INFO Test: [850/1920]	Acc@1: 0.255	mAP: 0.176166	
+[2025-10-26 14:11:57 ViT-B/32] (val.py 199): INFO Test: [900/1920]	Acc@1: 0.257	mAP: 0.176626	
+[2025-10-26 14:12:12 ViT-B/32] (val.py 199): INFO Test: [950/1920]	Acc@1: 0.257	mAP: 0.174713	
+[2025-10-26 14:12:26 ViT-B/32] (val.py 199): INFO Test: [1000/1920]	Acc@1: 0.258	mAP: 0.171908	
+[2025-10-26 14:12:41 ViT-B/32] (val.py 199): INFO Test: [1050/1920]	Acc@1: 0.255	mAP: 0.169933	
+[2025-10-26 14:12:56 ViT-B/32] (val.py 199): INFO Test: [1100/1920]	Acc@1: 0.257	mAP: 0.169078	
+[2025-10-26 14:13:11 ViT-B/32] (val.py 199): INFO Test: [1150/1920]	Acc@1: 0.258	mAP: 0.168388	
+[2025-10-26 14:13:25 ViT-B/32] (val.py 199): INFO Test: [1200/1920]	Acc@1: 0.256	mAP: 0.169806	
+[2025-10-26 14:13:40 ViT-B/32] (val.py 199): INFO Test: [1250/1920]	Acc@1: 0.257	mAP: 0.168156	
+[2025-10-26 14:13:55 ViT-B/32] (val.py 199): INFO Test: [1300/1920]	Acc@1: 0.257	mAP: 0.169352	
+[2025-10-26 14:14:10 ViT-B/32] (val.py 199): INFO Test: [1350/1920]	Acc@1: 0.256	mAP: 0.169377	
+[2025-10-26 14:14:26 ViT-B/32] (val.py 199): INFO Test: [1400/1920]	Acc@1: 0.259	mAP: 0.170558	
+[2025-10-26 14:14:41 ViT-B/32] (val.py 199): INFO Test: [1450/1920]	Acc@1: 0.259	mAP: 0.170822	
+[2025-10-26 14:14:56 ViT-B/32] (val.py 199): INFO Test: [1500/1920]	Acc@1: 0.261	mAP: 0.170451	
+[2025-10-26 14:15:11 ViT-B/32] (val.py 199): INFO Test: [1550/1920]	Acc@1: 0.260	mAP: 0.170665	
+[2025-10-26 14:15:26 ViT-B/32] (val.py 199): INFO Test: [1600/1920]	Acc@1: 0.262	mAP: 0.170421	
+[2025-10-26 14:15:40 ViT-B/32] (val.py 199): INFO Test: [1650/1920]	Acc@1: 0.262	mAP: 0.170639	
+[2025-10-26 14:15:55 ViT-B/32] (val.py 199): INFO Test: [1700/1920]	Acc@1: 0.260	mAP: 0.170342	
+[2025-10-26 14:16:10 ViT-B/32] (val.py 199): INFO Test: [1750/1920]	Acc@1: 0.261	mAP: 0.170005	
+[2025-10-26 14:16:25 ViT-B/32] (val.py 199): INFO Test: [1800/1920]	Acc@1: 0.262	mAP: 0.170937	
+[2025-10-26 14:16:40 ViT-B/32] (val.py 199): INFO Test: [1850/1920]	Acc@1: 0.262	mAP: 0.170308	
+[2025-10-26 14:16:54 ViT-B/32] (val.py 199): INFO Test: [1900/1920]	Acc@1: 0.259	mAP: 0.169315	
+[2025-10-26 14:17:00 ViT-B/32] (val.py 219): INFO  * Acc@1 0.2596 Acc@5 0.7594
+[2025-10-26 14:17:00 ViT-B/32] (val.py 220): INFO  * f1@3 0.2770 p3 0.1846 r3 0.5539 f1@5 0.1328 p5 0.1178 r5 0.3122 map 0.1691
+[2025-10-26 14:17:00 ViT-B/32] (val.py 232): INFO Acc1: * hd 0.5923 md 0.1199 ta 0.0033
+[2025-10-26 14:17:00 ViT-B/32] (val.py 233): INFO Acc5: * hd 0.9972 md 0.8516 ta 0.3870
+[2025-10-26 14:17:00 ViT-B/32] (main.py 279): INFO Accuracy of the network on the 3841 test videos: map: 0.2 acc1: 0.2596
+[2025-10-26 14:17:00 ViT-B/32] (main.py 287): INFO Acc1 max accuracy: 0.26
+[2025-10-26 14:17:00 ViT-B/32] (tools.py 262): INFO exp/ckpt_epoch_1.pth saving......
+[2025-10-26 14:17:03 ViT-B/32] (tools.py 264): INFO exp/ckpt_epoch_1.pth saved !!!
+[2025-10-26 14:17:23 ViT-B/32] (tools.py 268): INFO exp/best.pth saved !!!
+[2025-10-26 14:17:28 ViT-B/32] (train.py 183): INFO Train: [2/30][0/1819]	eta 2:09:26 lr 0.000003189	time 4.2698 (4.2698)	tot_loss 0.1395 (0.1395)	mem 4898MB
+[2025-10-26 14:17:58 ViT-B/32] (train.py 183): INFO Train: [2/30][50/1819]	eta 0:20:16 lr 0.000003241	time 0.5676 (0.6877)	tot_loss 0.1541 (0.1363)	mem 4898MB
+[2025-10-26 14:18:28 ViT-B/32] (train.py 183): INFO Train: [2/30][100/1819]	eta 0:18:16 lr 0.000003284	time 0.5668 (0.6380)	tot_loss 0.1175 (0.1348)	mem 4898MB
+[2025-10-26 14:18:57 ViT-B/32] (train.py 183): INFO Train: [2/30][150/1819]	eta 0:17:18 lr 0.000003326	time 0.5631 (0.6224)	tot_loss 0.1212 (0.1359)	mem 4898MB
+[2025-10-26 14:19:27 ViT-B/32] (train.py 183): INFO Train: [2/30][200/1819]	eta 0:16:33 lr 0.000003368	time 0.6139 (0.6136)	tot_loss 0.1271 (0.1360)	mem 4898MB
+[2025-10-26 14:19:57 ViT-B/32] (train.py 183): INFO Train: [2/30][250/1819]	eta 0:15:58 lr 0.000003410	time 0.5839 (0.6111)	tot_loss 0.1550 (0.1368)	mem 4898MB
+[2025-10-26 14:20:27 ViT-B/32] (train.py 183): INFO Train: [2/30][300/1819]	eta 0:15:26 lr 0.000003452	time 0.5711 (0.6098)	tot_loss 0.1631 (0.1376)	mem 4898MB
+[2025-10-26 14:20:57 ViT-B/32] (train.py 183): INFO Train: [2/30][350/1819]	eta 0:14:55 lr 0.000003495	time 0.5629 (0.6099)	tot_loss 0.1197 (0.1372)	mem 4898MB
+[2025-10-26 14:21:27 ViT-B/32] (train.py 183): INFO Train: [2/30][400/1819]	eta 0:14:23 lr 0.000003551	time 0.5736 (0.6086)	tot_loss 0.1124 (0.1367)	mem 4898MB
+[2025-10-26 14:21:57 ViT-B/32] (train.py 183): INFO Train: [2/30][450/1819]	eta 0:13:52 lr 0.000003593	time 0.6152 (0.6078)	tot_loss 0.1140 (0.1373)	mem 4898MB
+[2025-10-26 14:22:27 ViT-B/32] (train.py 183): INFO Train: [2/30][500/1819]	eta 0:13:20 lr 0.000003635	time 0.5901 (0.6068)	tot_loss 0.1379 (0.1373)	mem 4898MB
+[2025-10-26 14:22:58 ViT-B/32] (train.py 183): INFO Train: [2/30][550/1819]	eta 0:12:49 lr 0.000003678	time 0.5853 (0.6067)	tot_loss 0.1473 (0.1371)	mem 4898MB
+[2025-10-26 14:23:28 ViT-B/32] (train.py 183): INFO Train: [2/30][600/1819]	eta 0:12:18 lr 0.000003720	time 0.5814 (0.6062)	tot_loss 0.1383 (0.1366)	mem 4898MB
+[2025-10-26 14:23:58 ViT-B/32] (train.py 183): INFO Train: [2/30][650/1819]	eta 0:11:48 lr 0.000003762	time 0.5622 (0.6061)	tot_loss 0.1014 (0.1360)	mem 4898MB
+[2025-10-26 14:24:28 ViT-B/32] (train.py 183): INFO Train: [2/30][700/1819]	eta 0:11:18 lr 0.000003804	time 0.5721 (0.6062)	tot_loss 0.1292 (0.1359)	mem 4898MB
+[2025-10-26 14:24:58 ViT-B/32] (train.py 183): INFO Train: [2/30][750/1819]	eta 0:10:47 lr 0.000003847	time 0.6142 (0.6058)	tot_loss 0.1308 (0.1358)	mem 4898MB
+[2025-10-26 14:25:28 ViT-B/32] (train.py 183): INFO Train: [2/30][800/1819]	eta 0:10:16 lr 0.000003903	time 0.5737 (0.6054)	tot_loss 0.1354 (0.1356)	mem 4898MB
+[2025-10-26 14:25:58 ViT-B/32] (train.py 183): INFO Train: [2/30][850/1819]	eta 0:09:45 lr 0.000003945	time 0.5824 (0.6046)	tot_loss 0.1074 (0.1354)	mem 4898MB
+[2025-10-26 14:26:28 ViT-B/32] (train.py 183): INFO Train: [2/30][900/1819]	eta 0:09:15 lr 0.000003987	time 0.5724 (0.6042)	tot_loss 0.1461 (0.1353)	mem 4898MB
+[2025-10-26 14:26:57 ViT-B/32] (train.py 183): INFO Train: [2/30][950/1819]	eta 0:08:44 lr 0.000004029	time 0.5921 (0.6037)	tot_loss 0.1230 (0.1353)	mem 4898MB
+[2025-10-26 14:27:27 ViT-B/32] (train.py 183): INFO Train: [2/30][1000/1819]	eta 0:08:14 lr 0.000004072	time 0.5696 (0.6035)	tot_loss 0.1320 (0.1354)	mem 4898MB
+[2025-10-26 14:27:57 ViT-B/32] (train.py 183): INFO Train: [2/30][1050/1819]	eta 0:07:43 lr 0.000004114	time 0.5716 (0.6029)	tot_loss 0.1326 (0.1354)	mem 4898MB
+[2025-10-26 14:28:26 ViT-B/32] (train.py 183): INFO Train: [2/30][1100/1819]	eta 0:07:12 lr 0.000004156	time 0.5807 (0.6022)	tot_loss 0.1256 (0.1353)	mem 4898MB
+[2025-10-26 14:28:56 ViT-B/32] (train.py 183): INFO Train: [2/30][1150/1819]	eta 0:06:42 lr 0.000004198	time 0.5911 (0.6019)	tot_loss 0.1537 (0.1352)	mem 4898MB
+[2025-10-26 14:29:26 ViT-B/32] (train.py 183): INFO Train: [2/30][1200/1819]	eta 0:06:12 lr 0.000004255	time 0.5751 (0.6019)	tot_loss 0.1421 (0.1351)	mem 4898MB
+[2025-10-26 14:29:56 ViT-B/32] (train.py 183): INFO Train: [2/30][1250/1819]	eta 0:05:42 lr 0.000004297	time 0.6026 (0.6015)	tot_loss 0.1183 (0.1348)	mem 4898MB
+[2025-10-26 14:30:26 ViT-B/32] (train.py 183): INFO Train: [2/30][1300/1819]	eta 0:05:12 lr 0.000004339	time 0.5938 (0.6018)	tot_loss 0.1236 (0.1348)	mem 4898MB
+[2025-10-26 14:30:56 ViT-B/32] (train.py 183): INFO Train: [2/30][1350/1819]	eta 0:04:42 lr 0.000004381	time 0.5808 (0.6016)	tot_loss 0.1103 (0.1351)	mem 4898MB
+[2025-10-26 14:31:27 ViT-B/32] (train.py 183): INFO Train: [2/30][1400/1819]	eta 0:04:12 lr 0.000004424	time 0.5937 (0.6020)	tot_loss 0.1625 (0.1351)	mem 4898MB
+[2025-10-26 14:31:57 ViT-B/32] (train.py 183): INFO Train: [2/30][1450/1819]	eta 0:03:42 lr 0.000004466	time 0.5986 (0.6020)	tot_loss 0.1189 (0.1351)	mem 4898MB
+[2025-10-26 14:32:27 ViT-B/32] (train.py 183): INFO Train: [2/30][1500/1819]	eta 0:03:11 lr 0.000004508	time 0.6683 (0.6018)	tot_loss 0.1350 (0.1350)	mem 4898MB
+[2025-10-26 14:32:57 ViT-B/32] (train.py 183): INFO Train: [2/30][1550/1819]	eta 0:02:41 lr 0.000004550	time 0.5899 (0.6018)	tot_loss 0.1288 (0.1350)	mem 4898MB
+[2025-10-26 14:33:27 ViT-B/32] (train.py 183): INFO Train: [2/30][1600/1819]	eta 0:02:11 lr 0.000004606	time 0.5736 (0.6017)	tot_loss 0.1159 (0.1348)	mem 4898MB
+[2025-10-26 14:33:56 ViT-B/32] (train.py 183): INFO Train: [2/30][1650/1819]	eta 0:01:41 lr 0.000004649	time 0.5837 (0.6014)	tot_loss 0.1561 (0.1347)	mem 4898MB
+[2025-10-26 14:34:27 ViT-B/32] (train.py 183): INFO Train: [2/30][1700/1819]	eta 0:01:11 lr 0.000004691	time 0.5815 (0.6017)	tot_loss 0.1461 (0.1347)	mem 4898MB
+[2025-10-26 14:34:57 ViT-B/32] (train.py 183): INFO Train: [2/30][1750/1819]	eta 0:00:41 lr 0.000004733	time 0.5772 (0.6019)	tot_loss 0.1226 (0.1347)	mem 4898MB
+[2025-10-26 14:35:26 ViT-B/32] (train.py 183): INFO Train: [2/30][1800/1819]	eta 0:00:11 lr 0.000004775	time 0.5394 (0.6014)	tot_loss 0.1477 (0.1347)	mem 4898MB
+[2025-10-26 14:35:37 ViT-B/32] (train.py 190): INFO EPOCH 2 training takes 0:18:14
+[2025-10-26 14:35:45 ViT-B/32] (val.py 76): INFO 1 views inference
+[2025-10-26 14:35:47 ViT-B/32] (val.py 199): INFO Test: [0/1920]	Acc@1: 0.000	mAP: 1.000000	
+[2025-10-26 14:36:01 ViT-B/32] (val.py 199): INFO Test: [50/1920]	Acc@1: 0.284	mAP: 0.358706	
+[2025-10-26 14:36:16 ViT-B/32] (val.py 199): INFO Test: [100/1920]	Acc@1: 0.267	mAP: 0.299433	
+[2025-10-26 14:36:30 ViT-B/32] (val.py 199): INFO Test: [150/1920]	Acc@1: 0.295	mAP: 0.251495	
+[2025-10-26 14:36:45 ViT-B/32] (val.py 199): INFO Test: [200/1920]	Acc@1: 0.294	mAP: 0.248851	
+[2025-10-26 14:36:59 ViT-B/32] (val.py 199): INFO Test: [250/1920]	Acc@1: 0.285	mAP: 0.251874	
+[2025-10-26 14:37:13 ViT-B/32] (val.py 199): INFO Test: [300/1920]	Acc@1: 0.282	mAP: 0.243667	
+[2025-10-26 14:37:28 ViT-B/32] (val.py 199): INFO Test: [350/1920]	Acc@1: 0.281	mAP: 0.244204	
+[2025-10-26 14:37:43 ViT-B/32] (val.py 199): INFO Test: [400/1920]	Acc@1: 0.287	mAP: 0.233270	
+[2025-10-26 14:37:58 ViT-B/32] (val.py 199): INFO Test: [450/1920]	Acc@1: 0.283	mAP: 0.229795	
+[2025-10-26 14:38:12 ViT-B/32] (val.py 199): INFO Test: [500/1920]	Acc@1: 0.279	mAP: 0.233020	
+[2025-10-26 14:38:26 ViT-B/32] (val.py 199): INFO Test: [550/1920]	Acc@1: 0.283	mAP: 0.233354	
+[2025-10-26 14:38:41 ViT-B/32] (val.py 199): INFO Test: [600/1920]	Acc@1: 0.284	mAP: 0.232690	
+[2025-10-26 14:38:56 ViT-B/32] (val.py 199): INFO Test: [650/1920]	Acc@1: 0.278	mAP: 0.231207	
+[2025-10-26 14:39:11 ViT-B/32] (val.py 199): INFO Test: [700/1920]	Acc@1: 0.278	mAP: 0.232682	
+[2025-10-26 14:39:25 ViT-B/32] (val.py 199): INFO Test: [750/1920]	Acc@1: 0.274	mAP: 0.228960	
+[2025-10-26 14:39:40 ViT-B/32] (val.py 199): INFO Test: [800/1920]	Acc@1: 0.272	mAP: 0.225043	
+[2025-10-26 14:39:56 ViT-B/32] (val.py 199): INFO Test: [850/1920]	Acc@1: 0.273	mAP: 0.224030	
+[2025-10-26 14:40:11 ViT-B/32] (val.py 199): INFO Test: [900/1920]	Acc@1: 0.274	mAP: 0.224505	
+[2025-10-26 14:40:26 ViT-B/32] (val.py 199): INFO Test: [950/1920]	Acc@1: 0.273	mAP: 0.220828	
+[2025-10-26 14:40:40 ViT-B/32] (val.py 199): INFO Test: [1000/1920]	Acc@1: 0.270	mAP: 0.219767	
+[2025-10-26 14:40:55 ViT-B/32] (val.py 199): INFO Test: [1050/1920]	Acc@1: 0.266	mAP: 0.216549	
+[2025-10-26 14:41:11 ViT-B/32] (val.py 199): INFO Test: [1100/1920]	Acc@1: 0.267	mAP: 0.217582	
+[2025-10-26 14:41:26 ViT-B/32] (val.py 199): INFO Test: [1150/1920]	Acc@1: 0.265	mAP: 0.217753	
+[2025-10-26 14:41:41 ViT-B/32] (val.py 199): INFO Test: [1200/1920]	Acc@1: 0.266	mAP: 0.217332	
+[2025-10-26 14:41:58 ViT-B/32] (val.py 199): INFO Test: [1250/1920]	Acc@1: 0.267	mAP: 0.217563	
+[2025-10-26 14:42:13 ViT-B/32] (val.py 199): INFO Test: [1300/1920]	Acc@1: 0.269	mAP: 0.217360	
+[2025-10-26 14:42:28 ViT-B/32] (val.py 199): INFO Test: [1350/1920]	Acc@1: 0.269	mAP: 0.216646	
+[2025-10-26 14:42:43 ViT-B/32] (val.py 199): INFO Test: [1400/1920]	Acc@1: 0.270	mAP: 0.216151	
+[2025-10-26 14:42:59 ViT-B/32] (val.py 199): INFO Test: [1450/1920]	Acc@1: 0.269	mAP: 0.216645	
+[2025-10-26 14:43:15 ViT-B/32] (val.py 199): INFO Test: [1500/1920]	Acc@1: 0.270	mAP: 0.218200	
+[2025-10-26 14:43:29 ViT-B/32] (val.py 199): INFO Test: [1550/1920]	Acc@1: 0.272	mAP: 0.217885	
+[2025-10-26 14:43:44 ViT-B/32] (val.py 199): INFO Test: [1600/1920]	Acc@1: 0.269	mAP: 0.216144	
+[2025-10-26 14:43:59 ViT-B/32] (val.py 199): INFO Test: [1650/1920]	Acc@1: 0.271	mAP: 0.215106	
+[2025-10-26 14:44:15 ViT-B/32] (val.py 199): INFO Test: [1700/1920]	Acc@1: 0.272	mAP: 0.215447	
+[2025-10-26 14:44:30 ViT-B/32] (val.py 199): INFO Test: [1750/1920]	Acc@1: 0.272	mAP: 0.215087	
+[2025-10-26 14:44:45 ViT-B/32] (val.py 199): INFO Test: [1800/1920]	Acc@1: 0.271	mAP: 0.214599	
+[2025-10-26 14:45:01 ViT-B/32] (val.py 199): INFO Test: [1850/1920]	Acc@1: 0.271	mAP: 0.213245	
+[2025-10-26 14:45:16 ViT-B/32] (val.py 199): INFO Test: [1900/1920]	Acc@1: 0.270	mAP: 0.213048	
+[2025-10-26 14:45:22 ViT-B/32] (val.py 219): INFO  * Acc@1 0.2703 Acc@5 0.7664
+[2025-10-26 14:45:22 ViT-B/32] (val.py 220): INFO  * f1@3 0.2943 p3 0.1962 r3 0.5885 f1@5 0.1746 p5 0.1390 r5 0.3551 map 0.2141
+[2025-10-26 14:45:22 ViT-B/32] (val.py 232): INFO Acc1: * hd 0.6437 md 0.0946 ta 0.0017
+[2025-10-26 14:45:22 ViT-B/32] (val.py 233): INFO Acc5: * hd 0.9854 md 0.8936 ta 0.3820
+[2025-10-26 14:45:22 ViT-B/32] (main.py 279): INFO Accuracy of the network on the 3841 test videos: map: 0.2 acc1: 0.2703
+[2025-10-26 14:45:22 ViT-B/32] (main.py 287): INFO Acc1 max accuracy: 0.27
+[2025-10-26 14:45:22 ViT-B/32] (tools.py 262): INFO exp/ckpt_epoch_2.pth saving......
+[2025-10-26 14:45:24 ViT-B/32] (tools.py 264): INFO exp/ckpt_epoch_2.pth saved !!!
+[2025-10-26 14:45:49 ViT-B/32] (tools.py 268): INFO exp/best.pth saved !!!
+[2025-10-26 14:45:52 ViT-B/32] (train.py 183): INFO Train: [3/30][0/1819]	eta 1:51:02 lr 0.000004789	time 3.6630 (3.6630)	tot_loss 0.1315 (0.1315)	mem 4898MB
+[2025-10-26 14:46:22 ViT-B/32] (train.py 183): INFO Train: [3/30][50/1819]	eta 0:19:14 lr 0.000004841	time 0.5970 (0.6526)	tot_loss 0.1390 (0.1313)	mem 4898MB
+[2025-10-26 14:46:51 ViT-B/32] (train.py 183): INFO Train: [3/30][100/1819]	eta 0:17:49 lr 0.000004884	time 0.5873 (0.6220)	tot_loss 0.1068 (0.1315)	mem 4898MB
+[2025-10-26 14:47:21 ViT-B/32] (train.py 183): INFO Train: [3/30][150/1819]	eta 0:16:56 lr 0.000004926	time 0.5535 (0.6091)	tot_loss 0.0918 (0.1309)	mem 4898MB
+[2025-10-26 14:47:50 ViT-B/32] (train.py 183): INFO Train: [3/30][200/1819]	eta 0:16:14 lr 0.000004968	time 0.5979 (0.6018)	tot_loss 0.1465 (0.1317)	mem 4898MB
+[2025-10-26 14:48:19 ViT-B/32] (train.py 183): INFO Train: [3/30][250/1819]	eta 0:15:38 lr 0.000005010	time 0.5842 (0.5980)	tot_loss 0.1034 (0.1306)	mem 4898MB
+[2025-10-26 14:48:48 ViT-B/32] (train.py 183): INFO Train: [3/30][300/1819]	eta 0:15:04 lr 0.000005052	time 0.5599 (0.5957)	tot_loss 0.1371 (0.1304)	mem 4898MB
+[2025-10-26 14:49:17 ViT-B/32] (train.py 183): INFO Train: [3/30][350/1819]	eta 0:14:31 lr 0.000005095	time 0.5909 (0.5935)	tot_loss 0.1122 (0.1309)	mem 4898MB
+[2025-10-26 14:49:46 ViT-B/32] (train.py 183): INFO Train: [3/30][400/1819]	eta 0:14:00 lr 0.000005151	time 0.5752 (0.5921)	tot_loss 0.1293 (0.1321)	mem 4898MB
+[2025-10-26 14:50:15 ViT-B/32] (train.py 183): INFO Train: [3/30][450/1819]	eta 0:13:29 lr 0.000005193	time 0.5686 (0.5911)	tot_loss 0.1432 (0.1318)	mem 4898MB
+[2025-10-26 14:50:45 ViT-B/32] (train.py 183): INFO Train: [3/30][500/1819]	eta 0:12:59 lr 0.000005235	time 0.5682 (0.5912)	tot_loss 0.1292 (0.1316)	mem 4898MB
+[2025-10-26 14:51:14 ViT-B/32] (train.py 183): INFO Train: [3/30][550/1819]	eta 0:12:29 lr 0.000005278	time 0.5921 (0.5909)	tot_loss 0.1127 (0.1315)	mem 4898MB
+[2025-10-26 14:51:43 ViT-B/32] (train.py 183): INFO Train: [3/30][600/1819]	eta 0:11:59 lr 0.000005320	time 0.6084 (0.5900)	tot_loss 0.1318 (0.1315)	mem 4898MB
+[2025-10-26 14:52:12 ViT-B/32] (train.py 183): INFO Train: [3/30][650/1819]	eta 0:11:28 lr 0.000005362	time 0.5678 (0.5890)	tot_loss 0.1215 (0.1314)	mem 4898MB
+[2025-10-26 14:52:41 ViT-B/32] (train.py 183): INFO Train: [3/30][700/1819]	eta 0:10:58 lr 0.000005404	time 0.5610 (0.5883)	tot_loss 0.1448 (0.1316)	mem 4898MB
+[2025-10-26 14:53:10 ViT-B/32] (train.py 183): INFO Train: [3/30][750/1819]	eta 0:10:28 lr 0.000005447	time 0.5660 (0.5876)	tot_loss 0.0963 (0.1321)	mem 4898MB
+[2025-10-26 14:53:39 ViT-B/32] (train.py 183): INFO Train: [3/30][800/1819]	eta 0:09:58 lr 0.000005503	time 0.5710 (0.5871)	tot_loss 0.1125 (0.1325)	mem 4898MB
+[2025-10-26 14:54:08 ViT-B/32] (train.py 183): INFO Train: [3/30][850/1819]	eta 0:09:28 lr 0.000005545	time 0.6007 (0.5866)	tot_loss 0.1105 (0.1328)	mem 4898MB
+[2025-10-26 14:54:37 ViT-B/32] (train.py 183): INFO Train: [3/30][900/1819]	eta 0:08:58 lr 0.000005587	time 0.5842 (0.5863)	tot_loss 0.1539 (0.1333)	mem 4898MB
+[2025-10-26 14:55:06 ViT-B/32] (train.py 183): INFO Train: [3/30][950/1819]	eta 0:08:29 lr 0.000005629	time 0.5806 (0.5860)	tot_loss 0.1535 (0.1335)	mem 4898MB
+[2025-10-26 14:57:23 ViT-B/32] (main.py 336): INFO working dir: exp
+[2025-10-26 14:57:23 ViT-B/32] (main.py 340): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/32
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  HF_FINETUNED_PATH: /mnt/nfs/ap_10k/clip_finetuned_model/
+  MIT_LAYERS: 1
+  MODEL_NAME: FT-XCLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  PROMPTS_ALPHA: 0.1
+  PROMPTS_LAYERS: 3
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: exp
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 16
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 8
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0
+[2025-10-26 14:57:23 ViT-B/32] (main.py 115): INFO Building FT-XCLIP model using weights from: /mnt/nfs/ap_10k/clip_finetuned_model/
+[2025-10-26 14:57:55 ViT-B/32] (train.py 183): INFO Train: [0/30][0/1819]	eta 9:35:59 lr 0.000000000	time 18.9991 (18.9991)	tot_loss 0.1550 (0.1550)	mem 3266MB
+[2025-10-26 14:58:25 ViT-B/32] (train.py 183): INFO Train: [0/30][50/1819]	eta 0:28:16 lr 0.000000041	time 0.5920 (0.9592)	tot_loss 0.1491 (0.1546)	mem 4896MB
+[2025-10-26 14:58:54 ViT-B/32] (train.py 183): INFO Train: [0/30][100/1819]	eta 0:22:13 lr 0.000000084	time 0.6699 (0.7755)	tot_loss 0.1565 (0.1547)	mem 4896MB
+[2025-10-26 14:59:25 ViT-B/32] (train.py 183): INFO Train: [0/30][150/1819]	eta 0:20:06 lr 0.000000126	time 0.5673 (0.7227)	tot_loss 0.1525 (0.1544)	mem 4896MB
+[2025-10-26 14:59:55 ViT-B/32] (train.py 183): INFO Train: [0/30][200/1819]	eta 0:18:40 lr 0.000000168	time 0.6156 (0.6919)	tot_loss 0.1505 (0.1543)	mem 4896MB
+[2025-10-26 15:00:24 ViT-B/32] (train.py 183): INFO Train: [0/30][250/1819]	eta 0:17:31 lr 0.000000210	time 0.5511 (0.6704)	tot_loss 0.1502 (0.1541)	mem 4896MB
+[2025-10-26 15:00:53 ViT-B/32] (train.py 183): INFO Train: [0/30][300/1819]	eta 0:16:35 lr 0.000000252	time 0.5897 (0.6554)	tot_loss 0.1499 (0.1540)	mem 4896MB
+[2025-10-26 15:01:22 ViT-B/32] (train.py 183): INFO Train: [0/30][350/1819]	eta 0:15:46 lr 0.000000295	time 0.6180 (0.6443)	tot_loss 0.1504 (0.1537)	mem 4896MB
+[2025-10-26 15:01:51 ViT-B/32] (train.py 183): INFO Train: [0/30][400/1819]	eta 0:15:02 lr 0.000000351	time 0.5471 (0.6361)	tot_loss 0.1473 (0.1535)	mem 4896MB
+[2025-10-26 15:02:20 ViT-B/32] (train.py 183): INFO Train: [0/30][450/1819]	eta 0:14:23 lr 0.000000393	time 0.5653 (0.6304)	tot_loss 0.1481 (0.1533)	mem 4896MB
+[2025-10-26 15:02:50 ViT-B/32] (train.py 183): INFO Train: [0/30][500/1819]	eta 0:13:46 lr 0.000000435	time 0.5496 (0.6268)	tot_loss 0.1534 (0.1530)	mem 4896MB
+[2025-10-26 15:03:19 ViT-B/32] (train.py 183): INFO Train: [0/30][550/1819]	eta 0:13:09 lr 0.000000478	time 0.5672 (0.6223)	tot_loss 0.1522 (0.1526)	mem 4896MB
+[2025-10-26 15:03:49 ViT-B/32] (train.py 183): INFO Train: [0/30][600/1819]	eta 0:12:36 lr 0.000000520	time 0.5787 (0.6209)	tot_loss 0.1471 (0.1523)	mem 4896MB
+[2025-10-26 15:04:18 ViT-B/32] (train.py 183): INFO Train: [0/30][650/1819]	eta 0:12:02 lr 0.000000562	time 0.5581 (0.6178)	tot_loss 0.1418 (0.1519)	mem 4896MB
+[2025-10-26 15:04:48 ViT-B/32] (train.py 183): INFO Train: [0/30][700/1819]	eta 0:11:29 lr 0.000000604	time 0.5769 (0.6160)	tot_loss 0.1504 (0.1514)	mem 4896MB
+[2025-10-26 15:05:17 ViT-B/32] (train.py 183): INFO Train: [0/30][750/1819]	eta 0:10:56 lr 0.000000647	time 0.5675 (0.6145)	tot_loss 0.1537 (0.1509)	mem 4896MB
+[2025-10-26 15:05:47 ViT-B/32] (train.py 183): INFO Train: [0/30][800/1819]	eta 0:10:24 lr 0.000000703	time 0.6307 (0.6127)	tot_loss 0.1368 (0.1505)	mem 4896MB
+[2025-10-26 15:06:16 ViT-B/32] (train.py 183): INFO Train: [0/30][850/1819]	eta 0:09:51 lr 0.000000745	time 0.5645 (0.6109)	tot_loss 0.1344 (0.1500)	mem 4896MB
+[2025-10-26 15:06:45 ViT-B/32] (train.py 183): INFO Train: [0/30][900/1819]	eta 0:09:20 lr 0.000000787	time 0.5749 (0.6100)	tot_loss 0.1434 (0.1495)	mem 4896MB
+[2025-10-26 15:07:15 ViT-B/32] (train.py 183): INFO Train: [0/30][950/1819]	eta 0:08:49 lr 0.000000829	time 0.5666 (0.6094)	tot_loss 0.1367 (0.1491)	mem 4896MB
+[2025-10-26 15:07:44 ViT-B/32] (train.py 183): INFO Train: [0/30][1000/1819]	eta 0:08:17 lr 0.000000872	time 0.5581 (0.6079)	tot_loss 0.1365 (0.1486)	mem 4896MB
+[2025-10-26 15:08:14 ViT-B/32] (train.py 183): INFO Train: [0/30][1050/1819]	eta 0:07:46 lr 0.000000914	time 0.6314 (0.6071)	tot_loss 0.1458 (0.1483)	mem 4896MB
+[2025-10-26 15:08:43 ViT-B/32] (train.py 183): INFO Train: [0/30][1100/1819]	eta 0:07:15 lr 0.000000956	time 0.5686 (0.6058)	tot_loss 0.1325 (0.1478)	mem 4896MB
+[2025-10-26 15:09:13 ViT-B/32] (train.py 183): INFO Train: [0/30][1150/1819]	eta 0:06:45 lr 0.000000998	time 0.6409 (0.6054)	tot_loss 0.1521 (0.1475)	mem 4896MB
+[2025-10-26 15:09:43 ViT-B/32] (train.py 183): INFO Train: [0/30][1200/1819]	eta 0:06:14 lr 0.000001055	time 0.5993 (0.6052)	tot_loss 0.1372 (0.1472)	mem 4896MB
+[2025-10-26 15:10:12 ViT-B/32] (train.py 183): INFO Train: [0/30][1250/1819]	eta 0:05:44 lr 0.000001097	time 0.5690 (0.6046)	tot_loss 0.1360 (0.1470)	mem 4896MB
+[2025-10-26 15:10:41 ViT-B/32] (train.py 183): INFO Train: [0/30][1300/1819]	eta 0:05:13 lr 0.000001139	time 0.5733 (0.6038)	tot_loss 0.1642 (0.1467)	mem 4896MB
+[2025-10-26 15:11:11 ViT-B/32] (train.py 183): INFO Train: [0/30][1350/1819]	eta 0:04:42 lr 0.000001181	time 0.6077 (0.6030)	tot_loss 0.1344 (0.1465)	mem 4896MB
+[2025-10-26 15:11:40 ViT-B/32] (train.py 183): INFO Train: [0/30][1400/1819]	eta 0:04:12 lr 0.000001224	time 0.5624 (0.6025)	tot_loss 0.1662 (0.1461)	mem 4896MB
+[2025-10-26 15:12:10 ViT-B/32] (train.py 183): INFO Train: [0/30][1450/1819]	eta 0:03:42 lr 0.000001266	time 0.5883 (0.6023)	tot_loss 0.1395 (0.1458)	mem 4896MB
+[2025-10-26 15:12:39 ViT-B/32] (train.py 183): INFO Train: [0/30][1500/1819]	eta 0:03:11 lr 0.000001308	time 0.5859 (0.6016)	tot_loss 0.1337 (0.1457)	mem 4896MB
+[2025-10-26 15:13:08 ViT-B/32] (train.py 183): INFO Train: [0/30][1550/1819]	eta 0:02:41 lr 0.000001350	time 0.6399 (0.6011)	tot_loss 0.1354 (0.1456)	mem 4896MB
+[2025-10-26 15:13:38 ViT-B/32] (train.py 183): INFO Train: [0/30][1600/1819]	eta 0:02:11 lr 0.000001406	time 0.5713 (0.6011)	tot_loss 0.1132 (0.1454)	mem 4896MB
+[2025-10-26 15:14:08 ViT-B/32] (train.py 183): INFO Train: [0/30][1650/1819]	eta 0:01:41 lr 0.000001449	time 0.5716 (0.6008)	tot_loss 0.1306 (0.1452)	mem 4896MB
+[2025-10-26 15:14:38 ViT-B/32] (train.py 183): INFO Train: [0/30][1700/1819]	eta 0:01:11 lr 0.000001491	time 0.6516 (0.6006)	tot_loss 0.1814 (0.1451)	mem 4896MB
+[2025-10-26 15:15:07 ViT-B/32] (train.py 183): INFO Train: [0/30][1750/1819]	eta 0:00:41 lr 0.000001533	time 0.5924 (0.6002)	tot_loss 0.1229 (0.1450)	mem 4896MB
+[2025-10-26 15:15:36 ViT-B/32] (train.py 183): INFO Train: [0/30][1800/1819]	eta 0:00:11 lr 0.000001575	time 0.6211 (0.5996)	tot_loss 0.1348 (0.1448)	mem 4896MB
+[2025-10-26 15:15:47 ViT-B/32] (train.py 190): INFO EPOCH 0 training takes 0:18:11
+[2025-10-26 15:15:52 ViT-B/32] (val.py 76): INFO 1 views inference
+[2025-10-26 15:15:54 ViT-B/32] (val.py 199): INFO Test: [0/1920]	Acc@1: 0.000	mAP: 0.750000	
+[2025-10-26 15:16:09 ViT-B/32] (val.py 199): INFO Test: [50/1920]	Acc@1: 0.186	mAP: 0.137155	
+[2025-10-26 15:16:23 ViT-B/32] (val.py 199): INFO Test: [100/1920]	Acc@1: 0.208	mAP: 0.145328	
+[2025-10-26 15:16:38 ViT-B/32] (val.py 199): INFO Test: [150/1920]	Acc@1: 0.228	mAP: 0.156397	
+[2025-10-26 15:16:53 ViT-B/32] (val.py 199): INFO Test: [200/1920]	Acc@1: 0.226	mAP: 0.151522	
+[2025-10-26 15:17:07 ViT-B/32] (val.py 199): INFO Test: [250/1920]	Acc@1: 0.211	mAP: 0.143088	
+[2025-10-26 15:17:23 ViT-B/32] (val.py 199): INFO Test: [300/1920]	Acc@1: 0.208	mAP: 0.137445	
+[2025-10-26 15:17:38 ViT-B/32] (val.py 199): INFO Test: [350/1920]	Acc@1: 0.211	mAP: 0.138713	
+[2025-10-26 15:17:53 ViT-B/32] (val.py 199): INFO Test: [400/1920]	Acc@1: 0.211	mAP: 0.134974	
+[2025-10-26 15:18:07 ViT-B/32] (val.py 199): INFO Test: [450/1920]	Acc@1: 0.205	mAP: 0.134492	
+[2025-10-26 15:18:23 ViT-B/32] (val.py 199): INFO Test: [500/1920]	Acc@1: 0.214	mAP: 0.134431	
+[2025-10-26 15:18:38 ViT-B/32] (val.py 199): INFO Test: [550/1920]	Acc@1: 0.212	mAP: 0.132137	
+[2025-10-26 15:18:52 ViT-B/32] (val.py 199): INFO Test: [600/1920]	Acc@1: 0.209	mAP: 0.129048	
+[2025-10-26 15:19:07 ViT-B/32] (val.py 199): INFO Test: [650/1920]	Acc@1: 0.208	mAP: 0.127989	
+[2025-10-26 15:19:22 ViT-B/32] (val.py 199): INFO Test: [700/1920]	Acc@1: 0.205	mAP: 0.126774	
+[2025-10-26 15:19:37 ViT-B/32] (val.py 199): INFO Test: [750/1920]	Acc@1: 0.208	mAP: 0.125795	
+[2025-10-26 15:19:52 ViT-B/32] (val.py 199): INFO Test: [800/1920]	Acc@1: 0.211	mAP: 0.124218	
+[2025-10-26 15:20:07 ViT-B/32] (val.py 199): INFO Test: [850/1920]	Acc@1: 0.210	mAP: 0.124885	
+[2025-10-26 15:20:22 ViT-B/32] (val.py 199): INFO Test: [900/1920]	Acc@1: 0.210	mAP: 0.126795	
+[2025-10-26 15:20:37 ViT-B/32] (val.py 199): INFO Test: [950/1920]	Acc@1: 0.210	mAP: 0.126990	
+[2025-10-26 15:20:53 ViT-B/32] (val.py 199): INFO Test: [1000/1920]	Acc@1: 0.208	mAP: 0.127827	
+[2025-10-26 15:21:07 ViT-B/32] (val.py 199): INFO Test: [1050/1920]	Acc@1: 0.208	mAP: 0.127376	
+[2025-10-26 15:21:23 ViT-B/32] (val.py 199): INFO Test: [1100/1920]	Acc@1: 0.208	mAP: 0.126923	
+[2025-10-26 15:21:38 ViT-B/32] (val.py 199): INFO Test: [1150/1920]	Acc@1: 0.211	mAP: 0.126505	
+[2025-10-26 15:21:53 ViT-B/32] (val.py 199): INFO Test: [1200/1920]	Acc@1: 0.211	mAP: 0.126854	
+[2025-10-26 15:22:08 ViT-B/32] (val.py 199): INFO Test: [1250/1920]	Acc@1: 0.212	mAP: 0.126146	
+[2025-10-26 15:22:24 ViT-B/32] (val.py 199): INFO Test: [1300/1920]	Acc@1: 0.215	mAP: 0.126506	
+[2025-10-26 15:22:39 ViT-B/32] (val.py 199): INFO Test: [1350/1920]	Acc@1: 0.215	mAP: 0.126474	
+[2025-10-26 15:22:54 ViT-B/32] (val.py 199): INFO Test: [1400/1920]	Acc@1: 0.215	mAP: 0.126780	
+[2025-10-26 15:23:09 ViT-B/32] (val.py 199): INFO Test: [1450/1920]	Acc@1: 0.216	mAP: 0.127502	
+[2025-10-26 15:23:24 ViT-B/32] (val.py 199): INFO Test: [1500/1920]	Acc@1: 0.214	mAP: 0.126965	
+[2025-10-26 15:23:40 ViT-B/32] (val.py 199): INFO Test: [1550/1920]	Acc@1: 0.214	mAP: 0.127391	
+[2025-10-26 15:23:55 ViT-B/32] (val.py 199): INFO Test: [1600/1920]	Acc@1: 0.213	mAP: 0.128115	
+[2025-10-26 15:24:10 ViT-B/32] (val.py 199): INFO Test: [1650/1920]	Acc@1: 0.214	mAP: 0.128925	
+[2025-10-26 15:24:25 ViT-B/32] (val.py 199): INFO Test: [1700/1920]	Acc@1: 0.215	mAP: 0.128584	
+[2025-10-26 15:24:40 ViT-B/32] (val.py 199): INFO Test: [1750/1920]	Acc@1: 0.215	mAP: 0.128402	
+[2025-10-26 15:24:56 ViT-B/32] (val.py 199): INFO Test: [1800/1920]	Acc@1: 0.215	mAP: 0.128644	
+[2025-10-26 15:25:11 ViT-B/32] (val.py 199): INFO Test: [1850/1920]	Acc@1: 0.214	mAP: 0.128983	
+[2025-10-26 15:25:26 ViT-B/32] (val.py 199): INFO Test: [1900/1920]	Acc@1: 0.214	mAP: 0.129577	
+[2025-10-26 15:25:32 ViT-B/32] (val.py 219): INFO  * Acc@1 0.2148 Acc@5 0.6839
+[2025-10-26 15:25:32 ViT-B/32] (val.py 220): INFO  * f1@3 0.2562 p3 0.1708 r3 0.5125 f1@5 0.0926 p5 0.0608 r5 0.2683 map 0.1300
+[2025-10-26 15:25:32 ViT-B/32] (val.py 232): INFO Acc1: * hd 0.5753 md 0.0000 ta 0.0000
+[2025-10-26 15:25:32 ViT-B/32] (val.py 233): INFO Acc5: * hd 1.0000 md 0.7379 ta 0.2566
+[2025-10-26 15:25:32 ViT-B/32] (main.py 279): INFO Accuracy of the network on the 3841 test videos: map: 0.1 acc1: 0.2148
+[2025-10-26 15:25:32 ViT-B/32] (main.py 287): INFO Acc1 max accuracy: 0.21
+[2025-10-26 15:25:32 ViT-B/32] (tools.py 262): INFO exp/ckpt_epoch_0.pth saving......
+[2025-10-26 15:25:51 ViT-B/32] (tools.py 264): INFO exp/ckpt_epoch_0.pth saved !!!
+[2025-10-26 15:26:10 ViT-B/32] (tools.py 268): INFO exp/best.pth saved !!!
+[2025-10-26 15:26:15 ViT-B/32] (train.py 183): INFO Train: [1/30][0/1819]	eta 2:31:34 lr 0.000001589	time 4.9999 (4.9999)	tot_loss 0.1449 (0.1449)	mem 4896MB
+[2025-10-26 15:26:47 ViT-B/32] (train.py 183): INFO Train: [1/30][50/1819]	eta 0:21:18 lr 0.000001641	time 0.5997 (0.7227)	tot_loss 0.1230 (0.1380)	mem 4896MB
+[2025-10-26 15:27:17 ViT-B/32] (train.py 183): INFO Train: [1/30][100/1819]	eta 0:19:07 lr 0.000001684	time 0.5792 (0.6675)	tot_loss 0.1303 (0.1393)	mem 4896MB
+[2025-10-26 15:27:47 ViT-B/32] (train.py 183): INFO Train: [1/30][150/1819]	eta 0:18:00 lr 0.000001726	time 0.7397 (0.6476)	tot_loss 0.1278 (0.1392)	mem 4896MB
+[2025-10-26 15:28:17 ViT-B/32] (train.py 183): INFO Train: [1/30][200/1819]	eta 0:17:08 lr 0.000001768	time 0.6342 (0.6351)	tot_loss 0.1440 (0.1384)	mem 4896MB
+[2025-10-26 15:28:48 ViT-B/32] (train.py 183): INFO Train: [1/30][250/1819]	eta 0:16:27 lr 0.000001810	time 0.5916 (0.6296)	tot_loss 0.1432 (0.1389)	mem 4896MB
+[2025-10-26 15:29:18 ViT-B/32] (train.py 183): INFO Train: [1/30][300/1819]	eta 0:15:49 lr 0.000001852	time 0.6548 (0.6249)	tot_loss 0.1357 (0.1386)	mem 4896MB
+[2025-10-26 15:29:48 ViT-B/32] (train.py 183): INFO Train: [1/30][350/1819]	eta 0:15:15 lr 0.000001895	time 0.6035 (0.6232)	tot_loss 0.1578 (0.1386)	mem 4896MB
+[2025-10-26 15:30:18 ViT-B/32] (train.py 183): INFO Train: [1/30][400/1819]	eta 0:14:38 lr 0.000001951	time 0.5601 (0.6192)	tot_loss 0.1355 (0.1385)	mem 4896MB
+[2025-10-26 15:30:48 ViT-B/32] (train.py 183): INFO Train: [1/30][450/1819]	eta 0:14:04 lr 0.000001993	time 0.5977 (0.6170)	tot_loss 0.1427 (0.1386)	mem 4896MB
+[2025-10-26 15:31:19 ViT-B/32] (train.py 183): INFO Train: [1/30][500/1819]	eta 0:13:34 lr 0.000002035	time 0.6006 (0.6172)	tot_loss 0.1230 (0.1386)	mem 4896MB
+[2025-10-26 15:31:49 ViT-B/32] (train.py 183): INFO Train: [1/30][550/1819]	eta 0:13:01 lr 0.000002078	time 0.6035 (0.6157)	tot_loss 0.1634 (0.1388)	mem 4896MB
+[2025-10-26 15:32:19 ViT-B/32] (train.py 183): INFO Train: [1/30][600/1819]	eta 0:12:29 lr 0.000002120	time 0.5800 (0.6148)	tot_loss 0.1249 (0.1384)	mem 4896MB
+[2025-10-26 15:32:49 ViT-B/32] (train.py 183): INFO Train: [1/30][650/1819]	eta 0:11:56 lr 0.000002162	time 0.5976 (0.6128)	tot_loss 0.1358 (0.1386)	mem 4896MB
+[2025-10-26 15:33:19 ViT-B/32] (train.py 183): INFO Train: [1/30][700/1819]	eta 0:11:25 lr 0.000002204	time 0.6427 (0.6128)	tot_loss 0.1165 (0.1386)	mem 4896MB
+[2025-10-26 15:33:49 ViT-B/32] (train.py 183): INFO Train: [1/30][750/1819]	eta 0:10:53 lr 0.000002247	time 0.6185 (0.6117)	tot_loss 0.1270 (0.1385)	mem 4896MB
+[2025-10-26 15:34:19 ViT-B/32] (train.py 183): INFO Train: [1/30][800/1819]	eta 0:10:22 lr 0.000002303	time 0.5624 (0.6113)	tot_loss 0.1518 (0.1385)	mem 4896MB
+[2025-10-26 15:34:50 ViT-B/32] (train.py 183): INFO Train: [1/30][850/1819]	eta 0:09:52 lr 0.000002345	time 0.6605 (0.6110)	tot_loss 0.1070 (0.1386)	mem 4896MB
+[2025-10-26 15:35:20 ViT-B/32] (train.py 183): INFO Train: [1/30][900/1819]	eta 0:09:21 lr 0.000002387	time 0.5974 (0.6114)	tot_loss 0.1494 (0.1385)	mem 4896MB
+[2025-10-26 15:35:51 ViT-B/32] (train.py 183): INFO Train: [1/30][950/1819]	eta 0:08:51 lr 0.000002429	time 0.5927 (0.6113)	tot_loss 0.1508 (0.1384)	mem 4896MB
+[2025-10-26 15:36:21 ViT-B/32] (train.py 183): INFO Train: [1/30][1000/1819]	eta 0:08:20 lr 0.000002472	time 0.5955 (0.6109)	tot_loss 0.1374 (0.1385)	mem 4896MB
+[2025-10-26 15:36:53 ViT-B/32] (train.py 183): INFO Train: [1/30][1050/1819]	eta 0:07:50 lr 0.000002514	time 0.5975 (0.6121)	tot_loss 0.1535 (0.1385)	mem 4896MB
+[2025-10-26 15:37:24 ViT-B/32] (train.py 183): INFO Train: [1/30][1100/1819]	eta 0:07:20 lr 0.000002556	time 0.5906 (0.6128)	tot_loss 0.1221 (0.1385)	mem 4896MB
+[2025-10-26 15:37:55 ViT-B/32] (train.py 183): INFO Train: [1/30][1150/1819]	eta 0:06:49 lr 0.000002598	time 0.5820 (0.6126)	tot_loss 0.1343 (0.1386)	mem 4896MB
+[2025-10-26 15:38:26 ViT-B/32] (train.py 183): INFO Train: [1/30][1200/1819]	eta 0:06:19 lr 0.000002655	time 0.5899 (0.6131)	tot_loss 0.1486 (0.1387)	mem 4896MB
+[2025-10-26 15:38:57 ViT-B/32] (train.py 183): INFO Train: [1/30][1250/1819]	eta 0:05:48 lr 0.000002697	time 0.6079 (0.6132)	tot_loss 0.1234 (0.1386)	mem 4896MB
+[2025-10-26 15:39:27 ViT-B/32] (train.py 183): INFO Train: [1/30][1300/1819]	eta 0:05:18 lr 0.000002739	time 0.6017 (0.6128)	tot_loss 0.1208 (0.1386)	mem 4896MB
+[2025-10-26 15:39:57 ViT-B/32] (train.py 183): INFO Train: [1/30][1350/1819]	eta 0:04:47 lr 0.000002781	time 0.5861 (0.6127)	tot_loss 0.1388 (0.1386)	mem 4896MB
+[2025-10-26 15:40:28 ViT-B/32] (train.py 183): INFO Train: [1/30][1400/1819]	eta 0:04:16 lr 0.000002824	time 0.5843 (0.6129)	tot_loss 0.1360 (0.1386)	mem 4896MB
+[2025-10-26 15:40:59 ViT-B/32] (train.py 183): INFO Train: [1/30][1450/1819]	eta 0:03:46 lr 0.000002866	time 0.5987 (0.6128)	tot_loss 0.1448 (0.1385)	mem 4896MB
+[2025-10-26 15:41:29 ViT-B/32] (train.py 183): INFO Train: [1/30][1500/1819]	eta 0:03:15 lr 0.000002908	time 0.5760 (0.6127)	tot_loss 0.1516 (0.1385)	mem 4896MB
+[2025-10-26 15:41:59 ViT-B/32] (train.py 183): INFO Train: [1/30][1550/1819]	eta 0:02:44 lr 0.000002950	time 0.6008 (0.6122)	tot_loss 0.1320 (0.1384)	mem 4896MB
+[2025-10-26 15:42:30 ViT-B/32] (train.py 183): INFO Train: [1/30][1600/1819]	eta 0:02:14 lr 0.000003006	time 0.5547 (0.6124)	tot_loss 0.1558 (0.1384)	mem 4896MB
+[2025-10-26 15:43:02 ViT-B/32] (train.py 183): INFO Train: [1/30][1650/1819]	eta 0:01:43 lr 0.000003049	time 0.5980 (0.6129)	tot_loss 0.1275 (0.1384)	mem 4896MB
+[2025-10-26 15:43:32 ViT-B/32] (train.py 183): INFO Train: [1/30][1700/1819]	eta 0:01:12 lr 0.000003091	time 0.8363 (0.6129)	tot_loss 0.1352 (0.1383)	mem 4896MB
+[2025-10-26 15:44:03 ViT-B/32] (train.py 183): INFO Train: [1/30][1750/1819]	eta 0:00:42 lr 0.000003133	time 0.6489 (0.6132)	tot_loss 0.1423 (0.1382)	mem 4896MB
+[2025-10-26 15:44:34 ViT-B/32] (train.py 183): INFO Train: [1/30][1800/1819]	eta 0:00:11 lr 0.000003175	time 0.5432 (0.6134)	tot_loss 0.1309 (0.1381)	mem 4896MB
+[2025-10-26 15:44:45 ViT-B/32] (train.py 190): INFO EPOCH 1 training takes 0:18:35
+[2025-10-26 15:44:50 ViT-B/32] (val.py 76): INFO 1 views inference
+[2025-10-26 15:44:52 ViT-B/32] (val.py 199): INFO Test: [0/1920]	Acc@1: 0.000	mAP: 0.500000	
+[2025-10-26 15:45:12 ViT-B/32] (val.py 199): INFO Test: [50/1920]	Acc@1: 0.284	mAP: 0.189811	
+[2025-10-26 15:45:32 ViT-B/32] (val.py 199): INFO Test: [100/1920]	Acc@1: 0.257	mAP: 0.163973	
+[2025-10-26 15:45:48 ViT-B/32] (val.py 199): INFO Test: [150/1920]	Acc@1: 0.268	mAP: 0.173967	
+[2025-10-26 15:46:04 ViT-B/32] (val.py 199): INFO Test: [200/1920]	Acc@1: 0.276	mAP: 0.177057	
+[2025-10-26 15:46:19 ViT-B/32] (val.py 199): INFO Test: [250/1920]	Acc@1: 0.255	mAP: 0.187860	
+[2025-10-26 15:46:35 ViT-B/32] (val.py 199): INFO Test: [300/1920]	Acc@1: 0.252	mAP: 0.178004	
+[2025-10-26 15:46:51 ViT-B/32] (val.py 199): INFO Test: [350/1920]	Acc@1: 0.251	mAP: 0.173784	
+[2025-10-26 15:47:06 ViT-B/32] (val.py 199): INFO Test: [400/1920]	Acc@1: 0.242	mAP: 0.174244	
+[2025-10-26 15:47:23 ViT-B/32] (val.py 199): INFO Test: [450/1920]	Acc@1: 0.237	mAP: 0.173180	
+[2025-10-26 15:47:38 ViT-B/32] (val.py 199): INFO Test: [500/1920]	Acc@1: 0.236	mAP: 0.169137	
+[2025-10-26 15:47:53 ViT-B/32] (val.py 199): INFO Test: [550/1920]	Acc@1: 0.231	mAP: 0.169019	
+[2025-10-26 15:48:09 ViT-B/32] (val.py 199): INFO Test: [600/1920]	Acc@1: 0.230	mAP: 0.167267	
+[2025-10-26 15:48:24 ViT-B/32] (val.py 199): INFO Test: [650/1920]	Acc@1: 0.233	mAP: 0.168076	
+[2025-10-26 15:48:41 ViT-B/32] (val.py 199): INFO Test: [700/1920]	Acc@1: 0.235	mAP: 0.167496	
+[2025-10-26 15:48:56 ViT-B/32] (val.py 199): INFO Test: [750/1920]	Acc@1: 0.235	mAP: 0.163563	
+[2025-10-26 15:49:12 ViT-B/32] (val.py 199): INFO Test: [800/1920]	Acc@1: 0.233	mAP: 0.163651	
+[2025-10-26 15:49:27 ViT-B/32] (val.py 199): INFO Test: [850/1920]	Acc@1: 0.231	mAP: 0.163045	
+[2025-10-26 15:49:42 ViT-B/32] (val.py 199): INFO Test: [900/1920]	Acc@1: 0.228	mAP: 0.162152	
+[2025-10-26 15:50:00 ViT-B/32] (val.py 199): INFO Test: [950/1920]	Acc@1: 0.225	mAP: 0.161783	
+[2025-10-26 15:50:15 ViT-B/32] (val.py 199): INFO Test: [1000/1920]	Acc@1: 0.223	mAP: 0.161350	
+[2025-10-26 15:50:31 ViT-B/32] (val.py 199): INFO Test: [1050/1920]	Acc@1: 0.221	mAP: 0.162615	
+[2025-10-26 15:50:46 ViT-B/32] (val.py 199): INFO Test: [1100/1920]	Acc@1: 0.221	mAP: 0.162012	
+[2025-10-26 15:51:02 ViT-B/32] (val.py 199): INFO Test: [1150/1920]	Acc@1: 0.221	mAP: 0.161509	
+[2025-10-26 15:51:18 ViT-B/32] (val.py 199): INFO Test: [1200/1920]	Acc@1: 0.220	mAP: 0.160910	
+[2025-10-26 15:51:32 ViT-B/32] (val.py 199): INFO Test: [1250/1920]	Acc@1: 0.219	mAP: 0.160816	
+[2025-10-26 15:51:49 ViT-B/32] (val.py 199): INFO Test: [1300/1920]	Acc@1: 0.219	mAP: 0.161524	
+[2025-10-26 15:52:04 ViT-B/32] (val.py 199): INFO Test: [1350/1920]	Acc@1: 0.220	mAP: 0.162154	
+[2025-10-26 15:52:20 ViT-B/32] (val.py 199): INFO Test: [1400/1920]	Acc@1: 0.219	mAP: 0.162985	
+[2025-10-26 15:52:35 ViT-B/32] (val.py 199): INFO Test: [1450/1920]	Acc@1: 0.223	mAP: 0.163352	
+[2025-10-26 15:52:50 ViT-B/32] (val.py 199): INFO Test: [1500/1920]	Acc@1: 0.223	mAP: 0.162709	
+[2025-10-26 15:53:06 ViT-B/32] (val.py 199): INFO Test: [1550/1920]	Acc@1: 0.221	mAP: 0.162572	
+[2025-10-26 15:53:22 ViT-B/32] (val.py 199): INFO Test: [1600/1920]	Acc@1: 0.221	mAP: 0.163255	
+[2025-10-26 15:53:38 ViT-B/32] (val.py 199): INFO Test: [1650/1920]	Acc@1: 0.221	mAP: 0.163287	
+[2025-10-26 15:53:53 ViT-B/32] (val.py 199): INFO Test: [1700/1920]	Acc@1: 0.223	mAP: 0.162517	
+[2025-10-26 15:54:09 ViT-B/32] (val.py 199): INFO Test: [1750/1920]	Acc@1: 0.221	mAP: 0.163230	
+[2025-10-26 15:54:24 ViT-B/32] (val.py 199): INFO Test: [1800/1920]	Acc@1: 0.221	mAP: 0.163478	
+[2025-10-26 15:54:40 ViT-B/32] (val.py 199): INFO Test: [1850/1920]	Acc@1: 0.222	mAP: 0.162995	
+[2025-10-26 15:54:55 ViT-B/32] (val.py 199): INFO Test: [1900/1920]	Acc@1: 0.220	mAP: 0.163078	
+[2025-10-26 15:55:01 ViT-B/32] (val.py 219): INFO  * Acc@1 0.2198 Acc@5 0.7393
+[2025-10-26 15:55:01 ViT-B/32] (val.py 220): INFO  * f1@3 0.2755 p3 0.1837 r3 0.5510 f1@5 0.1290 p5 0.0960 r5 0.3069 map 0.1630
+[2025-10-26 15:55:01 ViT-B/32] (val.py 232): INFO Acc1: * hd 0.5851 md 0.0042 ta 0.0000
+[2025-10-26 15:55:01 ViT-B/32] (val.py 233): INFO Acc5: * hd 1.0000 md 0.7563 ta 0.4142
+[2025-10-26 15:55:01 ViT-B/32] (main.py 279): INFO Accuracy of the network on the 3841 test videos: map: 0.2 acc1: 0.2198
+[2025-10-26 15:55:01 ViT-B/32] (main.py 287): INFO Acc1 max accuracy: 0.22
+[2025-10-26 15:55:01 ViT-B/32] (tools.py 262): INFO exp/ckpt_epoch_1.pth saving......
+[2025-10-26 15:55:20 ViT-B/32] (tools.py 264): INFO exp/ckpt_epoch_1.pth saved !!!
+[2025-10-26 15:55:42 ViT-B/32] (tools.py 268): INFO exp/best.pth saved !!!
+[2025-10-26 15:55:46 ViT-B/32] (train.py 183): INFO Train: [2/30][0/1819]	eta 2:01:40 lr 0.000003189	time 4.0137 (4.0137)	tot_loss 0.1530 (0.1530)	mem 4896MB
+[2025-10-26 15:56:17 ViT-B/32] (train.py 183): INFO Train: [2/30][50/1819]	eta 0:19:57 lr 0.000003241	time 0.5943 (0.6771)	tot_loss 0.1576 (0.1360)	mem 4896MB
+[2025-10-26 15:56:47 ViT-B/32] (train.py 183): INFO Train: [2/30][100/1819]	eta 0:18:18 lr 0.000003284	time 0.5716 (0.6388)	tot_loss 0.1218 (0.1348)	mem 4896MB
+[2025-10-26 15:57:17 ViT-B/32] (train.py 183): INFO Train: [2/30][150/1819]	eta 0:17:28 lr 0.000003326	time 0.8710 (0.6285)	tot_loss 0.1340 (0.1351)	mem 4896MB
+[2025-10-26 15:57:47 ViT-B/32] (train.py 183): INFO Train: [2/30][200/1819]	eta 0:16:45 lr 0.000003368	time 0.6002 (0.6212)	tot_loss 0.1240 (0.1352)	mem 4896MB
+[2025-10-26 15:58:17 ViT-B/32] (train.py 183): INFO Train: [2/30][250/1819]	eta 0:16:06 lr 0.000003410	time 0.5763 (0.6158)	tot_loss 0.1544 (0.1357)	mem 4896MB
+[2025-10-26 15:58:47 ViT-B/32] (train.py 183): INFO Train: [2/30][300/1819]	eta 0:15:31 lr 0.000003452	time 0.5938 (0.6134)	tot_loss 0.1568 (0.1365)	mem 4896MB
+[2025-10-26 15:59:17 ViT-B/32] (train.py 183): INFO Train: [2/30][350/1819]	eta 0:14:57 lr 0.000003495	time 0.5567 (0.6109)	tot_loss 0.1330 (0.1362)	mem 4896MB
+[2025-10-26 15:59:46 ViT-B/32] (train.py 183): INFO Train: [2/30][400/1819]	eta 0:14:22 lr 0.000003551	time 0.5721 (0.6081)	tot_loss 0.1180 (0.1357)	mem 4896MB
+[2025-10-26 16:00:16 ViT-B/32] (train.py 183): INFO Train: [2/30][450/1819]	eta 0:13:51 lr 0.000003593	time 0.6141 (0.6076)	tot_loss 0.1172 (0.1361)	mem 4896MB
+[2025-10-26 16:00:46 ViT-B/32] (train.py 183): INFO Train: [2/30][500/1819]	eta 0:13:19 lr 0.000003635	time 0.5798 (0.6060)	tot_loss 0.1388 (0.1362)	mem 4896MB
+[2025-10-26 16:01:15 ViT-B/32] (train.py 183): INFO Train: [2/30][550/1819]	eta 0:12:47 lr 0.000003678	time 0.5833 (0.6044)	tot_loss 0.1447 (0.1360)	mem 4896MB
+[2025-10-26 16:01:45 ViT-B/32] (train.py 183): INFO Train: [2/30][600/1819]	eta 0:12:15 lr 0.000003720	time 0.5640 (0.6035)	tot_loss 0.1317 (0.1357)	mem 4896MB
+[2025-10-26 16:02:14 ViT-B/32] (train.py 183): INFO Train: [2/30][650/1819]	eta 0:11:44 lr 0.000003762	time 0.5656 (0.6024)	tot_loss 0.0984 (0.1352)	mem 4896MB
+[2025-10-26 16:02:44 ViT-B/32] (train.py 183): INFO Train: [2/30][700/1819]	eta 0:11:13 lr 0.000003804	time 0.5638 (0.6017)	tot_loss 0.1389 (0.1352)	mem 4896MB
+[2025-10-26 16:03:13 ViT-B/32] (train.py 183): INFO Train: [2/30][750/1819]	eta 0:10:42 lr 0.000003847	time 0.5926 (0.6006)	tot_loss 0.1314 (0.1351)	mem 4896MB
+[2025-10-26 16:03:43 ViT-B/32] (train.py 183): INFO Train: [2/30][800/1819]	eta 0:10:11 lr 0.000003903	time 0.5892 (0.6001)	tot_loss 0.1461 (0.1351)	mem 4896MB
+[2025-10-26 16:04:12 ViT-B/32] (train.py 183): INFO Train: [2/30][850/1819]	eta 0:09:40 lr 0.000003945	time 0.5819 (0.5995)	tot_loss 0.1135 (0.1350)	mem 4896MB
+[2025-10-26 16:04:42 ViT-B/32] (train.py 183): INFO Train: [2/30][900/1819]	eta 0:09:10 lr 0.000003987	time 0.5779 (0.5993)	tot_loss 0.1425 (0.1349)	mem 4896MB
+[2025-10-26 16:05:12 ViT-B/32] (train.py 183): INFO Train: [2/30][950/1819]	eta 0:08:40 lr 0.000004029	time 0.5581 (0.5987)	tot_loss 0.1206 (0.1348)	mem 4896MB
+[2025-10-26 16:05:41 ViT-B/32] (train.py 183): INFO Train: [2/30][1000/1819]	eta 0:08:10 lr 0.000004072	time 0.5703 (0.5987)	tot_loss 0.1338 (0.1350)	mem 4896MB
+[2025-10-26 16:06:11 ViT-B/32] (train.py 183): INFO Train: [2/30][1050/1819]	eta 0:07:40 lr 0.000004114	time 0.6140 (0.5984)	tot_loss 0.1360 (0.1349)	mem 4896MB
+[2025-10-26 16:06:42 ViT-B/32] (train.py 183): INFO Train: [2/30][1100/1819]	eta 0:07:10 lr 0.000004156	time 0.5990 (0.5989)	tot_loss 0.1286 (0.1349)	mem 4896MB
+[2025-10-26 16:07:12 ViT-B/32] (train.py 183): INFO Train: [2/30][1150/1819]	eta 0:06:40 lr 0.000004198	time 0.5688 (0.5990)	tot_loss 0.1468 (0.1348)	mem 4896MB
+[2025-10-26 16:07:42 ViT-B/32] (train.py 183): INFO Train: [2/30][1200/1819]	eta 0:06:11 lr 0.000004255	time 0.5938 (0.5994)	tot_loss 0.1454 (0.1347)	mem 4896MB
+[2025-10-26 16:08:12 ViT-B/32] (train.py 183): INFO Train: [2/30][1250/1819]	eta 0:05:40 lr 0.000004297	time 0.5710 (0.5990)	tot_loss 0.1255 (0.1346)	mem 4896MB
+[2025-10-26 16:08:41 ViT-B/32] (train.py 183): INFO Train: [2/30][1300/1819]	eta 0:05:10 lr 0.000004339	time 0.5921 (0.5985)	tot_loss 0.1325 (0.1347)	mem 4896MB
+[2025-10-26 16:09:11 ViT-B/32] (train.py 183): INFO Train: [2/30][1350/1819]	eta 0:04:40 lr 0.000004381	time 0.6963 (0.5985)	tot_loss 0.1143 (0.1349)	mem 4896MB
+[2025-10-26 16:09:41 ViT-B/32] (train.py 183): INFO Train: [2/30][1400/1819]	eta 0:04:10 lr 0.000004424	time 0.6086 (0.5986)	tot_loss 0.1647 (0.1349)	mem 4896MB
+[2025-10-26 16:10:11 ViT-B/32] (train.py 183): INFO Train: [2/30][1450/1819]	eta 0:03:40 lr 0.000004466	time 0.5786 (0.5988)	tot_loss 0.1164 (0.1348)	mem 4896MB
+[2025-10-26 16:10:41 ViT-B/32] (train.py 183): INFO Train: [2/30][1500/1819]	eta 0:03:10 lr 0.000004508	time 0.5801 (0.5987)	tot_loss 0.1452 (0.1347)	mem 4896MB
+[2025-10-26 16:11:11 ViT-B/32] (train.py 183): INFO Train: [2/30][1550/1819]	eta 0:02:41 lr 0.000004550	time 0.5997 (0.5990)	tot_loss 0.1279 (0.1348)	mem 4896MB
+[2025-10-26 16:11:41 ViT-B/32] (train.py 183): INFO Train: [2/30][1600/1819]	eta 0:02:11 lr 0.000004606	time 0.6087 (0.5990)	tot_loss 0.1222 (0.1347)	mem 4896MB
+[2025-10-26 16:12:11 ViT-B/32] (train.py 183): INFO Train: [2/30][1650/1819]	eta 0:01:41 lr 0.000004649	time 0.5804 (0.5991)	tot_loss 0.1669 (0.1347)	mem 4896MB
+[2025-10-26 16:12:41 ViT-B/32] (train.py 183): INFO Train: [2/30][1700/1819]	eta 0:01:11 lr 0.000004691	time 0.5698 (0.5988)	tot_loss 0.1465 (0.1346)	mem 4896MB
+[2025-10-26 16:13:10 ViT-B/32] (train.py 183): INFO Train: [2/30][1750/1819]	eta 0:00:41 lr 0.000004733	time 0.5823 (0.5986)	tot_loss 0.1250 (0.1346)	mem 4896MB
+[2025-10-26 16:13:41 ViT-B/32] (train.py 183): INFO Train: [2/30][1800/1819]	eta 0:00:11 lr 0.000004775	time 0.6435 (0.5987)	tot_loss 0.1423 (0.1346)	mem 4896MB
+[2025-10-26 16:13:51 ViT-B/32] (train.py 190): INFO EPOCH 2 training takes 0:18:09
+[2025-10-26 16:13:59 ViT-B/32] (val.py 76): INFO 1 views inference
+[2025-10-26 16:14:02 ViT-B/32] (val.py 199): INFO Test: [0/1920]	Acc@1: 0.000	mAP: 1.000000	
+[2025-10-26 16:14:25 ViT-B/32] (val.py 199): INFO Test: [50/1920]	Acc@1: 0.353	mAP: 0.342570	
+[2025-10-26 16:14:39 ViT-B/32] (val.py 199): INFO Test: [100/1920]	Acc@1: 0.307	mAP: 0.263716	
+[2025-10-26 16:14:57 ViT-B/32] (val.py 199): INFO Test: [150/1920]	Acc@1: 0.311	mAP: 0.215661	
+[2025-10-26 16:15:11 ViT-B/32] (val.py 199): INFO Test: [200/1920]	Acc@1: 0.321	mAP: 0.208406	
+[2025-10-26 16:15:26 ViT-B/32] (val.py 199): INFO Test: [250/1920]	Acc@1: 0.309	mAP: 0.211299	
+[2025-10-26 16:15:40 ViT-B/32] (val.py 199): INFO Test: [300/1920]	Acc@1: 0.294	mAP: 0.204140	
+[2025-10-26 16:15:55 ViT-B/32] (val.py 199): INFO Test: [350/1920]	Acc@1: 0.285	mAP: 0.200091	
+[2025-10-26 16:16:09 ViT-B/32] (val.py 199): INFO Test: [400/1920]	Acc@1: 0.283	mAP: 0.199959	
+[2025-10-26 16:16:24 ViT-B/32] (val.py 199): INFO Test: [450/1920]	Acc@1: 0.276	mAP: 0.203303	
+[2025-10-26 16:16:39 ViT-B/32] (val.py 199): INFO Test: [500/1920]	Acc@1: 0.264	mAP: 0.197449	
+[2025-10-26 16:16:53 ViT-B/32] (val.py 199): INFO Test: [550/1920]	Acc@1: 0.268	mAP: 0.195761	
+[2025-10-26 16:17:08 ViT-B/32] (val.py 199): INFO Test: [600/1920]	Acc@1: 0.270	mAP: 0.194298	
+[2025-10-26 16:17:23 ViT-B/32] (val.py 199): INFO Test: [650/1920]	Acc@1: 0.267	mAP: 0.194932	
+[2025-10-26 16:17:38 ViT-B/32] (val.py 199): INFO Test: [700/1920]	Acc@1: 0.267	mAP: 0.193031	
+[2025-10-26 16:17:53 ViT-B/32] (val.py 199): INFO Test: [750/1920]	Acc@1: 0.266	mAP: 0.192628	
+[2025-10-26 16:18:07 ViT-B/32] (val.py 199): INFO Test: [800/1920]	Acc@1: 0.268	mAP: 0.190011	
+[2025-10-26 16:18:22 ViT-B/32] (val.py 199): INFO Test: [850/1920]	Acc@1: 0.269	mAP: 0.191772	
+[2025-10-26 16:18:36 ViT-B/32] (val.py 199): INFO Test: [900/1920]	Acc@1: 0.271	mAP: 0.191437	
+[2025-10-26 16:18:51 ViT-B/32] (val.py 199): INFO Test: [950/1920]	Acc@1: 0.269	mAP: 0.190352	
+[2025-10-26 16:19:07 ViT-B/32] (val.py 199): INFO Test: [1000/1920]	Acc@1: 0.269	mAP: 0.190513	
+[2025-10-26 16:19:21 ViT-B/32] (val.py 199): INFO Test: [1050/1920]	Acc@1: 0.267	mAP: 0.189092	
+[2025-10-26 16:19:36 ViT-B/32] (val.py 199): INFO Test: [1100/1920]	Acc@1: 0.268	mAP: 0.189135	
+[2025-10-26 16:19:51 ViT-B/32] (val.py 199): INFO Test: [1150/1920]	Acc@1: 0.268	mAP: 0.187848	
+[2025-10-26 16:20:06 ViT-B/32] (val.py 199): INFO Test: [1200/1920]	Acc@1: 0.267	mAP: 0.188500	
+[2025-10-26 16:20:21 ViT-B/32] (val.py 199): INFO Test: [1250/1920]	Acc@1: 0.267	mAP: 0.189200	
+[2025-10-26 16:20:35 ViT-B/32] (val.py 199): INFO Test: [1300/1920]	Acc@1: 0.264	mAP: 0.187801	
+[2025-10-26 16:20:50 ViT-B/32] (val.py 199): INFO Test: [1350/1920]	Acc@1: 0.266	mAP: 0.188260	
+[2025-10-26 16:21:05 ViT-B/32] (val.py 199): INFO Test: [1400/1920]	Acc@1: 0.267	mAP: 0.187163	
+[2025-10-26 16:21:20 ViT-B/32] (val.py 199): INFO Test: [1450/1920]	Acc@1: 0.266	mAP: 0.186173	
+[2025-10-26 16:21:35 ViT-B/32] (val.py 199): INFO Test: [1500/1920]	Acc@1: 0.264	mAP: 0.184730	
+[2025-10-26 16:21:50 ViT-B/32] (val.py 199): INFO Test: [1550/1920]	Acc@1: 0.267	mAP: 0.184797	
+[2025-10-26 16:22:05 ViT-B/32] (val.py 199): INFO Test: [1600/1920]	Acc@1: 0.266	mAP: 0.184310	
+[2025-10-26 16:22:20 ViT-B/32] (val.py 199): INFO Test: [1650/1920]	Acc@1: 0.266	mAP: 0.184303	
+[2025-10-26 16:22:35 ViT-B/32] (val.py 199): INFO Test: [1700/1920]	Acc@1: 0.264	mAP: 0.185016	
+[2025-10-26 16:22:50 ViT-B/32] (val.py 199): INFO Test: [1750/1920]	Acc@1: 0.264	mAP: 0.184945	
+[2025-10-26 16:23:06 ViT-B/32] (val.py 199): INFO Test: [1800/1920]	Acc@1: 0.261	mAP: 0.183601	
+[2025-10-26 16:23:21 ViT-B/32] (val.py 199): INFO Test: [1850/1920]	Acc@1: 0.263	mAP: 0.183169	
+[2025-10-26 16:23:36 ViT-B/32] (val.py 199): INFO Test: [1900/1920]	Acc@1: 0.264	mAP: 0.184122	
+[2025-10-26 16:23:43 ViT-B/32] (val.py 219): INFO  * Acc@1 0.2635 Acc@5 0.7589
+[2025-10-26 16:23:43 ViT-B/32] (val.py 220): INFO  * f1@3 0.2960 p3 0.1973 r3 0.5919 f1@5 0.1645 p5 0.1236 r5 0.3600 map 0.1836
+[2025-10-26 16:23:43 ViT-B/32] (val.py 232): INFO Acc1: * hd 0.6613 md 0.0319 ta 0.0206
+[2025-10-26 16:23:43 ViT-B/32] (val.py 233): INFO Acc5: * hd 0.9986 md 0.8047 ta 0.4299
+[2025-10-26 16:23:43 ViT-B/32] (main.py 279): INFO Accuracy of the network on the 3841 test videos: map: 0.2 acc1: 0.2635
+[2025-10-26 16:23:43 ViT-B/32] (main.py 287): INFO Acc1 max accuracy: 0.26
+[2025-10-26 16:23:43 ViT-B/32] (tools.py 262): INFO exp/ckpt_epoch_2.pth saving......
+[2025-10-26 16:24:10 ViT-B/32] (tools.py 264): INFO exp/ckpt_epoch_2.pth saved !!!
+[2025-10-26 16:24:32 ViT-B/32] (tools.py 268): INFO exp/best.pth saved !!!
+[2025-10-26 16:24:36 ViT-B/32] (train.py 183): INFO Train: [3/30][0/1819]	eta 2:05:45 lr 0.000004789	time 4.1483 (4.1483)	tot_loss 0.1417 (0.1417)	mem 4896MB
+[2025-10-26 16:25:06 ViT-B/32] (train.py 183): INFO Train: [3/30][50/1819]	eta 0:19:43 lr 0.000004841	time 0.5995 (0.6689)	tot_loss 0.1377 (0.1336)	mem 4896MB
+[2025-10-26 16:25:36 ViT-B/32] (train.py 183): INFO Train: [3/30][100/1819]	eta 0:18:14 lr 0.000004884	time 0.5806 (0.6367)	tot_loss 0.1129 (0.1338)	mem 4896MB
+[2025-10-26 16:26:07 ViT-B/32] (train.py 183): INFO Train: [3/30][150/1819]	eta 0:17:26 lr 0.000004926	time 0.6010 (0.6271)	tot_loss 0.1023 (0.1332)	mem 4896MB
+[2025-10-26 16:26:38 ViT-B/32] (train.py 183): INFO Train: [3/30][200/1819]	eta 0:16:53 lr 0.000004968	time 0.6106 (0.6263)	tot_loss 0.1445 (0.1344)	mem 4896MB
+[2025-10-26 16:27:09 ViT-B/32] (train.py 183): INFO Train: [3/30][250/1819]	eta 0:16:19 lr 0.000005010	time 0.6241 (0.6242)	tot_loss 0.1183 (0.1337)	mem 4896MB
+[2025-10-26 16:27:39 ViT-B/32] (train.py 183): INFO Train: [3/30][300/1819]	eta 0:15:42 lr 0.000005052	time 0.5983 (0.6205)	tot_loss 0.1268 (0.1335)	mem 4896MB
+[2025-10-26 16:28:09 ViT-B/32] (train.py 183): INFO Train: [3/30][350/1819]	eta 0:15:08 lr 0.000005095	time 0.5869 (0.6184)	tot_loss 0.1203 (0.1334)	mem 4896MB
+[2025-10-26 16:28:39 ViT-B/32] (train.py 183): INFO Train: [3/30][400/1819]	eta 0:14:34 lr 0.000005151	time 0.6589 (0.6164)	tot_loss 0.1444 (0.1335)	mem 4896MB
+[2025-10-26 16:29:09 ViT-B/32] (train.py 183): INFO Train: [3/30][450/1819]	eta 0:14:02 lr 0.000005193	time 0.5721 (0.6154)	tot_loss 0.1406 (0.1336)	mem 4896MB
+[2025-10-26 16:29:40 ViT-B/32] (train.py 183): INFO Train: [3/30][500/1819]	eta 0:13:31 lr 0.000005235	time 0.5719 (0.6151)	tot_loss 0.1304 (0.1334)	mem 4896MB
+[2025-10-26 16:30:11 ViT-B/32] (train.py 183): INFO Train: [3/30][550/1819]	eta 0:13:00 lr 0.000005278	time 0.5715 (0.6151)	tot_loss 0.1196 (0.1335)	mem 4896MB
+[2025-10-26 16:30:41 ViT-B/32] (train.py 183): INFO Train: [3/30][600/1819]	eta 0:12:28 lr 0.000005320	time 0.6127 (0.6144)	tot_loss 0.1260 (0.1336)	mem 4896MB
+[2025-10-26 16:31:12 ViT-B/32] (train.py 183): INFO Train: [3/30][650/1819]	eta 0:11:58 lr 0.000005362	time 0.5798 (0.6143)	tot_loss 0.1133 (0.1335)	mem 4896MB
+[2025-10-26 16:31:42 ViT-B/32] (train.py 183): INFO Train: [3/30][700/1819]	eta 0:11:27 lr 0.000005404	time 0.5758 (0.6142)	tot_loss 0.1340 (0.1335)	mem 4896MB
+[2025-10-26 16:32:13 ViT-B/32] (train.py 183): INFO Train: [3/30][750/1819]	eta 0:10:56 lr 0.000005447	time 0.8363 (0.6138)	tot_loss 0.0921 (0.1338)	mem 4896MB
+[2025-10-26 16:32:43 ViT-B/32] (train.py 183): INFO Train: [3/30][800/1819]	eta 0:10:25 lr 0.000005503	time 0.5837 (0.6134)	tot_loss 0.1166 (0.1340)	mem 4896MB
+[2025-10-26 16:33:13 ViT-B/32] (train.py 183): INFO Train: [3/30][850/1819]	eta 0:09:53 lr 0.000005545	time 0.5858 (0.6129)	tot_loss 0.1184 (0.1342)	mem 4896MB
+[2025-10-26 16:33:44 ViT-B/32] (train.py 183): INFO Train: [3/30][900/1819]	eta 0:09:23 lr 0.000005587	time 0.5785 (0.6127)	tot_loss 0.1537 (0.1346)	mem 4896MB
+[2025-10-26 16:34:14 ViT-B/32] (train.py 183): INFO Train: [3/30][950/1819]	eta 0:08:52 lr 0.000005629	time 0.5749 (0.6123)	tot_loss 0.1581 (0.1346)	mem 4896MB
+[2025-10-26 16:34:45 ViT-B/32] (train.py 183): INFO Train: [3/30][1000/1819]	eta 0:08:21 lr 0.000005672	time 0.5882 (0.6121)	tot_loss 0.1277 (0.1348)	mem 4896MB
+[2025-10-26 16:35:15 ViT-B/32] (train.py 183): INFO Train: [3/30][1050/1819]	eta 0:07:50 lr 0.000005714	time 0.5663 (0.6119)	tot_loss 0.1277 (0.1348)	mem 4896MB
+[2025-10-26 16:35:46 ViT-B/32] (train.py 183): INFO Train: [3/30][1100/1819]	eta 0:07:20 lr 0.000005756	time 0.5700 (0.6120)	tot_loss 0.1246 (0.1349)	mem 4896MB
+[2025-10-26 16:36:17 ViT-B/32] (train.py 183): INFO Train: [3/30][1150/1819]	eta 0:06:49 lr 0.000005798	time 0.8139 (0.6126)	tot_loss 0.1354 (0.1349)	mem 4896MB
+[2025-10-26 16:36:47 ViT-B/32] (train.py 183): INFO Train: [3/30][1200/1819]	eta 0:06:19 lr 0.000005855	time 0.6032 (0.6123)	tot_loss 0.1055 (0.1348)	mem 4896MB
+[2025-10-26 16:37:18 ViT-B/32] (train.py 183): INFO Train: [3/30][1250/1819]	eta 0:05:48 lr 0.000005897	time 0.6116 (0.6123)	tot_loss 0.1467 (0.1348)	mem 4896MB
+[2025-10-26 16:37:48 ViT-B/32] (train.py 183): INFO Train: [3/30][1300/1819]	eta 0:05:17 lr 0.000005939	time 0.5779 (0.6120)	tot_loss 0.1597 (0.1347)	mem 4896MB
+[2025-10-26 16:38:19 ViT-B/32] (train.py 183): INFO Train: [3/30][1350/1819]	eta 0:04:47 lr 0.000005981	time 1.1343 (0.6121)	tot_loss 0.1114 (0.1347)	mem 4896MB
+[2025-10-26 16:38:49 ViT-B/32] (train.py 183): INFO Train: [3/30][1400/1819]	eta 0:04:16 lr 0.000006024	time 0.5897 (0.6117)	tot_loss 0.1445 (0.1346)	mem 4896MB
+[2025-10-26 16:39:19 ViT-B/32] (train.py 183): INFO Train: [3/30][1450/1819]	eta 0:03:45 lr 0.000006066	time 0.5712 (0.6116)	tot_loss 0.1649 (0.1345)	mem 4896MB
+[2025-10-26 16:39:50 ViT-B/32] (train.py 183): INFO Train: [3/30][1500/1819]	eta 0:03:15 lr 0.000006108	time 0.6318 (0.6114)	tot_loss 0.1153 (0.1344)	mem 4896MB
+[2025-10-26 16:40:19 ViT-B/32] (train.py 183): INFO Train: [3/30][1550/1819]	eta 0:02:44 lr 0.000006150	time 0.5865 (0.6110)	tot_loss 0.1392 (0.1345)	mem 4896MB
+[2025-10-26 16:40:50 ViT-B/32] (train.py 183): INFO Train: [3/30][1600/1819]	eta 0:02:13 lr 0.000006206	time 0.6009 (0.6110)	tot_loss 0.1460 (0.1344)	mem 4896MB
+[2025-10-26 16:41:21 ViT-B/32] (train.py 183): INFO Train: [3/30][1650/1819]	eta 0:01:43 lr 0.000006249	time 0.5574 (0.6112)	tot_loss 0.1165 (0.1344)	mem 4896MB
+[2025-10-26 16:41:51 ViT-B/32] (train.py 183): INFO Train: [3/30][1700/1819]	eta 0:01:12 lr 0.000006291	time 0.5934 (0.6108)	tot_loss 0.1616 (0.1344)	mem 4896MB
+[2025-10-26 16:42:21 ViT-B/32] (train.py 183): INFO Train: [3/30][1750/1819]	eta 0:00:42 lr 0.000006333	time 0.5900 (0.6108)	tot_loss 0.1329 (0.1346)	mem 4896MB
+[2025-10-26 16:42:51 ViT-B/32] (train.py 183): INFO Train: [3/30][1800/1819]	eta 0:00:11 lr 0.000006375	time 0.5574 (0.6101)	tot_loss 0.1235 (0.1346)	mem 4896MB
+[2025-10-26 16:43:01 ViT-B/32] (train.py 190): INFO EPOCH 3 training takes 0:18:29
+[2025-10-26 16:43:12 ViT-B/32] (val.py 76): INFO 1 views inference
+[2025-10-26 16:43:14 ViT-B/32] (val.py 199): INFO Test: [0/1920]	Acc@1: 0.000	mAP: 1.000000	
+[2025-10-26 16:43:35 ViT-B/32] (val.py 199): INFO Test: [50/1920]	Acc@1: 0.294	mAP: 0.225076	
+[2025-10-26 16:43:49 ViT-B/32] (val.py 199): INFO Test: [100/1920]	Acc@1: 0.312	mAP: 0.188673	
+[2025-10-26 16:44:04 ViT-B/32] (val.py 199): INFO Test: [150/1920]	Acc@1: 0.328	mAP: 0.187282	
+[2025-10-26 16:44:19 ViT-B/32] (val.py 199): INFO Test: [200/1920]	Acc@1: 0.331	mAP: 0.179550	
+[2025-10-26 16:44:34 ViT-B/32] (val.py 199): INFO Test: [250/1920]	Acc@1: 0.313	mAP: 0.180039	
+[2025-10-26 16:44:49 ViT-B/32] (val.py 199): INFO Test: [300/1920]	Acc@1: 0.297	mAP: 0.220037	
+[2025-10-26 16:45:04 ViT-B/32] (val.py 199): INFO Test: [350/1920]	Acc@1: 0.298	mAP: 0.206648	
+[2025-10-26 16:45:19 ViT-B/32] (val.py 199): INFO Test: [400/1920]	Acc@1: 0.293	mAP: 0.208529	
+[2025-10-26 16:45:34 ViT-B/32] (val.py 199): INFO Test: [450/1920]	Acc@1: 0.289	mAP: 0.196805	
+[2025-10-26 16:45:48 ViT-B/32] (val.py 199): INFO Test: [500/1920]	Acc@1: 0.285	mAP: 0.197148	
+[2025-10-26 16:46:03 ViT-B/32] (val.py 199): INFO Test: [550/1920]	Acc@1: 0.280	mAP: 0.192802	
+[2025-10-26 16:46:18 ViT-B/32] (val.py 199): INFO Test: [600/1920]	Acc@1: 0.282	mAP: 0.193061	
+[2025-10-26 16:46:32 ViT-B/32] (val.py 199): INFO Test: [650/1920]	Acc@1: 0.280	mAP: 0.194333	
+[2025-10-26 16:46:47 ViT-B/32] (val.py 199): INFO Test: [700/1920]	Acc@1: 0.281	mAP: 0.192868	
+[2025-10-26 16:47:02 ViT-B/32] (val.py 199): INFO Test: [750/1920]	Acc@1: 0.282	mAP: 0.192717	
+[2025-10-26 16:47:17 ViT-B/32] (val.py 199): INFO Test: [800/1920]	Acc@1: 0.280	mAP: 0.191216	
+[2025-10-26 16:47:32 ViT-B/32] (val.py 199): INFO Test: [850/1920]	Acc@1: 0.281	mAP: 0.191242	
+[2025-10-26 16:47:47 ViT-B/32] (val.py 199): INFO Test: [900/1920]	Acc@1: 0.285	mAP: 0.191889	
+[2025-10-26 16:48:02 ViT-B/32] (val.py 199): INFO Test: [950/1920]	Acc@1: 0.287	mAP: 0.191670	
+[2025-10-26 16:48:16 ViT-B/32] (val.py 199): INFO Test: [1000/1920]	Acc@1: 0.283	mAP: 0.189003	
+[2025-10-26 16:48:31 ViT-B/32] (val.py 199): INFO Test: [1050/1920]	Acc@1: 0.284	mAP: 0.186023	
+[2025-10-26 16:48:46 ViT-B/32] (val.py 199): INFO Test: [1100/1920]	Acc@1: 0.285	mAP: 0.185901	
+[2025-10-26 16:49:00 ViT-B/32] (val.py 199): INFO Test: [1150/1920]	Acc@1: 0.285	mAP: 0.185984	
+[2025-10-26 16:49:15 ViT-B/32] (val.py 199): INFO Test: [1200/1920]	Acc@1: 0.285	mAP: 0.185369	
+[2025-10-26 16:49:30 ViT-B/32] (val.py 199): INFO Test: [1250/1920]	Acc@1: 0.284	mAP: 0.186804	
+[2025-10-26 16:49:45 ViT-B/32] (val.py 199): INFO Test: [1300/1920]	Acc@1: 0.281	mAP: 0.186210	
+[2025-10-26 16:50:00 ViT-B/32] (val.py 199): INFO Test: [1350/1920]	Acc@1: 0.282	mAP: 0.185461	
+[2025-10-26 16:50:15 ViT-B/32] (val.py 199): INFO Test: [1400/1920]	Acc@1: 0.282	mAP: 0.186741	
+[2025-10-26 16:50:29 ViT-B/32] (val.py 199): INFO Test: [1450/1920]	Acc@1: 0.280	mAP: 0.186279	
+[2025-10-26 16:50:45 ViT-B/32] (val.py 199): INFO Test: [1500/1920]	Acc@1: 0.284	mAP: 0.185182	
+[2025-10-26 16:51:00 ViT-B/32] (val.py 199): INFO Test: [1550/1920]	Acc@1: 0.284	mAP: 0.185194	
+[2025-10-26 16:51:15 ViT-B/32] (val.py 199): INFO Test: [1600/1920]	Acc@1: 0.285	mAP: 0.185656	
+[2025-10-26 16:51:30 ViT-B/32] (val.py 199): INFO Test: [1650/1920]	Acc@1: 0.283	mAP: 0.185773	
+[2025-10-26 16:51:45 ViT-B/32] (val.py 199): INFO Test: [1700/1920]	Acc@1: 0.283	mAP: 0.187532	
+[2025-10-26 16:51:59 ViT-B/32] (val.py 199): INFO Test: [1750/1920]	Acc@1: 0.284	mAP: 0.187764	
+[2025-10-26 16:52:15 ViT-B/32] (val.py 199): INFO Test: [1800/1920]	Acc@1: 0.283	mAP: 0.187100	
+[2025-10-26 16:52:30 ViT-B/32] (val.py 199): INFO Test: [1850/1920]	Acc@1: 0.286	mAP: 0.186886	
+[2025-10-26 16:52:44 ViT-B/32] (val.py 199): INFO Test: [1900/1920]	Acc@1: 0.284	mAP: 0.186877	
+[2025-10-26 16:52:50 ViT-B/32] (val.py 219): INFO  * Acc@1 0.2833 Acc@5 0.7359
+[2025-10-26 16:52:50 ViT-B/32] (val.py 220): INFO  * f1@3 0.2802 p3 0.1868 r3 0.5604 f1@5 0.1427 p5 0.1105 r5 0.3182 map 0.1869
+[2025-10-26 16:52:50 ViT-B/32] (val.py 232): INFO Acc1: * hd 0.7359 md 0.0268 ta 0.0000
+[2025-10-26 16:52:50 ViT-B/32] (val.py 233): INFO Acc5: * hd 0.9958 md 0.7443 ta 0.4200
+[2025-10-26 16:52:51 ViT-B/32] (main.py 279): INFO Accuracy of the network on the 3841 test videos: map: 0.2 acc1: 0.2833
+[2025-10-26 16:52:51 ViT-B/32] (main.py 287): INFO Acc1 max accuracy: 0.28
+[2025-10-26 16:52:51 ViT-B/32] (tools.py 262): INFO exp/ckpt_epoch_3.pth saving......
+[2025-10-26 16:52:53 ViT-B/32] (tools.py 264): INFO exp/ckpt_epoch_3.pth saved !!!
+[2025-10-26 16:53:14 ViT-B/32] (tools.py 268): INFO exp/best.pth saved !!!
+[2025-10-26 16:53:18 ViT-B/32] (train.py 183): INFO Train: [4/30][0/1819]	eta 2:01:45 lr 0.000006389	time 4.0164 (4.0164)	tot_loss 0.1030 (0.1030)	mem 4896MB
+[2025-10-26 16:53:48 ViT-B/32] (train.py 183): INFO Train: [4/30][50/1819]	eta 0:19:28 lr 0.000006441	time 0.5773 (0.6603)	tot_loss 0.1326 (0.1311)	mem 4896MB
+[2025-10-26 16:54:18 ViT-B/32] (train.py 183): INFO Train: [4/30][100/1819]	eta 0:18:04 lr 0.000006484	time 0.6997 (0.6311)	tot_loss 0.1496 (0.1302)	mem 4896MB
+[2025-10-26 16:54:48 ViT-B/32] (train.py 183): INFO Train: [4/30][150/1819]	eta 0:17:18 lr 0.000006526	time 0.5596 (0.6225)	tot_loss 0.1337 (0.1310)	mem 4896MB
+[2025-10-26 16:55:19 ViT-B/32] (train.py 183): INFO Train: [4/30][200/1819]	eta 0:16:42 lr 0.000006568	time 0.6250 (0.6190)	tot_loss 0.1386 (0.1323)	mem 4896MB
+[2025-10-26 16:55:49 ViT-B/32] (train.py 183): INFO Train: [4/30][250/1819]	eta 0:16:05 lr 0.000006610	time 0.7137 (0.6155)	tot_loss 0.1089 (0.1320)	mem 4896MB
+[2025-10-26 16:56:18 ViT-B/32] (train.py 183): INFO Train: [4/30][300/1819]	eta 0:15:29 lr 0.000006652	time 0.5808 (0.6120)	tot_loss 0.1254 (0.1320)	mem 4896MB
+[2025-10-26 16:56:49 ViT-B/32] (train.py 183): INFO Train: [4/30][350/1819]	eta 0:14:57 lr 0.000006695	time 0.5815 (0.6110)	tot_loss 0.1129 (0.1317)	mem 4896MB
+[2025-10-26 16:57:19 ViT-B/32] (train.py 183): INFO Train: [4/30][400/1819]	eta 0:14:26 lr 0.000006751	time 0.5810 (0.6104)	tot_loss 0.1454 (0.1315)	mem 4896MB
+[2025-10-26 16:57:49 ViT-B/32] (train.py 183): INFO Train: [4/30][450/1819]	eta 0:13:54 lr 0.000006793	time 0.5952 (0.6092)	tot_loss 0.0920 (0.1319)	mem 4896MB
+[2025-10-26 16:58:19 ViT-B/32] (train.py 183): INFO Train: [4/30][500/1819]	eta 0:13:22 lr 0.000006835	time 0.5804 (0.6088)	tot_loss 0.1493 (0.1319)	mem 4896MB
+[2025-10-26 16:58:49 ViT-B/32] (train.py 183): INFO Train: [4/30][550/1819]	eta 0:12:50 lr 0.000006878	time 0.5938 (0.6074)	tot_loss 0.1122 (0.1317)	mem 4896MB
+[2025-10-26 16:59:18 ViT-B/32] (train.py 183): INFO Train: [4/30][600/1819]	eta 0:12:18 lr 0.000006920	time 0.6198 (0.6057)	tot_loss 0.1203 (0.1320)	mem 4896MB
+[2025-10-26 16:59:48 ViT-B/32] (train.py 183): INFO Train: [4/30][650/1819]	eta 0:11:46 lr 0.000006962	time 0.5803 (0.6046)	tot_loss 0.1374 (0.1316)	mem 4896MB
+[2025-10-26 17:00:18 ViT-B/32] (train.py 183): INFO Train: [4/30][700/1819]	eta 0:11:16 lr 0.000007004	time 0.5854 (0.6043)	tot_loss 0.1364 (0.1314)	mem 4896MB
+[2025-10-26 17:00:47 ViT-B/32] (train.py 183): INFO Train: [4/30][750/1819]	eta 0:10:44 lr 0.000007047	time 0.5962 (0.6031)	tot_loss 0.1357 (0.1313)	mem 4896MB
+[2025-10-26 17:01:16 ViT-B/32] (train.py 183): INFO Train: [4/30][800/1819]	eta 0:10:13 lr 0.000007103	time 0.5680 (0.6022)	tot_loss 0.1232 (0.1312)	mem 4896MB
+[2025-10-26 17:01:47 ViT-B/32] (train.py 183): INFO Train: [4/30][850/1819]	eta 0:09:43 lr 0.000007145	time 0.5732 (0.6024)	tot_loss 0.1459 (0.1314)	mem 4896MB
+[2025-10-26 17:02:16 ViT-B/32] (train.py 183): INFO Train: [4/30][900/1819]	eta 0:09:12 lr 0.000007187	time 0.5924 (0.6016)	tot_loss 0.1487 (0.1315)	mem 4896MB
+[2025-10-26 17:02:47 ViT-B/32] (train.py 183): INFO Train: [4/30][950/1819]	eta 0:08:43 lr 0.000007229	time 0.7733 (0.6019)	tot_loss 0.1239 (0.1319)	mem 4896MB
+[2025-10-26 17:03:16 ViT-B/32] (train.py 183): INFO Train: [4/30][1000/1819]	eta 0:08:12 lr 0.000007272	time 0.5792 (0.6015)	tot_loss 0.1510 (0.1323)	mem 4896MB
+[2025-10-26 17:03:46 ViT-B/32] (train.py 183): INFO Train: [4/30][1050/1819]	eta 0:07:42 lr 0.000007314	time 0.5815 (0.6012)	tot_loss 0.1101 (0.1325)	mem 4896MB
+[2025-10-26 17:04:16 ViT-B/32] (train.py 183): INFO Train: [4/30][1100/1819]	eta 0:07:12 lr 0.000007356	time 0.5769 (0.6010)	tot_loss 0.1772 (0.1327)	mem 4896MB
+[2025-10-26 17:04:45 ViT-B/32] (train.py 183): INFO Train: [4/30][1150/1819]	eta 0:06:41 lr 0.000007398	time 0.5754 (0.6004)	tot_loss 0.1355 (0.1328)	mem 4896MB
+[2025-10-26 17:05:15 ViT-B/32] (train.py 183): INFO Train: [4/30][1200/1819]	eta 0:06:11 lr 0.000007455	time 0.5676 (0.6001)	tot_loss 0.1433 (0.1331)	mem 4896MB
+[2025-10-26 17:05:45 ViT-B/32] (train.py 183): INFO Train: [4/30][1250/1819]	eta 0:05:41 lr 0.000007497	time 0.5912 (0.6001)	tot_loss 0.1301 (0.1335)	mem 4896MB
+[2025-10-26 17:06:15 ViT-B/32] (train.py 183): INFO Train: [4/30][1300/1819]	eta 0:05:11 lr 0.000007539	time 0.5981 (0.5999)	tot_loss 0.1447 (0.1338)	mem 4896MB
+[2025-10-26 17:06:45 ViT-B/32] (train.py 183): INFO Train: [4/30][1350/1819]	eta 0:04:41 lr 0.000007581	time 0.5898 (0.5999)	tot_loss 0.1150 (0.1341)	mem 4896MB
+[2025-10-26 17:07:14 ViT-B/32] (train.py 183): INFO Train: [4/30][1400/1819]	eta 0:04:11 lr 0.000007624	time 0.6024 (0.5995)	tot_loss 0.1200 (0.1342)	mem 4896MB
+[2025-10-26 17:07:44 ViT-B/32] (train.py 183): INFO Train: [4/30][1450/1819]	eta 0:03:41 lr 0.000007666	time 0.6056 (0.5993)	tot_loss 0.1369 (0.1343)	mem 4896MB
+[2025-10-26 17:08:13 ViT-B/32] (train.py 183): INFO Train: [4/30][1500/1819]	eta 0:03:11 lr 0.000007708	time 0.5764 (0.5989)	tot_loss 0.1362 (0.1344)	mem 4896MB
+[2025-10-26 17:08:43 ViT-B/32] (train.py 183): INFO Train: [4/30][1550/1819]	eta 0:02:41 lr 0.000007750	time 0.5698 (0.5988)	tot_loss 0.1298 (0.1345)	mem 4896MB
+[2025-10-26 17:09:13 ViT-B/32] (train.py 183): INFO Train: [4/30][1600/1819]	eta 0:02:11 lr 0.000007806	time 0.5845 (0.5989)	tot_loss 0.1183 (0.1344)	mem 4896MB
+[2025-10-26 17:09:43 ViT-B/32] (train.py 183): INFO Train: [4/30][1650/1819]	eta 0:01:41 lr 0.000007849	time 0.6199 (0.5990)	tot_loss 0.1439 (0.1343)	mem 4896MB
+[2025-10-26 17:10:12 ViT-B/32] (train.py 183): INFO Train: [4/30][1700/1819]	eta 0:01:11 lr 0.000007891	time 0.5522 (0.5985)	tot_loss 0.1306 (0.1344)	mem 4896MB
+[2025-10-26 17:10:42 ViT-B/32] (train.py 183): INFO Train: [4/30][1750/1819]	eta 0:00:41 lr 0.000007933	time 0.5627 (0.5984)	tot_loss 0.1401 (0.1342)	mem 4896MB
+[2025-10-26 17:11:11 ViT-B/32] (train.py 183): INFO Train: [4/30][1800/1819]	eta 0:00:11 lr 0.000007975	time 0.5641 (0.5981)	tot_loss 0.1661 (0.1341)	mem 4896MB
+[2025-10-26 17:11:22 ViT-B/32] (train.py 190): INFO EPOCH 4 training takes 0:18:07
+[2025-10-26 17:11:32 ViT-B/32] (val.py 76): INFO 1 views inference
+[2025-10-26 17:11:37 ViT-B/32] (val.py 199): INFO Test: [0/1920]	Acc@1: 0.000	mAP: 0.750000	
+[2025-10-26 17:11:55 ViT-B/32] (val.py 199): INFO Test: [50/1920]	Acc@1: 0.314	mAP: 0.294336	
+[2025-10-26 17:12:10 ViT-B/32] (val.py 199): INFO Test: [100/1920]	Acc@1: 0.297	mAP: 0.267012	
+[2025-10-26 17:12:27 ViT-B/32] (val.py 199): INFO Test: [150/1920]	Acc@1: 0.311	mAP: 0.233619	
+[2025-10-26 17:12:42 ViT-B/32] (val.py 199): INFO Test: [200/1920]	Acc@1: 0.308	mAP: 0.238558	
+[2025-10-26 17:12:59 ViT-B/32] (val.py 199): INFO Test: [250/1920]	Acc@1: 0.321	mAP: 0.234641	
+[2025-10-26 17:13:15 ViT-B/32] (val.py 199): INFO Test: [300/1920]	Acc@1: 0.322	mAP: 0.227917	
+[2025-10-26 17:13:30 ViT-B/32] (val.py 199): INFO Test: [350/1920]	Acc@1: 0.312	mAP: 0.228236	
+[2025-10-26 17:13:47 ViT-B/32] (val.py 199): INFO Test: [400/1920]	Acc@1: 0.317	mAP: 0.229703	
+[2025-10-26 17:14:02 ViT-B/32] (val.py 199): INFO Test: [450/1920]	Acc@1: 0.319	mAP: 0.227368	
+[2025-10-26 17:14:18 ViT-B/32] (val.py 199): INFO Test: [500/1920]	Acc@1: 0.322	mAP: 0.222807	
+[2025-10-26 17:14:33 ViT-B/32] (val.py 199): INFO Test: [550/1920]	Acc@1: 0.319	mAP: 0.222048	
+[2025-10-26 17:14:47 ViT-B/32] (val.py 199): INFO Test: [600/1920]	Acc@1: 0.320	mAP: 0.223129	
+[2025-10-26 17:15:03 ViT-B/32] (val.py 199): INFO Test: [650/1920]	Acc@1: 0.327	mAP: 0.222314	
+[2025-10-26 17:15:18 ViT-B/32] (val.py 199): INFO Test: [700/1920]	Acc@1: 0.315	mAP: 0.235809	
+[2025-10-26 17:15:34 ViT-B/32] (val.py 199): INFO Test: [750/1920]	Acc@1: 0.314	mAP: 0.235070	
+[2025-10-26 17:15:49 ViT-B/32] (val.py 199): INFO Test: [800/1920]	Acc@1: 0.314	mAP: 0.235570	
+[2025-10-26 17:16:05 ViT-B/32] (val.py 199): INFO Test: [850/1920]	Acc@1: 0.316	mAP: 0.233604	
+[2025-10-26 17:16:20 ViT-B/32] (val.py 199): INFO Test: [900/1920]	Acc@1: 0.314	mAP: 0.232188	
+[2025-10-26 17:16:35 ViT-B/32] (val.py 199): INFO Test: [950/1920]	Acc@1: 0.313	mAP: 0.227961	
+[2025-10-26 17:16:50 ViT-B/32] (val.py 199): INFO Test: [1000/1920]	Acc@1: 0.311	mAP: 0.228758	
+[2025-10-26 17:17:06 ViT-B/32] (val.py 199): INFO Test: [1050/1920]	Acc@1: 0.308	mAP: 0.229599	
+[2025-10-26 17:17:23 ViT-B/32] (val.py 199): INFO Test: [1100/1920]	Acc@1: 0.311	mAP: 0.229418	
+[2025-10-26 17:17:38 ViT-B/32] (val.py 199): INFO Test: [1150/1920]	Acc@1: 0.311	mAP: 0.227598	
+[2025-10-26 17:17:53 ViT-B/32] (val.py 199): INFO Test: [1200/1920]	Acc@1: 0.309	mAP: 0.226985	
+[2025-10-26 17:18:08 ViT-B/32] (val.py 199): INFO Test: [1250/1920]	Acc@1: 0.310	mAP: 0.225515	
+[2025-10-26 17:18:22 ViT-B/32] (val.py 199): INFO Test: [1300/1920]	Acc@1: 0.309	mAP: 0.226146	
+[2025-10-26 17:18:38 ViT-B/32] (val.py 199): INFO Test: [1350/1920]	Acc@1: 0.309	mAP: 0.228965	
+[2025-10-26 17:18:52 ViT-B/32] (val.py 199): INFO Test: [1400/1920]	Acc@1: 0.313	mAP: 0.229068	
+[2025-10-26 17:19:07 ViT-B/32] (val.py 199): INFO Test: [1450/1920]	Acc@1: 0.311	mAP: 0.227746	
+[2025-10-26 17:19:22 ViT-B/32] (val.py 199): INFO Test: [1500/1920]	Acc@1: 0.311	mAP: 0.225970	
+[2025-10-26 17:19:37 ViT-B/32] (val.py 199): INFO Test: [1550/1920]	Acc@1: 0.310	mAP: 0.226702	
+[2025-10-26 17:19:51 ViT-B/32] (val.py 199): INFO Test: [1600/1920]	Acc@1: 0.309	mAP: 0.226193	
+[2025-10-26 17:20:07 ViT-B/32] (val.py 199): INFO Test: [1650/1920]	Acc@1: 0.308	mAP: 0.225870	
+[2025-10-26 17:20:21 ViT-B/32] (val.py 199): INFO Test: [1700/1920]	Acc@1: 0.307	mAP: 0.225241	
+[2025-10-26 17:20:36 ViT-B/32] (val.py 199): INFO Test: [1750/1920]	Acc@1: 0.310	mAP: 0.225821	
+[2025-10-26 17:20:51 ViT-B/32] (val.py 199): INFO Test: [1800/1920]	Acc@1: 0.309	mAP: 0.226048	
+[2025-10-26 17:21:05 ViT-B/32] (val.py 199): INFO Test: [1850/1920]	Acc@1: 0.309	mAP: 0.225438	
+[2025-10-26 17:21:20 ViT-B/32] (val.py 199): INFO Test: [1900/1920]	Acc@1: 0.310	mAP: 0.224670	
+[2025-10-26 17:21:29 ViT-B/32] (val.py 219): INFO  * Acc@1 0.3086 Acc@5 0.7677
+[2025-10-26 17:21:29 ViT-B/32] (val.py 220): INFO  * f1@3 0.2788 p3 0.1859 r3 0.5576 f1@5 0.1247 p5 0.1083 r5 0.3060 map 0.2253
+[2025-10-26 17:21:29 ViT-B/32] (val.py 232): INFO Acc1: * hd 0.7268 md 0.1189 ta 0.0000
+[2025-10-26 17:21:29 ViT-B/32] (val.py 233): INFO Acc5: * hd 1.0000 md 0.8291 ta 0.4319
+[2025-10-26 17:21:29 ViT-B/32] (main.py 279): INFO Accuracy of the network on the 3841 test videos: map: 0.2 acc1: 0.3086
+[2025-10-26 17:21:29 ViT-B/32] (main.py 287): INFO Acc1 max accuracy: 0.31
+[2025-10-26 17:21:29 ViT-B/32] (tools.py 262): INFO exp/ckpt_epoch_4.pth saving......
+[2025-10-26 17:21:33 ViT-B/32] (tools.py 264): INFO exp/ckpt_epoch_4.pth saved !!!
+[2025-10-26 17:21:55 ViT-B/32] (tools.py 268): INFO exp/best.pth saved !!!
+[2025-10-26 17:22:00 ViT-B/32] (train.py 183): INFO Train: [5/30][0/1819]	eta 2:26:39 lr 0.000007989	time 4.8377 (4.8377)	tot_loss 0.1311 (0.1311)	mem 4896MB
+[2025-10-26 17:22:30 ViT-B/32] (train.py 183): INFO Train: [5/30][50/1819]	eta 0:20:10 lr 0.000007464	time 0.5910 (0.6845)	tot_loss 0.1035 (0.1325)	mem 4896MB
+[2025-10-26 17:23:00 ViT-B/32] (train.py 183): INFO Train: [5/30][100/1819]	eta 0:18:34 lr 0.000007459	time 0.6172 (0.6486)	tot_loss 0.1519 (0.1320)	mem 4896MB
+[2025-10-26 17:23:30 ViT-B/32] (train.py 183): INFO Train: [5/30][150/1819]	eta 0:17:31 lr 0.000007453	time 0.5643 (0.6299)	tot_loss 0.1267 (0.1324)	mem 4896MB
+[2025-10-26 17:24:00 ViT-B/32] (train.py 183): INFO Train: [5/30][200/1819]	eta 0:16:46 lr 0.000007447	time 0.5669 (0.6215)	tot_loss 0.1411 (0.1321)	mem 4896MB
+[2025-10-26 17:24:29 ViT-B/32] (train.py 183): INFO Train: [5/30][250/1819]	eta 0:16:04 lr 0.000007442	time 0.6758 (0.6145)	tot_loss 0.1036 (0.1316)	mem 4896MB
+[2025-10-26 17:24:59 ViT-B/32] (train.py 183): INFO Train: [5/30][300/1819]	eta 0:15:27 lr 0.000007436	time 0.5726 (0.6107)	tot_loss 0.1107 (0.1320)	mem 4896MB
+[2025-10-26 17:25:28 ViT-B/32] (train.py 183): INFO Train: [5/30][350/1819]	eta 0:14:52 lr 0.000007431	time 0.5629 (0.6077)	tot_loss 0.1392 (0.1320)	mem 4896MB
+[2025-10-26 17:25:58 ViT-B/32] (train.py 183): INFO Train: [5/30][400/1819]	eta 0:14:19 lr 0.000007423	time 0.5546 (0.6059)	tot_loss 0.1475 (0.1324)	mem 4896MB
+[2025-10-26 17:26:28 ViT-B/32] (train.py 183): INFO Train: [5/30][450/1819]	eta 0:13:47 lr 0.000007417	time 0.5726 (0.6045)	tot_loss 0.1348 (0.1321)	mem 4896MB
+[2025-10-26 17:26:58 ViT-B/32] (train.py 183): INFO Train: [5/30][500/1819]	eta 0:13:17 lr 0.000007412	time 0.5928 (0.6043)	tot_loss 0.1239 (0.1321)	mem 4896MB
+[2025-10-26 17:27:27 ViT-B/32] (train.py 183): INFO Train: [5/30][550/1819]	eta 0:12:45 lr 0.000007406	time 0.5675 (0.6029)	tot_loss 0.1168 (0.1318)	mem 4896MB
+[2025-10-26 17:27:57 ViT-B/32] (train.py 183): INFO Train: [5/30][600/1819]	eta 0:12:13 lr 0.000007400	time 0.7866 (0.6019)	tot_loss 0.1073 (0.1315)	mem 4896MB
+[2025-10-26 17:28:26 ViT-B/32] (train.py 183): INFO Train: [5/30][650/1819]	eta 0:11:42 lr 0.000007394	time 0.5583 (0.6006)	tot_loss 0.1690 (0.1314)	mem 4896MB
+[2025-10-26 17:28:56 ViT-B/32] (train.py 183): INFO Train: [5/30][700/1819]	eta 0:11:11 lr 0.000007388	time 0.6120 (0.6000)	tot_loss 0.1560 (0.1318)	mem 4896MB
+[2025-10-26 17:29:25 ViT-B/32] (train.py 183): INFO Train: [5/30][750/1819]	eta 0:10:40 lr 0.000007383	time 0.5983 (0.5990)	tot_loss 0.1386 (0.1314)	mem 4896MB
+[2025-10-26 17:29:55 ViT-B/32] (train.py 183): INFO Train: [5/30][800/1819]	eta 0:10:10 lr 0.000007375	time 0.5695 (0.5991)	tot_loss 0.1495 (0.1311)	mem 4896MB
+[2025-10-26 17:30:25 ViT-B/32] (train.py 183): INFO Train: [5/30][850/1819]	eta 0:09:40 lr 0.000007369	time 0.5605 (0.5988)	tot_loss 0.1313 (0.1308)	mem 4896MB
+[2025-10-26 17:30:54 ViT-B/32] (train.py 183): INFO Train: [5/30][900/1819]	eta 0:09:10 lr 0.000007363	time 0.5892 (0.5985)	tot_loss 0.1312 (0.1311)	mem 4896MB
+[2025-10-26 17:31:24 ViT-B/32] (train.py 183): INFO Train: [5/30][950/1819]	eta 0:08:40 lr 0.000007357	time 0.5676 (0.5985)	tot_loss 0.1197 (0.1313)	mem 4896MB
+[2025-10-26 17:31:54 ViT-B/32] (train.py 183): INFO Train: [5/30][1000/1819]	eta 0:08:10 lr 0.000007351	time 0.6146 (0.5987)	tot_loss 0.1462 (0.1315)	mem 4896MB
+[2025-10-26 17:32:24 ViT-B/32] (train.py 183): INFO Train: [5/30][1050/1819]	eta 0:07:39 lr 0.000007345	time 0.5547 (0.5981)	tot_loss 0.1376 (0.1317)	mem 4896MB
+[2025-10-26 17:32:53 ViT-B/32] (train.py 183): INFO Train: [5/30][1100/1819]	eta 0:07:09 lr 0.000007339	time 0.5876 (0.5979)	tot_loss 0.1477 (0.1318)	mem 4896MB
+[2025-10-26 17:33:23 ViT-B/32] (train.py 183): INFO Train: [5/30][1150/1819]	eta 0:06:39 lr 0.000007333	time 0.5564 (0.5977)	tot_loss 0.1355 (0.1320)	mem 4896MB
+[2025-10-26 17:33:52 ViT-B/32] (train.py 183): INFO Train: [5/30][1200/1819]	eta 0:06:09 lr 0.000007325	time 0.5773 (0.5970)	tot_loss 0.1114 (0.1320)	mem 4896MB
+[2025-10-26 17:34:22 ViT-B/32] (train.py 183): INFO Train: [5/30][1250/1819]	eta 0:05:39 lr 0.000007319	time 0.6080 (0.5972)	tot_loss 0.1150 (0.1321)	mem 4896MB
+[2025-10-26 17:34:52 ViT-B/32] (train.py 183): INFO Train: [5/30][1300/1819]	eta 0:05:10 lr 0.000007312	time 0.5751 (0.5974)	tot_loss 0.1169 (0.1321)	mem 4896MB
+[2025-10-26 17:35:22 ViT-B/32] (train.py 183): INFO Train: [5/30][1350/1819]	eta 0:04:40 lr 0.000007306	time 0.5951 (0.5974)	tot_loss 0.1511 (0.1324)	mem 4896MB
+[2025-10-26 17:35:52 ViT-B/32] (train.py 183): INFO Train: [5/30][1400/1819]	eta 0:04:10 lr 0.000007300	time 0.5710 (0.5975)	tot_loss 0.1421 (0.1326)	mem 4896MB
+[2025-10-26 17:36:22 ViT-B/32] (train.py 183): INFO Train: [5/30][1450/1819]	eta 0:03:40 lr 0.000007294	time 0.6020 (0.5975)	tot_loss 0.1677 (0.1327)	mem 4896MB
+[2025-10-26 17:36:52 ViT-B/32] (train.py 183): INFO Train: [5/30][1500/1819]	eta 0:03:10 lr 0.000007288	time 0.5861 (0.5976)	tot_loss 0.1019 (0.1328)	mem 4896MB
+[2025-10-26 17:37:21 ViT-B/32] (train.py 183): INFO Train: [5/30][1550/1819]	eta 0:02:40 lr 0.000007281	time 0.5554 (0.5973)	tot_loss 0.1584 (0.1329)	mem 4896MB
+[2025-10-26 17:37:52 ViT-B/32] (train.py 183): INFO Train: [5/30][1600/1819]	eta 0:02:10 lr 0.000007273	time 0.5717 (0.5975)	tot_loss 0.1238 (0.1329)	mem 4896MB
+[2025-10-26 17:38:22 ViT-B/32] (train.py 183): INFO Train: [5/30][1650/1819]	eta 0:01:41 lr 0.000007267	time 0.5841 (0.5978)	tot_loss 0.1308 (0.1330)	mem 4896MB
+[2025-10-26 17:38:52 ViT-B/32] (train.py 183): INFO Train: [5/30][1700/1819]	eta 0:01:11 lr 0.000007260	time 0.6005 (0.5980)	tot_loss 0.1100 (0.1330)	mem 4896MB
+[2025-10-26 17:39:22 ViT-B/32] (train.py 183): INFO Train: [5/30][1750/1819]	eta 0:00:41 lr 0.000007254	time 0.5766 (0.5979)	tot_loss 0.1261 (0.1330)	mem 4896MB
+[2025-10-26 17:39:51 ViT-B/32] (train.py 183): INFO Train: [5/30][1800/1819]	eta 0:00:11 lr 0.000007247	time 0.5563 (0.5976)	tot_loss 0.1396 (0.1329)	mem 4896MB
+[2025-10-26 17:40:02 ViT-B/32] (train.py 190): INFO EPOCH 5 training takes 0:18:06
+[2025-10-26 17:40:06 ViT-B/32] (val.py 76): INFO 1 views inference
+[2025-10-26 17:40:08 ViT-B/32] (val.py 199): INFO Test: [0/1920]	Acc@1: 0.000	mAP: 0.750000	
+[2025-10-26 17:40:27 ViT-B/32] (val.py 199): INFO Test: [50/1920]	Acc@1: 0.275	mAP: 0.259311	
+[2025-10-26 17:40:43 ViT-B/32] (val.py 199): INFO Test: [100/1920]	Acc@1: 0.307	mAP: 0.239309	
+[2025-10-26 17:40:58 ViT-B/32] (val.py 199): INFO Test: [150/1920]	Acc@1: 0.291	mAP: 0.254251	
+[2025-10-26 17:41:20 ViT-B/32] (val.py 199): INFO Test: [200/1920]	Acc@1: 0.284	mAP: 0.255751	
+[2025-10-26 17:41:35 ViT-B/32] (val.py 199): INFO Test: [250/1920]	Acc@1: 0.289	mAP: 0.257562	
+[2025-10-26 17:41:49 ViT-B/32] (val.py 199): INFO Test: [300/1920]	Acc@1: 0.291	mAP: 0.249972	
+[2025-10-26 17:42:07 ViT-B/32] (val.py 199): INFO Test: [350/1920]	Acc@1: 0.302	mAP: 0.245102	
+[2025-10-26 17:42:21 ViT-B/32] (val.py 199): INFO Test: [400/1920]	Acc@1: 0.304	mAP: 0.244052	
+[2025-10-26 17:42:38 ViT-B/32] (val.py 199): INFO Test: [450/1920]	Acc@1: 0.307	mAP: 0.241720	
+[2025-10-26 17:42:53 ViT-B/32] (val.py 199): INFO Test: [500/1920]	Acc@1: 0.310	mAP: 0.236738	
+[2025-10-26 17:43:08 ViT-B/32] (val.py 199): INFO Test: [550/1920]	Acc@1: 0.313	mAP: 0.237317	
+[2025-10-26 17:43:26 ViT-B/32] (val.py 199): INFO Test: [600/1920]	Acc@1: 0.307	mAP: 0.233382	
+[2025-10-26 17:43:40 ViT-B/32] (val.py 199): INFO Test: [650/1920]	Acc@1: 0.307	mAP: 0.231844	
+[2025-10-26 17:43:57 ViT-B/32] (val.py 199): INFO Test: [700/1920]	Acc@1: 0.312	mAP: 0.233155	
+[2025-10-26 17:44:13 ViT-B/32] (val.py 199): INFO Test: [750/1920]	Acc@1: 0.316	mAP: 0.234207	
+[2025-10-26 17:44:27 ViT-B/32] (val.py 199): INFO Test: [800/1920]	Acc@1: 0.321	mAP: 0.233478	
+[2025-10-26 17:44:45 ViT-B/32] (val.py 199): INFO Test: [850/1920]	Acc@1: 0.327	mAP: 0.236480	
+[2025-10-26 17:44:59 ViT-B/32] (val.py 199): INFO Test: [900/1920]	Acc@1: 0.326	mAP: 0.232861	
+[2025-10-26 17:45:17 ViT-B/32] (val.py 199): INFO Test: [950/1920]	Acc@1: 0.326	mAP: 0.231825	
+[2025-10-26 17:45:32 ViT-B/32] (val.py 199): INFO Test: [1000/1920]	Acc@1: 0.327	mAP: 0.231189	
+[2025-10-26 17:45:47 ViT-B/32] (val.py 199): INFO Test: [1050/1920]	Acc@1: 0.326	mAP: 0.229260	
+[2025-10-26 17:46:04 ViT-B/32] (val.py 199): INFO Test: [1100/1920]	Acc@1: 0.327	mAP: 0.229121	
+[2025-10-26 17:46:19 ViT-B/32] (val.py 199): INFO Test: [1150/1920]	Acc@1: 0.323	mAP: 0.229589	
+[2025-10-26 17:46:36 ViT-B/32] (val.py 199): INFO Test: [1200/1920]	Acc@1: 0.322	mAP: 0.229477	
+[2025-10-26 17:46:51 ViT-B/32] (val.py 199): INFO Test: [1250/1920]	Acc@1: 0.325	mAP: 0.230501	
+[2025-10-26 17:47:06 ViT-B/32] (val.py 199): INFO Test: [1300/1920]	Acc@1: 0.325	mAP: 0.230830	
+[2025-10-26 17:47:22 ViT-B/32] (val.py 199): INFO Test: [1350/1920]	Acc@1: 0.322	mAP: 0.230743	
+[2025-10-26 17:47:37 ViT-B/32] (val.py 199): INFO Test: [1400/1920]	Acc@1: 0.323	mAP: 0.232723	
+[2025-10-26 17:47:55 ViT-B/32] (val.py 199): INFO Test: [1450/1920]	Acc@1: 0.324	mAP: 0.232252	
+[2025-10-26 17:48:10 ViT-B/32] (val.py 199): INFO Test: [1500/1920]	Acc@1: 0.323	mAP: 0.231925	
+[2025-10-26 17:48:27 ViT-B/32] (val.py 199): INFO Test: [1550/1920]	Acc@1: 0.323	mAP: 0.232327	
+[2025-10-26 17:48:44 ViT-B/32] (val.py 199): INFO Test: [1600/1920]	Acc@1: 0.326	mAP: 0.232807	
+[2025-10-26 17:48:59 ViT-B/32] (val.py 199): INFO Test: [1650/1920]	Acc@1: 0.326	mAP: 0.233459	

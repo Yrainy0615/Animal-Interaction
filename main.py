@@ -96,15 +96,45 @@ def main(config):
     ##########  ModelBuilder  ##########
     print('Building ModelBuilder')
     if config.MODEL.MODEL_NAME == 'XCLIP':
-        model, _ = model_builder.xclip_load(config.MODEL.PRETRAINED, config.MODEL.ARCH, 
-                            device="cpu", jit=False, 
-                            T=config.DATA.NUM_FRAMES, 
-                            droppath=config.MODEL.DROP_PATH_RATE, 
-                            use_checkpoint=config.TRAIN.USE_CHECKPOINT, 
-                            use_cache=config.MODEL.FIX_TEXT,
-                            pred=config.PRED,
-                            logger=logger,
-                            )
+        model, _ = model_builder.xclip_load(
+            config.MODEL.PRETRAINED, config.MODEL.ARCH, 
+            device="cpu", jit=False, 
+            T=config.DATA.NUM_FRAMES, 
+            droppath=config.MODEL.DROP_PATH_RATE, 
+            use_checkpoint=config.TRAIN.USE_CHECKPOINT, 
+            use_cache=config.MODEL.FIX_TEXT,
+            pred=config.PRED,
+            logger=logger,
+            # XCLIP 固有パラメータを config から読み込む
+            prompts_alpha=config.MODEL.PROMPTS_ALPHA,
+            prompts_layers=config.MODEL.PROMPTS_LAYERS,
+            mit_layers=config.MODEL.MIT_LAYERS,
+        )
+    # --- FT-XCLIP の分岐を追加 ---
+    elif config.MODEL.MODEL_NAME == 'FT-XCLIP':
+        logger.info(f"Building FT-XCLIP model using weights from: {config.MODEL.HF_FINETUNED_PATH}")
+        
+        # build_model (load_finetuned_xclip_model内部) に渡す XCLIP 固有パラメータ
+        xclip_params = {
+            "T": config.DATA.NUM_FRAMES,
+            "droppath": config.MODEL.DROP_PATH_RATE,
+            "use_checkpoint": config.TRAIN.USE_CHECKPOINT,
+            "logger": logger,
+            "prompts_alpha": config.MODEL.PROMPTS_ALPHA,
+            "prompts_layers": config.MODEL.PROMPTS_LAYERS,
+            "use_cache": config.MODEL.FIX_TEXT,
+            "mit_layers": config.MODEL.MIT_LAYERS,
+        }
+        
+        # model_builder に追加したヘルパー関数を呼び出す
+        model = model_builder.load_finetuned_xclip_model(
+            hf_model_path=config.MODEL.HF_FINETUNED_PATH, 
+            device="cpu", # DDPの前に 'cpu' でロード
+            xclip_params=xclip_params,
+            expected_arch=config.MODEL.ARCH # config からアーキテクチャ名を渡す
+        )
+    elif config.MODEL.MODEL_NAME == 'I3D':
+        model = model_builder.ResNet(config)
     elif config.MODEL.MODEL_NAME == 'I3D':
         model = model_builder.ResNet(config)
     elif config.MODEL.MODEL_NAME == 'SLOWFAST':

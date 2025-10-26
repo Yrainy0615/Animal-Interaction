@@ -1,0 +1,32 @@
+DATA:
+    ROOT: '/mnt/nfs/mammal_net/'
+    TRAIN_FILE: '/mnt/nfs/mammal_net/annotation/composition/train.csv'
+    VAL_FILE: '/mnt/nfs/mammal_net/annotation/composition/test.csv'
+    DATASET: mmnet
+    NUM_FRAMES: 8
+    NUM_CLASSES: 12
+    LABEL_LIST: '/mnt/nfs/mammal_net/annotation/behavior_to_id.txt'
+    MULTI_CLASSES: False
+    NUM_ANIMAL_CLASSES: 173
+    ANIMAL_LABEL_LIST: '/mnt/nfs/mammal_net/annotation/genus_to_id.txt'
+    RELATION_FILE: '/mnt/nfs/mammal_net/annotation/composition/relation.txt'
+
+MODEL:
+    MODEL_NAME: 'FT-XCLIP' # モデル名を変更
+    ARCH: 'ViT-B/32'     # ベースアーキテクチャ
+    HF_FINETUNED_PATH: '/mnt/nfs/ap_10k/clip_finetuned_model/' 
+    
+    DROP_PATH_RATE: 0.0
+    FIX_TEXT: True         # use_cache 用
+    PROMPTS_ALPHA: 1e-1
+    PROMPTS_LAYERS: 3
+    MIT_LAYERS: 1
+
+TRAIN:
+    BATCH_SIZE: 8
+    LOSS: 'ce'
+    ACCUMULATION_STEPS: 16
+    EPOCHS: 30
+    USE_CHECKPOINT: False
+
+PRED: False
