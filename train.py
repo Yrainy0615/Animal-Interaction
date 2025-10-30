@@ -73,8 +73,7 @@ def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_load
     edges = get_relation(config.DATA.LABEL_LIST, config.DATA.RELATION_FILE)
     edges = torch.tensor(edges).cuda(non_blocking=True)
     
-    for idx, batch_data in enumerate(train_loader):
-        
+    for idx, batch_data in enumerate(train_loader):  
         images = batch_data["imgs"].cuda(non_blocking=True)
         label_id = batch_data["label"].cuda(non_blocking=True)
         animal_pred = batch_data["animal"].cuda(non_blocking=True)

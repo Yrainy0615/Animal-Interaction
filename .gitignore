@@ -1,0 +1,8 @@
+docker_build.sh
+docker_run.sh
+data_files/annotation.tar
+data_files/full_video.tar.gz
+datasets/annotation.tar
+checkpoints
+data_files/image-001.tar.gz
+data_files/video-002.tar.gz
