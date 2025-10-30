@@ -13,8 +13,8 @@ DATA:
 
 MODEL:
     MODEL_NAME: 'FT-XCLIP' # モデル名を変更
-    ARCH: 'ViT-B/32'     # ベースアーキテクチャ
-    HF_FINETUNED_PATH: '/mnt/nfs/ap_10k/clip_finetuned_model/' 
+    ARCH: 'ViT-B/16'     # ベースアーキテクチャ
+    HF_FINETUNED_PATH: '/home/nakagawa/large_dataset/ap_10k/clip_finetuned_caption_model//' 
     
     DROP_PATH_RATE: 0.0
     FIX_TEXT: True         # use_cache 用
