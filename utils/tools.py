@@ -647,8 +647,8 @@ def sliding_window(text, window_size, step_size):
 
 def generate_text(data):
     flag = 0
-    # if len(data) % 50 == 0:
-    #     flag = 1
+    if len(data) % 50 == 0:
+        flag = 1
     if flag == 1:
         text_aug = f"{{}}"
         all_token = []

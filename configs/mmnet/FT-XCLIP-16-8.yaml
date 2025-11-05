@@ -30,3 +30,4 @@ TRAIN:
     USE_CHECKPOINT: False
 
 PRED: False
+OUTPUT: "exp_proposed/"
