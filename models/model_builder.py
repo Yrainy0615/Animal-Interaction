@@ -60,12 +60,15 @@ class GraphConvolution(nn.Module):
         self.output_size = output_size
 
     def edges2matrix(self, edges, num1, num2):
-
         num = num1 + num2
-        matrix = torch.zeros(num, num).cuda()
+        matrix = torch.zeros(num, num).cuda() 
         
         for i in edges:
-            matrix[i[0], i[1]] = 1
+            idx0 = i[0] - 1
+            idx1 = i[1] - 1
+            
+            if (0 <= idx0 < num) and (0 <= idx1 < num):
+                matrix[idx0, idx1] = 1
             
         return matrix
 

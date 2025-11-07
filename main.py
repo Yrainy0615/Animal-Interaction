@@ -4,6 +4,8 @@ os.environ['TRANSFORMERS_VERBOSITY'] = 'error'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import re
+import csv
+from typing import List
 import logging
 
 # Suppress transformers logging
@@ -86,6 +88,83 @@ def parse_option():
 
     return args, config
 
+
+def read_label_file_custom(filepath: str) -> List[List[str]]:
+    """
+    空白区切りで、ラベル名に空白を含む可能性のあるラベルファイルをパースする。
+    行の最後の要素をID、それ以前を結合したものをラベル名として解釈する。
+
+    Args:
+        filepath (str): 読み込むファイルのパス。
+
+    Returns:
+        List[List[str]]: パースされたデータのリスト (例: [['lama', '60'], ['sea lion', '65']])。
+    """
+    data_rows: List[List[str]] = []
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            for line_num, line in enumerate(f, 1):
+                line_stripped = line.strip()
+                if not line_stripped:
+                    continue
+                
+                row_data = re.split(r'\s+', line_stripped)
+                
+                if len(row_data) == 2:
+                    data_rows.append(row_data)
+                elif len(row_data) > 2:
+                    label_id = row_data[-1]
+                    name = ' '.join(row_data[:-1])
+                    reconstructed_row = [name, label_id]
+                    data_rows.append(reconstructed_row)
+                else:
+                    logger.warning(f"Skipping malformed line {line_num} in {filepath}: '{line_stripped}'")
+        
+        return data_rows
+
+    except FileNotFoundError:
+        logger.error(f"File not found: {filepath}")
+        raise
+    except Exception as e:
+        logger.error(f"Error processing file {filepath}: {e}")
+        raise
+
+def read_description_csv_custom(filepath: str, header: bool = True) -> List[List[str]]:
+    """
+    標準的なCSVファイルを読み込み、リストのリストとして返す。
+    csvモジュールを使用し、クォート文字(")内のカンマを適切に処理する。
+
+    Args:
+        filepath (str): 読み込むCSVファイルのパス。
+        header (bool): 先頭行をヘッダーとして読み飛ばすか否か。
+                       元のpd.read_csvのデフォルト動作(header='infer')を模倣。
+
+    Returns:
+        List[List[str]]: CSVの行データ（文字列のリスト）のリスト。
+    """
+    data_rows: List[List[str]] = []
+    try:
+        with open(filepath, 'r', encoding='utf-8', newline='') as f:
+            reader = csv.reader(f, skipinitialspace=True)
+            
+            if header:
+                try:
+                    next(reader)  # ヘッダー行を読み飛ばす
+                except StopIteration:
+                    return []
+            
+            for row in reader:
+                if row:
+                    data_rows.append(row)
+        
+        return data_rows
+
+    except FileNotFoundError:
+        logger.error(f"File not found: {filepath}")
+        raise
+    except Exception as e:
+        logger.error(f"Error processing file {filepath}: {e}")
+        raise
 
 
 
@@ -184,9 +263,6 @@ def main(config):
                                         mixup_alpha=config.AUG.MIXUP,
                                         cutmix_alpha=config.AUG.CUTMIX,
                                         switch_prob=config.AUG.MIXUP_SWITCH_PROB)
-    elif config.AUG.LABEL_SMOOTH > 0:
-        mixup_fn = LabelSmoothing(num_classes=config.DATA.NUM_CLASSES,
-                                    smoothing=config.AUG.LABEL_SMOOTH) 
 
     # Initialize GradScaler for mixed precision training with torch.cuda.amp
     scaler = None
@@ -210,57 +286,27 @@ def main(config):
     if config.MODEL.RESUME:
         start_epoch, max_accuracy = load_checkpoint(config, config.MODEL.RESUME, model, config.PRED, optimizer, lr_scheduler, logger, inflation=False, convert_from_caffe2=config.MODEL.CONVERT_FROM_CAFFE2)
     if config.DATA.description:
-        print("########## using descrition ##########")
-        text_labels = generate_text(pd.read_csv(config.DATA.description).values.tolist()) #[140,77]
+        print("########## using description ##########")
+        # カンマ区切りCSV (header=Falseを想定) をカスタム関数で読み込む
+        text_data = read_description_csv_custom(config.DATA.description, header=False)
+        text_labels = generate_text(text_data)
     else:
-        text_labels = generate_text(pd.read_csv(config.DATA.LABEL_LIST, header=None, delimiter="\s+").values.tolist()) #[140,77]
+        # 空白区切り・名前に空白を含む可能性のあるファイルをカスタム関数で読み込む
+        text_data = read_label_file_custom(config.DATA.LABEL_LIST)
+        text_labels = generate_text(text_data)
+
     print(text_labels.shape)
+
     if config.DATA.animal_description:
         print("########## using animal descrition ##########")
-        animal_labels = generate_text(pd.read_csv(config.DATA.animal_description).values.tolist())
+        # カンマ区切りCSV (header=Falseを想定) をカスタム関数で読み込む
+        animal_data = read_description_csv_custom(config.DATA.animal_description, header=False)
+        animal_labels = generate_text(animal_data)
     else:
-        # animal_labels = generate_text(pd.read_csv(config.DATA.ANIMAL_LABEL_LIST, header=None, delimiter="\s+").values.tolist()) # 元のコード
+        # 空白区切り・名前に空白を含む可能性のあるファイルをカスタム関数で読み込む
+        animal_data = read_label_file_custom(config.DATA.ANIMAL_LABEL_LIST)
+        animal_labels = generate_text(animal_data)
 
-        # genus_to_id.txt (2列形式) を手動でパースする 
-        filepath = config.DATA.ANIMAL_LABEL_LIST
-        data_rows = []
-        try:
-            with open(filepath, 'r', encoding='utf-8') as f:
-                for line_num, line in enumerate(f, 1):
-                    line_stripped = line.strip()
-                    if not line_stripped:
-                        continue
-                    
-                    # 1つ以上の空白文字で分割
-                    row_data = re.split(r'\s+', line_stripped)
-                    
-                    if len(row_data) == 2:
-                        # ケース1: 期待通り (例: ['lama', '60'])
-                        data_rows.append(row_data)
-                    elif len(row_data) > 2:
-                        # ケース2: 名前にスペースを含む (例: ['sea', 'lion', '65'])
-                        
-                        # 最後の要素を ID とする
-                        label_id = row_data[-1]
-                        # それ以前の要素をすべて結合して Name とする
-                        name = ' '.join(row_data[:-1])
-                        
-                        reconstructed_row = [name, label_id]
-                        data_rows.append(reconstructed_row)
-                    else:
-                        # 列数が不正 (1列以下)
-                        logger.warning(f"Skipping malformed line {line_num} in {filepath}: '{line_stripped}'")
-            
-            # generate_text には .values.tolist() 形式 (リストのリスト) を渡す
-            animal_labels = generate_text(data_rows)
-
-        except FileNotFoundError:
-            logger.error(f"File not found: {filepath}")
-            # エラー発生時はプログラムを停止させる
-            raise
-        except Exception as e:
-            logger.error(f"Error processing file {filepath}: {e}")
-            raise
     print(animal_labels.shape)
     if config.TEST.ONLY_TEST:
         map, acc1  = val.validate(val_loader, val_data, text_labels, animal_labels, model, config, logger, vis=False)
