@@ -67,7 +67,7 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
     from torchmetrics.classification import MultilabelAccuracy
     eval_metric = MultilabelAccuracy(num_labels=140, average='micro').to(device)
     
-    if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP']:
+    if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP', 'VCW-CLIP']:
         clip_model, _ = clip.load('ViT-B/16', device)
         # resnet_model = torch.hub.load('pytorch/vision:v0.6.0', 'resnet18', pretrained=True).eval()
 
@@ -83,7 +83,7 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
             label_id = label_id.reshape(-1)
             filename = batch_data['filename']
             
-            if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP']:
+            if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP', 'VCW-CLIP']:
                 animal_pred = batch_data["animal"]
 
             b, tn, c, h, w = _image.size()
@@ -101,7 +101,7 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
                 use_amp = config.TRAIN.OPT_LEVEL != 'O0'
                 
                 with autocast(enabled=use_amp):
-                    if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP']:
+                    if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP', 'VCW-CLIP']:
                         animal_labels = animal_labels.cuda(non_blocking=True)
                         animal_pred = animal_pred.cuda(non_blocking=True)
                         

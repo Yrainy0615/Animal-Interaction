@@ -178,7 +178,7 @@ def generate_descriptions_for_file(
                                 writer.writerow([f"FAILED_GENERATION_FOR_{class_name}"])
                             
                             pbar.update(1)
-                            time.sleep(10)
+                            time.sleep(2)
 
         logger.info(f"正常に完了しました。出力ファイル: {output_path}")
 

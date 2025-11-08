@@ -33,14 +33,14 @@ import einops
 
 from .attention import TemporalCrossAttention
 
-from clip.model import QuickGELU, Attention
+from clip.model import QuickGELU, Attention, CLIP, LayerNorm, Transformer
 from .weight_loaders import weight_loader_fn_dict
 from .vision_transformer import (
     VisionTransformer2D, TransformerDecoderLayer,
     model_to_fp16, vit_presets,
 )
 
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, List, Tuple, Union
 
 import torch
 import torch.nn as nn
@@ -49,6 +49,430 @@ from torch_geometric.nn import GCNConv
 
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from transformers import TimesformerModel, CLIPTokenizer, CLIPTextModel, CLIPVisionModel, logging
+
+
+class TemporalTransformer(nn.Module):
+    """
+    (B, T, E) のフレーム特徴量シーケンスを受け取り、
+    [CLS] トークンを用いて (B, E) の動画ベクトルに集約する。
+    XCLIPのResidualAttentionBlockを流用する。
+    """
+    def __init__(self, T: int, width: int, layers: int, heads: int):
+        super().__init__()
+        self.width = width
+        self.layers = layers
+        
+        # XCLIPのResidualAttentionBlockを使用 (attn_mask=None)
+        self.resblocks = nn.Sequential(
+            *[ResidualAttentionBlock(width, heads, attn_mask=None) for _ in range(layers)]
+        )
+        
+        # [CLS] トークン
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, width))
+        
+        # 位置エンコーディング (Tフレーム + [CLS]トークン)
+        self.positional_embedding = nn.Parameter(torch.empty(1, T + 1, width))
+        
+        self.ln_final = LayerNorm(width)
+        
+        # パラメータの初期化
+        nn.init.normal_(self.cls_token, std=0.01)
+        nn.init.normal_(self.positional_embedding, std=0.01)
+
+    def forward(self, x: torch.Tensor):
+        # x: (B, T, E)
+        b = x.shape[0]
+        
+        # [CLS] トークンを追加 (B, 1, E)
+        cls_tokens = self.cls_token.expand(b, -1, -1)
+        x = torch.cat([cls_tokens, x], dim=1) # (B, T+1, E)
+        
+        # 位置エンコーディングを追加
+        x = x + self.positional_embedding
+        
+        # (B, T+1, E) -> (T+1, B, E) (ResidualAttentionBlockの入力形式)
+        x = x.permute(1, 0, 2) 
+        
+        # Transformer
+        x = self.resblocks(x)
+        
+        # (T+1, B, E) -> (B, T+1, E)
+        x = x.permute(1, 0, 2)
+        
+        # [CLS] トークンの出力を取得し、LayerNormを適用
+        x = x[:, 0] # (B, E)
+        x = self.ln_final(x)
+        
+        return x
+
+class TextProjector(nn.Module):
+    """
+    (K, E) のテキスト特徴量を受け取り、
+    軽量なMLPでプロジェクションする。
+    """
+    def __init__(self, embed_dim: int, hidden_dim_ratio: float = 2.0):
+        super().__init__()
+        hidden_dim = int(embed_dim * hidden_dim_ratio)
+        self.mlp = nn.Sequential(
+            nn.Linear(embed_dim, hidden_dim),
+            nn.GELU(),
+            nn.Linear(hidden_dim, embed_dim)
+        )
+    
+    def forward(self, x):
+        return self.mlp(x)
+
+class VideoChangeWeightedCLIP(CLIP):
+    """
+    CLIPエンコーダを凍結し、学習可能な時系列Transformer (動画) と
+    MLP Projector (テキスト) を追加したモデル。
+    """
+    
+    def __init__(self,
+                 embed_dim: int,
+                 # vision
+                 image_resolution: int,
+                 vision_layers: Union[Tuple[int, int, int, int], int],
+                 vision_width: int,
+                 vision_patch_size: int,
+                 # text
+                 context_length: int,
+                 vocab_size: int,
+                 transformer_width: int,
+                 transformer_heads: int,
+                 transformer_layers: int,
+                 # VCW-CLIP (New) Params
+                 T: int = 8,
+                 temporal_layers: int = 2,
+                 temporal_heads: int = 8,
+                 device: str = "cuda"):
+        
+        # 親クラス (CLIP) の __init__ を呼び出す
+        super().__init__(
+            embed_dim,
+            image_resolution, vision_layers, vision_width, vision_patch_size,
+            context_length, vocab_size, transformer_width, transformer_heads, transformer_layers
+        )
+        
+        if temporal_heads <= 0:
+            temporal_heads = transformer_heads # 0以下が指定された場合、CLIPのヘッド数に合わせる
+        
+        # 1. 学習可能な時系列Transformerの追加
+        self.temporal_transformer = TemporalTransformer(
+            T=T,
+            width=embed_dim, # CLIPの出力次元に合わせる
+            layers=temporal_layers,
+            heads=temporal_heads
+        )
+        
+        # 2. 学習可能なテキストProjectorの追加
+        self.text_projector = TextProjector(
+            embed_dim=embed_dim
+        )
+        
+        # 3. CLIPエンコーダの凍結
+        self.freeze_clip_encoders()
+
+    def freeze_clip_encoders(self):
+        """CLIPのImage/Textエンコーダのパラメータを凍結する。"""
+        
+        # Image Encoder (visual)
+        for param in self.visual.parameters():
+            param.requires_grad = False
+            
+        # Text Encoder (transformer, token_embedding, positional_embedding, ln_final, text_projection)
+        for param in self.transformer.parameters():
+            param.requires_grad = False
+        for param in self.token_embedding.parameters():
+            param.requires_grad = False
+        
+        self.positional_embedding.requires_grad = False
+        
+        for param in self.ln_final.parameters():
+            param.requires_grad = False
+            
+        self.text_projection.requires_grad = False
+            
+        # logit_scale は学習対象として残す
+
+    def encode_video_frames(self, video_frames: torch.Tensor):
+        """
+        動画フレーム (B, T, C, H, W) を
+        CLIPのImage Encoderで個別にエンコードする。
+        """
+        b, t, c, h, w = video_frames.shape
+        video_frames_flat = video_frames.reshape(-1, c, h, w)
+        
+        # 凍結された self.visual (self.encode_image経由) を呼び出す
+        frame_features = self.encode_image(video_frames_flat)
+        frame_features = frame_features.reshape(b, t, -1)
+        
+        return frame_features
+
+    def forward(self, video_frames: torch.Tensor, text: torch.Tensor, *args, **kwargs):
+        """
+        VCW-CLIP の forward。
+        XCLIPとの互換性のため、*args, **kwargs で余計な引数
+        (animal_labels, animal_pred, edges) を受け取れるようにするが、使用しない。
+        
+        video_frames: (B, T, C, H, W)
+        text: (K, L)
+        """
+        
+        # 1. Image Encoder (凍結)
+        # self.visual が凍結されているため、ここは勾配計算されない
+        with torch.no_grad():
+            # visualの重みの型 (e.g., float16) に合わせる
+            frame_features = self.encode_video_frames(video_frames.type(self.visual.conv1.weight.dtype))
+
+        # 2. Temporal Transformer (学習対象)
+        # (B, T, E) -> (B, E)
+        video_vector = self.temporal_transformer(frame_features.float()) # Transformerはfloat32で計算
+
+        # 3. Text Encoder (凍結)
+        # encode_text内部のモジュールが凍結されているため、勾配計算されない
+        with torch.no_grad():
+            text_features = self.encode_text(text)
+        
+        # 4. Text Projector (学習対象)
+        # (K, E) -> (K, E)
+        text_features_proj = self.text_projector(text_features.float())
+
+        # 5. 類似度計算
+        video_vector = video_vector / video_vector.norm(dim=-1, keepdim=True)
+        text_features_proj = text_features_proj / text_features_proj.norm(dim=-1, keepdim=True)
+        
+        logit_scale = self.logit_scale.exp()
+        
+        logits = logit_scale * video_vector @ text_features_proj.t()
+        
+        # XCLIPの出力形式 (logits, video_features) に合わせる
+        return logits, video_vector
+
+def build_vcw_model(
+    state_dict: dict, 
+    T: int, 
+    temporal_layers: int, 
+    temporal_heads: int,
+    device="cuda"
+):
+    """
+    OpenAI CLIPのstate_dictからVideoChangeWeightedCLIPモデルを構築する。
+    """
+    vit = "visual.proj" in state_dict
+
+    if vit:
+        vision_width = state_dict["visual.conv1.weight"].shape[0]
+        vision_layers = len([k for k in state_dict.keys() if k.startswith("visual.") and k.endswith(".attn.in_proj_weight")])
+        vision_patch_size = state_dict["visual.conv1.weight"].shape[-1]
+        grid_size = round((state_dict["visual.positional_embedding"].shape[0] - 1) ** 0.5)
+        image_resolution = vision_patch_size * grid_size
+    else:
+        # ResNetベースのCLIP (RN50など)
+        counts: list = [len(set(k.split(".")[2] for k in state_dict if k.startswith(f"visual.layer{b}"))) for b in [1, 2, 3, 4]]
+        vision_layers = tuple(counts)
+        vision_width = state_dict["visual.layer1.0.conv1.weight"].shape[0]
+        output_width = round((state_dict["visual.attnpool.positional_embedding"].shape[0] - 1) ** 0.5)
+        vision_patch_size = None
+        assert output_width ** 2 + 1 == state_dict["visual.attnpool.positional_embedding"].shape[0]
+        image_resolution = output_width * 32
+    embed_dim = state_dict["text_projection"].shape[1]
+    context_length = state_dict["positional_embedding"].shape[0]
+    vocab_size = state_dict["token_embedding.weight"].shape[0]
+    transformer_width = state_dict["ln_final.weight"].shape[0]
+    transformer_heads = transformer_width // 64
+    transformer_layers = len(set(k.split(".")[2] for k in state_dict if k.startswith(f"transformer.resblocks")))
+    
+    model = VideoChangeWeightedCLIP(
+        embed_dim,
+        image_resolution, vision_layers, vision_width, vision_patch_size,
+        context_length, vocab_size, transformer_width, transformer_heads, transformer_layers,
+        # --- [修正箇所] 新しい引数を渡す ---
+        T=T,
+        temporal_layers=temporal_layers,
+        temporal_heads=temporal_heads,
+        # --- ここまで ---
+        device=device
+    )
+
+    for key in ["input_resolution", "context_length", "vocab_size"]:
+        if key in state_dict:
+            del state_dict[key]
+
+    # CLIP部分の重みのみロードする (strict=False)
+    # TemporalTransformer と TextProjector の重みは state_dict に含まれていない
+    msg = model.load_state_dict(state_dict, strict=False)
+    
+    # ロードされなかったキー (学習対象モジュール) を確認
+    print("Keys not loaded (expected for VCW-CLIP):", msg.missing_keys)
+    
+    return model.eval() # .eval() は main.py 側で制御するなら不要
+
+def vcw_clip_load(
+    config: "yacs.config.CfgNode", # config全体を受け取る
+    device: Union[str, torch.device] = "cuda" if torch.cuda.is_available() else "cpu"
+):
+    """
+    VCW-CLIPモデルをロードする。
+    config.MODEL.HF_FINETUNED_PATH が指定されている場合は、
+    HF形式のファインチューニング済み重みをベースとしてロードする。
+    それ以外の場合は、標準のCLIP重み (PRETRAINED or ARCH) をロードする。
+    """
+    
+    hf_path = config.MODEL.HF_FINETUNED_PATH
+    expected_arch = config.MODEL.ARCH
+    state_dict = None
+
+    if hf_path:
+        # --- 1. HF Finetuned モデルのロードと変換 ---
+        print(f"--- Loading Fine-Tuned HF Model from {hf_path} for VCW-CLIP ---")
+        
+        # ステップ1: HF形式のモデルをロード
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            # HFモデルをロード (DDPのため 'cpu' を指定)
+            ft_model = CLIPModel.from_pretrained(hf_path).to("cpu")
+        
+        hf_state_dict = ft_model.state_dict()
+        
+        # --- アーキテクチャ検証 ---
+        hf_config = ft_model.config
+        vision_layers = hf_config.vision_config.num_hidden_layers
+        text_layers = hf_config.text_config.num_hidden_layers
+        
+        expected_layers = 0
+        if expected_arch == 'ViT-B/32' or expected_arch == 'ViT-B/16':
+            expected_layers = 12
+        # (必要なら ViT-L などを追加)
+            
+        if expected_layers == 0:
+            raise ValueError(
+                f"Unsupported expected_arch: '{expected_arch}'. "
+                "Conversion logic only supports 'ViT-B/16' or 'ViT-B/32'."
+            )
+        
+        if (vision_layers != expected_layers or text_layers != expected_layers):
+            raise ValueError(
+                f"Architecture mismatch: Config specifies '{expected_arch}' ({expected_layers} layers), "
+                f"but HF model has {vision_layers} vision layers "
+                f"and {text_layers} text layers."
+            )
+
+        del ft_model
+        
+        print("--- Converting HF state_dict to OpenAI format ---")
+        
+        # ステップ2: HF state_dict を OpenAI state_dict に変換
+        openai_state_dict = {}
+        hf_key_prefix_text = "text_model."
+        hf_key_prefix_vision = "vision_model."
+
+        # --- Text Model 変換 ---
+        openai_state_dict["token_embedding.weight"] = hf_state_dict[hf_key_prefix_text + "embeddings.token_embedding.weight"]
+        openai_state_dict["positional_embedding"] = hf_state_dict[hf_key_prefix_text + "embeddings.position_embedding.weight"]
+        
+        for i in range(text_layers):
+            q_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.q_proj.weight"]
+            k_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.k_proj.weight"]
+            v_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.v_proj.weight"]
+            openai_state_dict[f"transformer.resblocks.{i}.attn.in_proj_weight"] = torch.cat([q_w, k_w, v_w], dim=0)
+            
+            q_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.q_proj.bias"]
+            k_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.k_proj.bias"]
+            v_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.v_proj.bias"]
+            openai_state_dict[f"transformer.resblocks.{i}.attn.in_proj_bias"] = torch.cat([q_b, k_b, v_b], dim=0)
+
+            openai_state_dict[f"transformer.resblocks.{i}.attn.out_proj.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.out_proj.weight"]
+            openai_state_dict[f"transformer.resblocks.{i}.attn.out_proj.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.out_proj.bias"]
+            openai_state_dict[f"transformer.resblocks.{i}.ln_1.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm1.weight"]
+            openai_state_dict[f"transformer.resblocks.{i}.ln_1.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm1.bias"]
+            openai_state_dict[f"transformer.resblocks.{i}.mlp.c_fc.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc1.weight"]
+            openai_state_dict[f"transformer.resblocks.{i}.mlp.c_fc.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc1.bias"]
+            openai_state_dict[f"transformer.resblocks.{i}.mlp.c_proj.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc2.weight"]
+            openai_state_dict[f"transformer.resblocks.{i}.mlp.c_proj.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc2.bias"]
+            openai_state_dict[f"transformer.resblocks.{i}.ln_2.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm2.weight"]
+            openai_state_dict[f"transformer.resblocks.{i}.ln_2.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm2.bias"]
+
+        openai_state_dict["ln_final.weight"] = hf_state_dict[hf_key_prefix_text + "final_layer_norm.weight"]
+        openai_state_dict["ln_final.bias"] = hf_state_dict[hf_key_prefix_text + "final_layer_norm.bias"]
+
+        # --- Vision Model 変換 (ViT-B) ---
+        openai_state_dict["visual.conv1.weight"] = hf_state_dict[hf_key_prefix_vision + "embeddings.patch_embedding.weight"]
+        openai_state_dict["visual.class_embedding"] = hf_state_dict[hf_key_prefix_vision + "embeddings.class_embedding"]
+        openai_state_dict["visual.positional_embedding"] = hf_state_dict[hf_key_prefix_vision + "embeddings.position_embedding.weight"]
+        openai_state_dict["visual.ln_pre.weight"] = hf_state_dict[hf_key_prefix_vision + "pre_layrnorm.weight"]
+        openai_state_dict["visual.ln_pre.bias"] = hf_state_dict[hf_key_prefix_vision + "pre_layrnorm.bias"]
+
+        for i in range(vision_layers):
+            q_w = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.q_proj.weight"]
+            k_w = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.k_proj.weight"]
+            v_w = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.v_proj.weight"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.attn.in_proj_weight"] = torch.cat([q_w, k_w, v_w], dim=0)
+            
+            q_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.q_proj.bias"]
+            k_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.k_proj.bias"]
+            v_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.v_proj.bias"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.attn.in_proj_bias"] = torch.cat([q_b, k_b, v_b], dim=0)
+            
+            openai_state_dict[f"visual.transformer.resblocks.{i}.attn.out_proj.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.out_proj.weight"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.attn.out_proj.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.out_proj.bias"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.ln_1.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm1.weight"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.ln_1.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm1.bias"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_fc.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc1.weight"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_fc.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc1.bias"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_proj.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc2.weight"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_proj.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc2.bias"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.ln_2.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm2.weight"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.ln_2.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm2.bias"]
+
+        openai_state_dict["visual.ln_post.weight"] = hf_state_dict[hf_key_prefix_vision + "post_layernorm.weight"]
+        openai_state_dict["visual.ln_post.bias"] = hf_state_dict[hf_key_prefix_vision + "post_layernorm.bias"]
+
+        # --- Projections 変換 ---
+        openai_state_dict["text_projection"] = hf_state_dict["text_projection.weight"].T
+        openai_state_dict["visual.proj"] = hf_state_dict["visual_projection.weight"].T
+        
+        openai_state_dict["logit_scale"] = hf_state_dict["logit_scale"]
+
+        print("Conversion complete.")
+        state_dict = openai_state_dict
+
+    else:
+        # --- 2. 標準のCLIP重みのロード (従来処理) ---
+        model_path = config.MODEL.PRETRAINED
+        name = config.MODEL.ARCH
+        
+        if model_path is None:
+            # clipライブラリからダウンロード
+            model_path = clip._download(clip._MODELS[name])
+        
+        try:
+            # JITモデル (.pt) の場合
+            jit_model = torch.jit.load(model_path, map_location="cpu").eval()
+            state_dict = jit_model.state_dict()
+        except RuntimeError:
+            # PyTorch Checkpoint (.pth) の場合
+            state_dict = torch.load(model_path, map_location="cpu")
+        except FileNotFoundError:
+             raise FileNotFoundError(f"Model file not found at {model_path} (or failed to download {name})")
+
+    # --- 3. VCW-CLIP モデルの構築 ---
+    # (HF変換後、または標準ロード後)
+    model = build_vcw_model(
+        state_dict=state_dict, 
+        T=config.DATA.NUM_FRAMES,
+        temporal_layers=config.MODEL.VCW_TEMPORAL_LAYERS,
+        temporal_heads=config.MODEL.VCW_TEMPORAL_HEADS,
+        device=device # 'cpu' が渡される想定
+    )
+    
+    # 呼び出し側 (main.py) が 'cpu' を期待しているため、
+    # deviceが 'cuda' であっても .float() 処理を統一する
+    if str(device) == "cpu":
+        model.float()
+        
+    return model
+
 
 class GraphConvolution(nn.Module):
     def __init__(self, input_size, output_size):

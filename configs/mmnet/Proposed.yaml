@@ -1,0 +1,25 @@
+DATA:
+    ROOT: '/mnt/nfs/mammal_net/'
+    TRAIN_FILE: '/mnt/nfs/mammal_net/annotation/composition/train.csv'
+    VAL_FILE: '/mnt/nfs/mammal_net/annotation/composition/test.csv'
+    DATASET: mmnet
+    NUM_FRAMES: 8
+    NUM_CLASSES: 12
+    NUM_ANIMAL_CLASSES: 173
+    LABEL_LIST: '/mnt/nfs/mammal_net/annotation/behavior_to_id.txt'
+    MULTI_CLASSES: False
+    ANIMAL_LABEL_LIST: '/mnt/nfs/mammal_net/annotation/genus_to_id.txt'
+    RELATION_FILE: '/mnt/nfs/mammal_net/annotation/composition/relation.txt'
+
+MODEL:
+    ARCH: ViT-B/16
+    MODEL_NAME: 'VCW-CLIP'
+    HF_FINETUNED_PATH: '/home/nakagawa/large_dataset/ap_10k/clip_finetuned_caption_model_merged/' 
+    VCW_TEMPORAL_LAYERS: 2
+    VCW_TEMPORAL_HEADS: 8
+
+TRAIN:
+    BATCH_SIZE: 8
+    LOSS: 'ce'
+    ACCUMULATION_STEPS: 16
+    EPOCHS: 30

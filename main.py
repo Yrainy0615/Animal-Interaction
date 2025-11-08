@@ -212,6 +212,17 @@ def main(config):
             xclip_params=xclip_params,
             expected_arch=config.MODEL.ARCH # config からアーキテクチャ名を渡す
         )
+    elif config.MODEL.MODEL_NAME == 'VCW-CLIP':
+        # ログ表示の分岐
+        if config.MODEL.HF_FINETUNED_PATH:
+             logger.info(f"Building VCW-CLIP model using HF finetuned weights: {config.MODEL.HF_FINETUNED_PATH}")
+        else:
+             logger.info(f"Building VCW-CLIP model using base weights: {config.MODEL.PRETRAINED or config.MODEL.ARCH}")
+        # model_builder.vcw_clip_load の呼び出しを config を渡すように変更
+        model = model_builder.vcw_clip_load(
+            config=config, # config オブジェクト全体を渡す
+            device="cpu",  # DDPの前に 'cpu' でロード
+        )
     elif config.MODEL.MODEL_NAME == 'I3D':
         model = model_builder.ResNet(config)
     elif config.MODEL.MODEL_NAME == 'I3D':

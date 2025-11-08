@@ -118,6 +118,10 @@ _C.TRAIN.NESTEROV = True
 # If True, perform no weight decay on parameter with one dimension (bias term, etc).
 _C.TRAIN.ZERO_WD_1D_PARAM = False
 
+# Proposed method
+_C.MODEL.VCW_TEMPORAL_LAYERS = 2
+_C.MODEL.VCW_TEMPORAL_HEADS = 8
+
 # -----------------------------------------------------------------------------
 # ResNet settings
 # -----------------------------------------------------------------------------
