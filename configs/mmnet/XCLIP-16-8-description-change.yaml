@@ -10,25 +10,14 @@ DATA:
     NUM_ANIMAL_CLASSES: 173
     ANIMAL_LABEL_LIST: '/mnt/nfs/mammal_net/annotation/genus_to_id.txt'
     RELATION_FILE: '/mnt/nfs/mammal_net/annotation/composition/relation.txt'
-    description: '/mnt/nfs/mammal_net/annotation/action_description.csv'
+    description: '/mnt/nfs/mammal_net/annotation/action_description_with_customprompt_v2.csv'
     animal_description: '/mnt/nfs/mammal_net/annotation/animal_description.csv'
-
 MODEL:
-    MODEL_NAME: 'FT-XCLIP' # モデル名を変更
-    ARCH: 'ViT-B/16'     # ベースアーキテクチャ
-    HF_FINETUNED_PATH: '/home/nakagawa/large_dataset/ap_10k/clip_original_base_model/' 
-    
-    DROP_PATH_RATE: 0.0
-    FIX_TEXT: True         # use_cache 用
-    PROMPTS_ALPHA: 1e-1
-    PROMPTS_LAYERS: 3
-    MIT_LAYERS: 1
-
+    ARCH: ViT-B/16
+    MODEL_NAME: 'XCLIP'
 TRAIN:
     BATCH_SIZE: 8
     LOSS: 'ce'
     ACCUMULATION_STEPS: 16
     EPOCHS: 30
-    USE_CHECKPOINT: False
-
-PRED: False
+OUTPUT: 'exp_description_change'

@@ -216,26 +216,50 @@ class VideoChangeWeightedCLIP(CLIP):
         (animal_labels, animal_pred, edges) を受け取れるようにするが、使用しない。
         
         video_frames: (B, T, C, H, W)
-        text: (K, L)
+        text: (N, L) または (N, K, L)
         """
         
         # 1. Image Encoder (凍結)
-        # self.visual が凍結されているため、ここは勾配計算されない
         with torch.no_grad():
-            # visualの重みの型 (e.g., float16) に合わせる
             frame_features = self.encode_video_frames(video_frames.type(self.visual.conv1.weight.dtype))
 
         # 2. Temporal Transformer (学習対象)
-        # (B, T, E) -> (B, E)
-        video_vector = self.temporal_transformer(frame_features.float()) # Transformerはfloat32で計算
+        video_vector = self.temporal_transformer(frame_features.float())
 
         # 3. Text Encoder (凍結)
-        # encode_text内部のモジュールが凍結されているため、勾配計算されない
         with torch.no_grad():
-            text_features = self.encode_text(text)
-        
+            
+            # 1対多 (N, K, 77) か 1対1 (N, 77) かを
+            # 入力 text の次元数で判定する。
+            
+            if text.dim() == 3:
+                # 入力形状: (N, K, 77) (N=クラス数, K=プロンプト数)
+                n_classes, n_prompts, _ = text.shape
+                # (N, K, 77) -> (N * K, 77)
+                text_input = text.view(n_classes * n_prompts, -1)
+            else:
+                # 入力形状: (N, 77)
+                n_classes = text.shape[0]
+                n_prompts = 1
+                text_input = text
+            
+            # (N * K, 77) or (N, 77) -> (N * K, E) or (N, E)
+            # E は CLIP の embed_dim
+            text_features = self.encode_text(text_input)
+
+            if n_prompts > 1:
+                # (N * K, E) -> (N, K, E)
+                # K=n_prompts, E=embed_dim
+                text_features = text_features.view(n_classes, n_prompts, -1) 
+                
+                # (N, K, E) -> (N, E) (K次元で Max-Pooling)
+                text_features, _ = torch.max(text_features, dim=1)
+            
+            # n_prompts = 1 の場合、
+            # text_features は (N, E) のまま変更されない。
+            
         # 4. Text Projector (学習対象)
-        # (K, E) -> (K, E)
+        # (N, E) -> (N, E)
         text_features_proj = self.text_projector(text_features.float())
 
         # 5. 類似度計算
@@ -244,6 +268,8 @@ class VideoChangeWeightedCLIP(CLIP):
         
         logit_scale = self.logit_scale.exp()
         
+        # video_vector (B, E), text_features_proj (N, E)
+        # -> logits (B, N)
         logits = logit_scale * video_vector @ text_features_proj.t()
         
         # XCLIPの出力形式 (logits, video_features) に合わせる
@@ -647,13 +673,35 @@ class XCLIP(CLIP):
         return video_features, img_features
     
     def cache_text(self, text):
+        """
+        テキスト特徴量を計算しキャッシュする。
+        入力 text の形状が (N, K, 77) の場合、(N, K, 512) にエンコード後、
+        (N, 512) に集約 (max-pooling) する。
+        形状が (N, 77) の場合は、(N, 512) にエンコードするのみ。
+        """
         self.eval()
         with torch.no_grad():
             if self.cache_text_features is None:
-                data_loader = DataLoader(text, batch_size=50, shuffle=False)
                 
-                # embed_dim は 512 と仮定されている
-                text_features = torch.zeros([int(text.shape[0]), 512]).cuda()
+                # 入力の次元数に基づいて、クラス数とプロンプト数を決定する
+                if text.dim() == 3:
+                    # 入力形状: (N, K, 77)
+                    n_classes, n_prompts, _ = text.shape
+                    # (N, K, 77) -> (N * K, 77)
+                    text_input = text.view(n_classes * n_prompts, -1)
+                else:
+                    # 入力形状: (N, 77)
+                    n_classes = text.shape[0]
+                    n_prompts = 1
+                    text_input = text
+                
+                total_prompts = text_input.shape[0]
+
+                # DataLoader は (N * K, 77) または (N, 77) に対して動作
+                data_loader = DataLoader(text_input, batch_size=50, shuffle=False)
+                
+                # embed_dim は 512 と仮定
+                text_features = torch.zeros([total_prompts, 512]).cuda()
                 start_index = 0
                 for data in data_loader:
                     text_feature = self.encode_text(data)
@@ -661,26 +709,44 @@ class XCLIP(CLIP):
                     text_features[start_index:end_index] = text_feature
                     start_index = end_index
                 
-                # --- 修正箇所 [ここから] ---
-                # 元のハードコードされた条件を、forward メソッドと
-                # 一貫性のあるロジック（50の倍数か）に修正した。
-                if text_features.shape[0] % 50 == 0:
-                    text_features = text_features.view(int(text_features.shape[0]/50), 50, 512)
-                    text_features, _ = torch.max(text_features, dim = 1)
-                # 50の倍数でない場合 (mmnet など) は view/max を実行しない。
-                # --- 修正箇所 [ここまで] ---
+                # 1クラス1プロンプトより多い場合、集約処理を行う
+                if n_prompts > 1:
+                    # (N * K, 512) -> (N, K, 512)
+                    text_features = text_features.view(n_classes, n_prompts, 512)
+                    # (N, K, 512) -> (N, 512) (K次元で Max-Pooling)
+                    text_features, _ = torch.max(text_features, dim=1)
+                
+                # n_prompts = 1 の場合、
+                # text_features は (N, 512) のまま変更されない。
                 
                 print('text_features', text_features.shape)
                 self.cache_text_features = text_features
         self.train()
         return self.cache_text_features
-    
+
     def cache_animal_text(self, text):
+        """
+        animal_text 特徴量を計算しキャッシュする。
+        cache_text と全く同じロジックで動作する。
+        """
         self.eval()
         with torch.no_grad():
             if self.cache_animal_text_features is None:
-                data_loader = DataLoader(text, batch_size=50, shuffle=False)
-                text_features = torch.zeros([int(text.shape[0]), 512]).cuda()
+                
+                if text.dim() == 3:
+                    # (N, K, 77)
+                    n_classes, n_prompts, _ = text.shape
+                    text_input = text.view(n_classes * n_prompts, -1)
+                else:
+                    # (N, 77)
+                    n_classes = text.shape[0]
+                    n_prompts = 1
+                    text_input = text
+                
+                total_prompts = text_input.shape[0]
+
+                data_loader = DataLoader(text_input, batch_size=50, shuffle=False)
+                text_features = torch.zeros([total_prompts, 512]).cuda()
                 start_index = 0
                 for data in data_loader:
                     text_feature = self.encode_text(data)
@@ -688,17 +754,17 @@ class XCLIP(CLIP):
                     text_features[start_index:end_index] = text_feature
                     start_index = end_index
 
-                # cache_text と同様に、ハードコードされた条件を修正した。
-                if text_features.shape[0] % 50 == 0:
-                    text_features = text_features.view(int(text_features.shape[0]/50), 50, 512)
-                    text_features, _ = torch.max(text_features, dim = 1)
-                # 50の倍数でない場合 (mmnet など) は view/max を実行しない。
-
+                if n_prompts > 1:
+                    # (N * K, 512) -> (N, K, 512)
+                    text_features = text_features.view(n_classes, n_prompts, 512)
+                    # (N, K, 512) -> (N, 512)
+                    text_features, _ = torch.max(text_features, dim=1)
+                
                 print('animal_text_features', text_features.shape)
                 self.cache_animal_text_features = text_features
         self.train()
         return self.cache_animal_text_features
-    
+
     def cache_animal_logits(self, text, image_features, animal_text_features):
         self.eval()
         with torch.no_grad():
@@ -709,68 +775,77 @@ class XCLIP(CLIP):
         self.train()
         return animal_logits
 
-    def forward(self, image, text, animal_text, animal_pred, edges, name='',pred=False):
+    def forward(self, image, text, animal_text, animal_pred, edges, name='', pred=False):
         b = image.shape[0]
         T = image.shape[1]
         video_features, img_features = self.encode_video(image, name)
         
-        # 入力テキストの形状に基づき、集約後のクラス数 (num1, num2) を決定する
-        if text.shape[0] % 50 == 0:
-            num2 = int(text.shape[0] / 50)
-            num1 = int(animal_text.shape[0] / 50)
+        if text.dim() == 3:
+            num2 = text.shape[0]  # クラス数 N
         else:
-            num2 = int(text.shape[0])
-            num1 = int(animal_text.shape[0])
+            num2 = text.shape[0]  # クラス数 N
+            
+        if animal_text.dim() == 3:
+            num1 = animal_text.shape[0] # クラス数 N
+        else:
+            num1 = animal_text.shape[0] # クラス数 N
         
         logit_scale = self.logit_scale.exp()
         
         if self.use_cache:
-            if len(text.shape) == 3:
-                A, B, _ = text.shape
-                text = text.view(A*B, -1)
-            # 修正後の cache_text は [num2, 512] を返す
+            # cache_text / cache_animal_text は、入力が 3D (N, K, 77) でも 
+            # 2D (N, 77) でも、常に 2D (N, 512) を返すように修正された。
+            # したがって、forward 側での 3D -> 2D への view 処理は不要である。
             text_features = self.cache_text(text)
-            
-            if len(animal_text.shape) == 3:
-                A, B, _ = animal_text.shape
-                animal_text = animal_text.view(A*B, -1)
-            # 修正後の cache_animal_text は [num1, 512] を返す
             animal_text_features = self.cache_animal_text(animal_text)
-        else:
-            if len(text.shape) == 3:
-                A, B, _ = text.shape
-                text = text.view(A*B, -1)
-            text_features = self.encode_text(text)
+        else:            
+            # (1) animal_text の処理
+            if animal_text.dim() == 3:
+                n_classes, n_prompts, _ = animal_text.shape
+                animal_text_input = animal_text.view(n_classes * n_prompts, -1)
+            else:
+                n_classes = animal_text.shape[0]
+                n_prompts = 1
+                animal_text_input = animal_text
+
+            animal_text_features = self.encode_text(animal_text_input)
             
-            if len(animal_text.shape) == 3:
-                A, B, _ = animal_text.shape
-                animal_text = animal_text.view(A*B, -1)
-            animal_text_features = self.encode_text(animal_text)
+            if n_prompts > 1:
+                animal_text_features = animal_text_features.view(n_classes, n_prompts, 512)
+                animal_text_features, _ = torch.max(animal_text_features, dim=1)
             
-            # 注: もし use_cache=False で 50 の倍数でないデータセットを
-            # 扱う場合、cache_text と同様の % 50 分岐 (view + max) が
-            # この else ブロック内にも必要となる。
-        
+            # (2) text の処理
+            if text.dim() == 3:
+                n_classes, n_prompts, _ = text.shape
+                text_input = text.view(n_classes * n_prompts, -1)
+            else:
+                n_classes = text.shape[0]
+                n_prompts = 1
+                text_input = text
+            
+            text_features = self.encode_text(text_input)
+
+            if n_prompts > 1:
+                text_features = text_features.view(n_classes, n_prompts, 512)
+                text_features, _ = torch.max(text_features, dim=1)
+
         # [num1, 512] -> [b, num1, 512]
         animal_text_features = animal_text_features.unsqueeze(0).expand(b, -1, -1) 
         # [num2, 512] -> [b, num2, 512]
         text_features = text_features.unsqueeze(0).expand(b, -1, -1) 
         
-        animal_pred = animal_pred.unsqueeze(1) # [b, 1, 512] (元のコメントより推定)
+        animal_pred = animal_pred.unsqueeze(1) # [b, 1, 512]
         
         animal_text_feature = torch.einsum('bac, bcm->bam', [animal_pred.to(animal_text_features.dtype), animal_text_features])
         
         animal_pred = animal_pred.squeeze(1).unsqueeze(-1) # [b, 512, 1]
         
-        # (注: animal_pred [b, 512, 1] と animal_text_features [b, num1, 512] の
-        #  乗算 (torch.mul) はブロードキャスト不可。元のコードのロジックを維持するが、
-        #  animal_pred の形状が意図通りか確認が必要である。)
         animal_text_features = torch.mul(animal_pred.to(animal_text_features.dtype), animal_text_features)
         
         edges = edges.clone().detach()
 
         x = torch.cat([animal_text_features, text_features], dim=1) # [b, num1 + num2, 512]
-        text_features = self.graph(x, edges, num1, num2)[:,animal_text_features.shape[1]:,:] # [b, num2, 512]
+        text_features = self.graph(x, edges, num1, num2)[:, animal_text_features.shape[1]:, :] # [b, num2, 512]
         
         text_features = text_features + self.prompts_generator1(text_features, animal_text_feature)
         

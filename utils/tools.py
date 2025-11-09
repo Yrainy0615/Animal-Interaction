@@ -645,34 +645,44 @@ def sliding_window(text, window_size, step_size):
 #         segments.append(segment)
 #     return segments
 
-def generate_text(data):
-    flag = 0
-    if len(data) % 50 == 0:
-        flag = 1
-    if flag == 1:
-        text_aug = f"{{}}"
-        all_token = []
-        classes = []
-        for i,c in data:
-            windows = sliding_window(text=c, window_size=77, step_size=77)
-            token = torch.zeros((30,77))
-            
-            if len(windows) > 30:
-                rng = 30
-            else:
-                rng = len(windows)
+def generate_text(data, n_classes):
+    """
+    テキストプロンプトのリストをトークン化する。
+    1クラスあたりのプロンプト数に基づき、テンソルの形状を動的に変更する。
+    """
+    
+    total_prompts = len(data)
+    text_aug = f"{{}}"
 
-            for i in range(rng):
-                token[i] = clip.tokenize(text_aug.format(windows[i]), context_length=77)
-            token = token.unsqueeze(0)
-            all_token.append(token)
-        classes = torch.cat([i for i in all_token])
-    else:
-        text_aug = f"{{}}"
-        # classes = torch.cat([clip.tokenize(text_aug.format(c), context_length=77) for i, c in data])
-        classes = torch.cat([clip.tokenize(text_aug.format(row[0] if isinstance(row, list) else row), truncate=True) for row in data])
-        if (classes.shape[0] % 50) == 0:
-            classes = classes.reshape(int(classes.shape[0]/50), 50, 77)
+    # 抽出したテキストをリスト内包表記でトークン化し、torch.cat で結合する。
+    # 各テキストは clip.tokenize により 77 トークンに切り詰められる (truncate=True)。
+    classes = torch.cat([
+        clip.tokenize(text_aug.format(text), truncate=True) 
+        for text in data
+    ])
+    
+    # この時点で classes の形状は (total_prompts, 77) である。
+
+    # 総プロンプト数がクラス数で割り切れるか判定する。
+    if total_prompts % n_classes != 0:
+        # 割り切れない場合 (例: 13 プロンプト / 12 クラス)、
+        # 形状が (n_classes, n_prompts) にならないため、
+        # (total_prompts, 77) のまま返す。
+        # (1クラス1プロンプトの場合: 12 % 12 == 0 となるため、このブロックには入らない)
+        return classes
+
+    # 1クラスあたりのプロンプト数を計算する。
+    n_prompts_per_class = total_prompts // n_classes
+
+    # 1クラスあたり1プロンプトより多い場合 (例: 3, 50 など)
+    if n_prompts_per_class > 1:
+        # 形状を (total_prompts, 77) から
+        # (n_classes, n_prompts_per_class, 77) に変形する。
+        classes = classes.reshape(n_classes, n_prompts_per_class, 77)
+    
+    # n_prompts_per_class が 1 の場合、
+    # classes は (total_prompts, 77) [=(n_classes, 77)] のまま返される。
+
     return classes
 
 

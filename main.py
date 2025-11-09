@@ -203,6 +203,7 @@ def main(config):
             "prompts_layers": config.MODEL.PROMPTS_LAYERS,
             "use_cache": config.MODEL.FIX_TEXT,
             "mit_layers": config.MODEL.MIT_LAYERS,
+            "pred": config.PRED,
         }
         
         # model_builder に追加したヘルパー関数を呼び出す
@@ -300,24 +301,22 @@ def main(config):
         print("########## using description ##########")
         # カンマ区切りCSV (header=Falseを想定) をカスタム関数で読み込む
         text_data = read_description_csv_custom(config.DATA.description, header=False)
-        text_labels = generate_text(text_data)
+        text_labels = generate_text(text_data, config.DATA.NUM_CLASSES)
     else:
         # 空白区切り・名前に空白を含む可能性のあるファイルをカスタム関数で読み込む
         text_data = read_label_file_custom(config.DATA.LABEL_LIST)
-        text_labels = generate_text(text_data)
-
+        text_labels = generate_text(text_data, config.DATA.NUM_CLASSES)
     print(text_labels.shape)
 
     if config.DATA.animal_description:
         print("########## using animal descrition ##########")
         # カンマ区切りCSV (header=Falseを想定) をカスタム関数で読み込む
         animal_data = read_description_csv_custom(config.DATA.animal_description, header=False)
-        animal_labels = generate_text(animal_data)
+        animal_labels = generate_text(animal_data, config.DATA.NUM_ANIMAL_CLASSES)
     else:
         # 空白区切り・名前に空白を含む可能性のあるファイルをカスタム関数で読み込む
         animal_data = read_label_file_custom(config.DATA.ANIMAL_LABEL_LIST)
-        animal_labels = generate_text(animal_data)
-
+        animal_labels = generate_text(animal_data, config.DATA.NUM_ANIMAL_CLASSES)
     print(animal_labels.shape)
     if config.TEST.ONLY_TEST:
         map, acc1  = val.validate(val_loader, val_data, text_labels, animal_labels, model, config, logger, vis=False)
