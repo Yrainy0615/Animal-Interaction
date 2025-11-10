@@ -48,7 +48,7 @@ def fix_text(model):
 
 def build_optimizer(config, model):
     model = model.module if hasattr(model, 'module') else model
-    if config.MODEL.MODEL_NAME == 'XCLIP':
+    if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP']:
         
         # fix text
         if config.MODEL.FIX_TEXT:

@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 from utils.config import get_config
 from utils.optimizer import build_optimizer, build_scheduler
-from utils.tools import AverageMeter, reduce_tensor, epoch_saving, load_checkpoint, generate_text, auto_resume_helper, all_gather, get_map, get_animal, compute_F1, lt_map, compute_precision_recall, compute_average_precision, get_relation, lt_acc, plot_tsne, openai_imagenet_template
+from utils.tools import AverageMeter, compute_action_interaction_acc, reduce_tensor, epoch_saving, load_checkpoint, generate_text, auto_resume_helper, all_gather, get_map, get_animal, compute_F1, lt_map, compute_precision_recall, compute_average_precision, get_relation, lt_acc, plot_tsne, openai_imagenet_template, compute_action_interaction_acc
 from datasets.tools import pack_pathway_output
 from utils.visualize import visualize
 from utils.loss import ResampleLoss, AsymmetricLoss
@@ -18,7 +18,8 @@ from utils.logger import create_logger
 import time
 import numpy as np
 import random
-from apex import amp
+# from apex import amp  # Replaced with torch.cuda.amp (not used in validation)
+from torch.cuda.amp import autocast
 from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 from datasets.blending import CutmixMixupBlending, one_hot
 from utils.config import get_config
@@ -40,7 +41,10 @@ import pandas as pd
 
 import json
 
-import open_clip
+try:
+    import open_clip
+except ImportError:
+    open_clip = None  # open_clip not available
 
 from PIL import Image
 
@@ -56,10 +60,14 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
     ani_map_meter = AverageMeter()
     device = "cuda" if torch.cuda.is_available() else "cpu"
     
+    # Initialize nu and tot for noi calculation
+    nu = 0
+    tot = 0
+    
     from torchmetrics.classification import MultilabelAccuracy
     eval_metric = MultilabelAccuracy(num_labels=140, average='micro').to(device)
     
-    if config.MODEL.MODEL_NAME == 'XCLIP':
+    if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP', 'VCW-CLIP']:
         clip_model, _ = clip.load('ViT-B/16', device)
         # resnet_model = torch.hub.load('pytorch/vision:v0.6.0', 'resnet18', pretrained=True).eval()
 
@@ -75,7 +83,7 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
             label_id = label_id.reshape(-1)
             filename = batch_data['filename']
             
-            if config.MODEL.MODEL_NAME == 'XCLIP':
+            if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP', 'VCW-CLIP']:
                 animal_pred = batch_data["animal"]
 
             b, tn, c, h, w = _image.size()
@@ -89,26 +97,27 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
                 label_id = label_id.cuda(non_blocking=True)
                 image_input = image.cuda(non_blocking=True) 
 
-                if config.TRAIN.OPT_LEVEL == 'O2':
-                    image_input = image_input.half()
+                # Use autocast for mixed precision inference
+                use_amp = config.TRAIN.OPT_LEVEL != 'O0'
                 
-                if config.MODEL.MODEL_NAME == 'XCLIP':
-                    animal_labels = animal_labels.cuda(non_blocking=True)
-                    animal_pred = animal_pred.cuda(non_blocking=True)
-                    
-                    animal_classes = val_data.animal_classes
-                    
-                    output, vf = model(image_input, text_inputs, animal_labels, animal_pred, edges, filename, config.PRED) # + output
-                    ani_map_meter.update_predictions(animal_pred, animal_gt)
-                    
-                elif config.MODEL.MODEL_NAME == 'VideoPrompt':
-                # for id in action_id:
-                    name_map = pd.read_csv(config.DATA.LABEL_LIST).values.tolist()
-                    inp_actionlist = [name_map[i][1] for i in range(len(name_map))]
-                    output = model(image_input, inp_actionlist)
-                else:
-                    image_input = pack_pathway_output(config, image_input)
-                    output = model(image_input)
+                with autocast(enabled=use_amp):
+                    if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP', 'VCW-CLIP']:
+                        animal_labels = animal_labels.cuda(non_blocking=True)
+                        animal_pred = animal_pred.cuda(non_blocking=True)
+                        
+                        animal_classes = val_data.animal_classes
+                        
+                        output, vf = model(image_input, text_inputs, animal_labels, animal_pred, edges, filename, config.PRED) # + output
+                        ani_map_meter.update_predictions(animal_pred, animal_gt)
+                        
+                    elif config.MODEL.MODEL_NAME == 'VideoPrompt':
+                    # for id in action_id:
+                        name_map = pd.read_csv(config.DATA.LABEL_LIST).values.tolist()
+                        inp_actionlist = [name_map[i][1] for i in range(len(name_map))]
+                        output = model(image_input, inp_actionlist)
+                    else:
+                        image_input = pack_pathway_output(config, image_input)
+                        output = model(image_input)
         
                 similarity = output.view(b, -1).softmax(dim=-1)
                 tot_similarity += similarity
@@ -141,19 +150,27 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
             acc5_meter.update(float(acc5) / b, b)
             
             if noi == True:
-                rela = {}
-                fin = open(config.DATA.RELATION_FILE, 'r')
-                for line in fin:
-                    animal, labels, num = line.strip().split("	")
-                    labels = eval(labels)
-                    rela[animal] = labels
-                for i in range(b):
-                    animals = torch.nonzero(animal_gt[i])
-                    if len(animals) == 1:
-                        nu = nu + 1
-                        for j in indices_5[i]:
-                            if j not in rela[animal_classes[animals][1]]:
-                                tot = tot + 1
+                try:
+                    rela = {}
+                    fin = open(config.DATA.RELATION_FILE, 'r')
+                    for line in fin:
+                        animal, labels, num = line.strip().split("	")
+                        labels = eval(labels)
+                        rela[animal] = labels
+                    for i in range(b):
+                        animals = torch.nonzero(animal_gt[i])
+                        if len(animals) == 1:
+                            nu = nu + 1
+                            for j in indices_5[i]:
+                                animal_key = animal_classes[animals[0].item()]
+                                if isinstance(animal_key, (list, tuple)) and len(animal_key) > 1:
+                                    animal_key = animal_key[1]
+                                if str(animal_key) in rela and j not in rela[str(animal_key)]:
+                                    tot = tot + 1
+                except Exception as e:
+                    # Skip noi calculation if there's any error
+                    logger.info(f"Skipping noi calculation due to error: {e}")
+                    pass
             # 结果可视化
             if vis == True:
                 print("######## vis start ########")
@@ -206,6 +223,8 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
         if config.DATA.MULTI_CLASSES == True:
             hd, md, ta = lt_map(aps)
             logger.info(f' * hd {hd:.4f} md {md:.4f} ta {ta:.4f}')
+            logger.info(f'[WARN] Acc1 (Action/Interaction): * action notimplement! interaction notimplement!')
+            logger.info(f'[WARN] Acc5 (Action/Interaction): * action notimplement! interaction notimplement!')
         else:
             lt_acc1, lt_acc5 = lt_acc(torch.cat(map_meter.all_preds).cpu().numpy(), torch.cat(map_meter.all_labels).cpu().numpy(), config.DATA.DATASET)
             for i in ['hd', 'md', 'tl']:
@@ -214,4 +233,20 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
                     lt_acc5[i] = lt_acc5[i] / lt_acc5[i+'_num']
             logger.info(f'Acc1: * hd {(lt_acc1["hd"]):.4f} md {(lt_acc1["md"]):.4f} ta {(lt_acc1["tl"]):.4f}')
             logger.info(f'Acc5: * hd {(lt_acc5["hd"]):.4f} md {(lt_acc5["md"]):.4f} ta {(lt_acc5["tl"]):.4f}')
+
+            act_int_acc1, act_int_acc5 = compute_action_interaction_acc(
+                torch.cat(map_meter.all_preds).cpu().numpy(), 
+                torch.cat(map_meter.all_labels).cpu().numpy(), 
+                config.DATA.DATASET
+            )
+            if act_int_acc1 is not None and act_int_acc5 is not None:
+                # Acc@1 の計算とログ
+                action_acc1 = (act_int_acc1['action'] / act_int_acc1['action_num']) if act_int_acc1['action_num'] > 0 else 0
+                interaction_acc1 = (act_int_acc1['interaction'] / act_int_acc1['interaction_num']) if act_int_acc1['interaction_num'] > 0 else 0
+                logger.info(f'Acc1 (Action/Interaction): * action {action_acc1:.4f} interaction {interaction_acc1:.4f}')
+                
+                # Acc@5 の計算とログ
+                action_acc5 = (act_int_acc5['action'] / act_int_acc5['action_num']) if act_int_acc5['action_num'] > 0 else 0
+                interaction_acc5 = (act_int_acc5['interaction'] / act_int_acc5['interaction_num']) if act_int_acc5['interaction_num'] > 0 else 0
+                logger.info(f'Acc5 (Action/Interaction): * action {action_acc5:.4f} interaction {interaction_acc5:.4f}')
     return map, acc1_meter.avg

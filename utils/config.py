@@ -69,6 +69,14 @@ _C.MODEL.DROPOUT_RATE = 0.5
 _C.MODEL.MODEL_NAME = 'XCLIP'
 _C.MODEL.CONVERT_FROM_CAFFE2 = False
 
+# HF形式のファインチューニング済みモデルへのパス (FT-XCLIP用)
+_C.MODEL.HF_FINETUNED_PATH = ''
+
+# XCLIP / FT-XCLIP 共通パラメータ
+_C.MODEL.PROMPTS_ALPHA = 1e-1
+_C.MODEL.PROMPTS_LAYERS = 3
+_C.MODEL.MIT_LAYERS = 1
+
 # Model architectures that has one single pathway.
 _C.MODEL.SINGLE_PATHWAY_ARCH = ["2d", "c2d", "i3d", "slow", "x3d", "mvit", "xclip", 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
 
@@ -109,6 +117,10 @@ _C.TRAIN.NESTEROV = True
 
 # If True, perform no weight decay on parameter with one dimension (bias term, etc).
 _C.TRAIN.ZERO_WD_1D_PARAM = False
+
+# Proposed method
+_C.MODEL.VCW_TEMPORAL_LAYERS = 2
+_C.MODEL.VCW_TEMPORAL_HEADS = 8
 
 # -----------------------------------------------------------------------------
 # ResNet settings

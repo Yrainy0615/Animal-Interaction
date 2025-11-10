@@ -99,6 +99,62 @@ def plot_tsne(features, ani_labels, labels, ani_label_map, label_map):
     
     return plt
 
+def compute_action_interaction_acc(preds, labels, dataset):
+    """
+    Compute Acc@1 and Acc@5 for Action (single) and Interaction classes.
+    Only supports 'mmnet' dataset.
+    
+    Args:
+        preds (numpy tensor): num_examples x num_classes.
+        labels (numpy tensor): num_examples x num_classes (assuming single-label one-hot).
+        dataset (str): Name of the dataset.
+    Returns:
+        acc1 (dict): Top-1 accuracy stats.
+        acc5 (dict): Top-5 accuracy stats.
+    """
+    if dataset != 'mmnet':
+        # This stratification is defined only for 'mmnet'
+        return None, None
+
+    # MammalNet Action/Interaction class indices
+    category_map = {
+        'action': [0, 1, 2, 5, 7, 10, 11],
+        'interaction': [3, 4, 6, 8, 9]
+    }
+
+    acc1 = {'action': 0, 'interaction': 0, 'action_num': 0, 'interaction_num': 0}
+    acc5 = {'action': 0, 'interaction': 0, 'action_num': 0, 'interaction_num': 0}
+
+    try:
+        for i in range(len(labels)):
+            # Assuming single-label based on lt_acc logic
+            label_id = int(np.nonzero(labels[i])[0])
+            
+            found_category = None
+            for key, indices in category_map.items():
+                if label_id in indices:
+                    found_category = key
+                    break
+            
+            if found_category:
+                key = found_category
+                acc1[key + '_num'] += 1
+                acc5[key + '_num'] += 1
+                
+                indices_1 = np.argsort(-preds[i])[:1] # Top-1
+                indices_5 = np.argsort(-preds[i])[:5] # Top-5
+
+                if int(indices_1) == label_id:
+                    acc1[key] += 1
+                if label_id in indices_5:
+                    acc5[key] += 1
+                    
+    except Exception as e:
+        print(f"Error during action/interaction accuracy calculation: {e}")
+        return None, None
+        
+    return acc1, acc5
+
 def lt_acc(preds, labels, dataset):
     """
     Compute mAP for multi-label case.
@@ -645,34 +701,44 @@ def sliding_window(text, window_size, step_size):
 #         segments.append(segment)
 #     return segments
 
-def generate_text(data):
-    flag = 0
-    # if len(data) % 50 == 0:
-    #     flag = 1
-    if flag == 1:
-        text_aug = f"{{}}"
-        all_token = []
-        classes = []
-        for i,c in data:
-            windows = sliding_window(text=c, window_size=77, step_size=77)
-            token = torch.zeros((30,77))
-            
-            if len(windows) > 30:
-                rng = 30
-            else:
-                rng = len(windows)
+def generate_text(data, n_classes):
+    """
+    テキストプロンプトのリストをトークン化する。
+    1クラスあたりのプロンプト数に基づき、テンソルの形状を動的に変更する。
+    """
+    
+    total_prompts = len(data)
+    text_aug = f"{{}}"
 
-            for i in range(rng):
-                token[i] = clip.tokenize(text_aug.format(windows[i]), context_length=77)
-            token = token.unsqueeze(0)
-            all_token.append(token)
-        classes = torch.cat([i for i in all_token])
-    else:
-        text_aug = f"{{}}"
-        # classes = torch.cat([clip.tokenize(text_aug.format(c), context_length=77) for i, c in data])
-        classes = torch.cat([clip.tokenize(text_aug.format(c), truncate=True) for i, c in data])
-        if (classes.shape[0] % 50) == 0:
-            classes = classes.reshape(int(classes.shape[0]/50), 50, 77)
+    # 抽出したテキストをリスト内包表記でトークン化し、torch.cat で結合する。
+    # 各テキストは clip.tokenize により 77 トークンに切り詰められる (truncate=True)。
+    classes = torch.cat([
+        clip.tokenize(text_aug.format(text), truncate=True) 
+        for text in data
+    ])
+    
+    # この時点で classes の形状は (total_prompts, 77) である。
+
+    # 総プロンプト数がクラス数で割り切れるか判定する。
+    if total_prompts % n_classes != 0:
+        # 割り切れない場合 (例: 13 プロンプト / 12 クラス)、
+        # 形状が (n_classes, n_prompts) にならないため、
+        # (total_prompts, 77) のまま返す。
+        # (1クラス1プロンプトの場合: 12 % 12 == 0 となるため、このブロックには入らない)
+        return classes
+
+    # 1クラスあたりのプロンプト数を計算する。
+    n_prompts_per_class = total_prompts // n_classes
+
+    # 1クラスあたり1プロンプトより多い場合 (例: 3, 50 など)
+    if n_prompts_per_class > 1:
+        # 形状を (total_prompts, 77) から
+        # (n_classes, n_prompts_per_class, 77) に変形する。
+        classes = classes.reshape(n_classes, n_prompts_per_class, 77)
+    
+    # n_prompts_per_class が 1 の場合、
+    # classes は (total_prompts, 77) [=(n_classes, 77)] のまま返される。
+
     return classes
 
 

@@ -1,16 +1,16 @@
 DATA:
-    ROOT: '/mnt/sdb/data/jingyinuo/mmnet/trimmed_video'
-    TRAIN_FILE: '/mnt/sdb/data/jingyinuo/mmnet/annotation/composition/train.txt' #00 /mnt/sdb/data/jingyinuo/mmnet/annotation/composition/train.csv
-    VAL_FILE: '/mnt/sdb/data/jingyinuo/mmnet/annotation/composition/test.txt'
+    ROOT: '/mnt/nfs/mammal_net/'
+    TRAIN_FILE: '/mnt/nfs/mammal_net/annotation/composition/train.csv'
+    VAL_FILE: '/mnt/nfs/mammal_net/annotation/composition/test.csv'
     DATASET: mmnet
     NUM_FRAMES: 8
     NUM_CLASSES: 12
-    LABEL_LIST: '/mnt/sdb/data/jingyinuo/mmnet/annotation/behavior_to_id.csv'
+    LABEL_LIST: '/mnt/nfs/mammal_net/annotation/behavior_to_id.txt'
     MULTI_CLASSES: False
     NUM_ANIMAL_CLASSES: 173
-    ANIMAL_LABEL_LIST: '/mnt/sdb/data/jingyinuo/mmnet/annotation/genus_to_id.csv'
+    ANIMAL_LABEL_LIST: '/mnt/nfs/mammal_net/annotation/genus_to_id.txt'
     # FEATURE_ROOT: '/mnt/sdb/data/jingyinuo/mmnet/visual_feature'
-    RELATION_FILE: '/mnt/sdb/data/jingyinuo/mmnet/annotation/composition/relation.txt'
+    RELATION_FILE: '/mnt/nfs/mammal_net/annotation/composition/relation.txt'
 MODEL:
     ARCH: ViT-B/16
     MODEL_NAME: 'VideoPrompt'

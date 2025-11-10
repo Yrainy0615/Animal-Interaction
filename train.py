@@ -18,7 +18,8 @@ from utils.logger import create_logger
 import time
 import numpy as np
 import random
-from apex import amp
+# from apex import amp  # Replaced with torch.cuda.amp
+from torch.cuda.amp import autocast, GradScaler
 from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 from datasets.blending import CutmixMixupBlending, one_hot
 from utils.config import get_config
@@ -53,7 +54,7 @@ def get_trainable_para_num(model):
             lst.append(para.nelement())
     print(f"trainable paras number: {sum(lst)}")
 
-def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_loader, text_labels, animal_labels, config, mixup_fn, train_data, logger):
+def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_loader, text_labels, animal_labels, config, mixup_fn, train_data, logger, scaler=None):
     get_para_num(model)
     get_trainable_para_num(model)
     model.train()
@@ -73,7 +74,8 @@ def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_load
     edges = get_relation(config.DATA.LABEL_LIST, config.DATA.RELATION_FILE)
     edges = torch.tensor(edges).cuda(non_blocking=True)
     
-    for idx, batch_data in enumerate(train_loader):  
+    for idx, batch_data in enumerate(train_loader):
+        
         images = batch_data["imgs"].cuda(non_blocking=True)
         label_id = batch_data["label"].cuda(non_blocking=True)
         animal_pred = batch_data["animal"].cuda(non_blocking=True)
@@ -88,41 +90,81 @@ def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_load
         if texts.shape[0] == 1:
             texts = texts.view(1, -1)
         
-        if config.MODEL.MODEL_NAME == 'XCLIP':
-            output, _ = model(images, texts, animal_labels, animal_pred, edges)
-            
-        elif config.MODEL.MODEL_NAME == 'VideoPrompt':
-        # for id in action_id:
-            name_map = pd.read_csv(config.DATA.LABEL_LIST).values.tolist()
-            inp_actionlist = [name_map[i][1] for i in range(len(name_map))]
-            output = model(images, inp_actionlist)
-            
-        else:
-            images = pack_pathway_output(config, images)
-            output = model(images)
+        # Use autocast for mixed precision forward pass
+        use_amp = config.TRAIN.OPT_LEVEL != 'O0' and scaler is not None
         
-        total_loss = criterion(output, label_id)
-        total_loss = total_loss / config.TRAIN.ACCUMULATION_STEPS
+        with autocast(enabled=use_amp):
+            if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP', 'VCW-CLIP']:
+                output, _ = model(images, texts, animal_labels, animal_pred, edges)
+                
+            elif config.MODEL.MODEL_NAME == 'VideoPrompt':
+            # for id in action_id:
+                name_map = pd.read_csv(config.DATA.LABEL_LIST).values.tolist()
+                inp_actionlist = [name_map[i][1] for i in range(len(name_map))]
+                output = model(images, inp_actionlist)
+                
+            else:
+                images = pack_pathway_output(config, images)
+                output = model(images)
+            
+            # label_id (ターゲット) の形状を整形する。
+            # nn.CrossEntropyLoss は [BatchSize] の 1D テンソル (long 型) を期待する。
+            
+            # label_id が 2D テンソル ([B, N] または [B, 1]) の場合
+            if label_id.ndim == 2:
+                if label_id.shape[1] > 1:
+                    # [B, N] (One-hot) -> [B] (クラスインデックス)
+                    label_id = label_id.argmax(dim=1)
+                else:
+                    # [B, 1] -> [B]
+                    label_id = label_id.squeeze(dim=1)
+            
+            # 既に 1D ([B]) の場合、squeeze() は何もしない。
+            # 最終的に long 型に変換する。
+            label_id = label_id.squeeze().long()
+            
+            # アサーションエラー (t < n_classes) 対策
+            # config.DATA.NUM_CLASSES は 12
+            if label_id.max() >= config.DATA.NUM_CLASSES:
+                # 12 以上の値がある場合、1-based (1-12) と仮定し
+                # 0-based (0-11) にデクリメントする
+                logger.warning(f"Label index >= {config.DATA.NUM_CLASSES} detected. Assuming 1-based index and shifting to 0-based.")
+                label_id = label_id - 1
+            
+            # 負の値もチェック (安全のため)
+            if label_id.min() < 0:
+                logger.error(f"Negative label index detected: {label_id.min()}")
 
-        if config.TRAIN.ACCUMULATION_STEPS == 1:
+            total_loss = criterion(output, label_id)
+            total_loss = total_loss / config.TRAIN.ACCUMULATION_STEPS
+
+        if (idx == 0) or (config.TRAIN.ACCUMULATION_STEPS == 1) or ((idx + 1) % config.TRAIN.ACCUMULATION_STEPS == 0):
             optimizer.zero_grad()
-        if config.TRAIN.OPT_LEVEL != 'O0': # 纯FP32训练
-            with amp.scale_loss(total_loss, optimizer) as scaled_loss:
-                scaled_loss.requires_grad_(True)
-                scaled_loss.backward()
+        
+        # Use GradScaler for backward pass with mixed precision
+        if use_amp:
+            scaler.scale(total_loss).backward()
         else:
             total_loss.backward()
             
         if config.TRAIN.ACCUMULATION_STEPS > 1:
             if (idx + 1) % config.TRAIN.ACCUMULATION_STEPS == 0:
-                optimizer.step()
+                if use_amp:
+                    scaler.step(optimizer)
+                    scaler.update()
+                else:
+                    optimizer.step()
                 optimizer.zero_grad()
                 if config.TRAIN.LR_POLICY == 'cosineannealingwarmrestarts':
                     lr_scheduler.step(epoch * num_steps + idx)
                 else:
                     lr_scheduler.step_update(epoch * num_steps + idx)
         else:
-            optimizer.step()
+            if use_amp:
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                optimizer.step()
             if config.TRAIN.LR_POLICY == 'cosineannealingwarmrestarts':
                     lr_scheduler.step(epoch * num_steps + idx)
             else:

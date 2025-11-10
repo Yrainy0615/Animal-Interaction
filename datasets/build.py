@@ -234,8 +234,8 @@ class VideoDataset(BaseDataset):
         print('########### loading data ##########')
         if self.ann_file.endswith('.json'):
             return self.load_json_annotations()
-        all_classes = pd.read_csv(self.labels_file).values.tolist()
-        all_animal_classes = pd.read_csv(self.animal_labels_file).values.tolist()
+        all_classes = pd.read_csv(self.labels_file, delimiter='\t', header=None).values.tolist()
+        all_animal_classes = pd.read_csv(self.animal_labels_file, delimiter='\t', header=None).values.tolist()
         a = []
         for i in range(len(all_animal_classes)):
             a.append(all_animal_classes[i][1])
@@ -260,7 +260,7 @@ class VideoDataset(BaseDataset):
                         animals.append(all_animal_classes.index(animal_label[i][0]))
                     video_infos.append(dict(filename=filename, label=labels, animal = animals, tar=self.use_tar_format))
                     
-        elif self.dataset == 'mmnet' or 'LoTE':
+        elif self.dataset in ['mmnet', 'LoTE']:
             with open(self.ann_file, 'r') as fin:
                 for line in fin:
                     filename, labels, animals = line.strip().split(" ")

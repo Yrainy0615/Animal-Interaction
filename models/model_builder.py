@@ -11,6 +11,7 @@ import warnings
 sys.path.append("../")
 from clip.model import CLIP,LayerNorm,Transformer,VisionTransformer
 import clip
+from transformers import CLIPModel
 import math
 from functools import partial
 from torch.nn.init import trunc_normal_
@@ -32,14 +33,14 @@ import einops
 
 from .attention import TemporalCrossAttention
 
-from clip.model import QuickGELU, Attention
+from clip.model import QuickGELU, Attention, CLIP, LayerNorm, Transformer
 from .weight_loaders import weight_loader_fn_dict
 from .vision_transformer import (
     VisionTransformer2D, TransformerDecoderLayer,
     model_to_fp16, vit_presets,
 )
 
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, List, Tuple, Union
 
 import torch
 import torch.nn as nn
@@ -48,6 +49,456 @@ from torch_geometric.nn import GCNConv
 
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from transformers import TimesformerModel, CLIPTokenizer, CLIPTextModel, CLIPVisionModel, logging
+
+
+class TemporalTransformer(nn.Module):
+    """
+    (B, T, E) のフレーム特徴量シーケンスを受け取り、
+    [CLS] トークンを用いて (B, E) の動画ベクトルに集約する。
+    XCLIPのResidualAttentionBlockを流用する。
+    """
+    def __init__(self, T: int, width: int, layers: int, heads: int):
+        super().__init__()
+        self.width = width
+        self.layers = layers
+        
+        # XCLIPのResidualAttentionBlockを使用 (attn_mask=None)
+        self.resblocks = nn.Sequential(
+            *[ResidualAttentionBlock(width, heads, attn_mask=None) for _ in range(layers)]
+        )
+        
+        # [CLS] トークン
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, width))
+        
+        # 位置エンコーディング (Tフレーム + [CLS]トークン)
+        self.positional_embedding = nn.Parameter(torch.empty(1, T + 1, width))
+        
+        self.ln_final = LayerNorm(width)
+        
+        # パラメータの初期化
+        nn.init.normal_(self.cls_token, std=0.01)
+        nn.init.normal_(self.positional_embedding, std=0.01)
+
+    def forward(self, x: torch.Tensor):
+        # x: (B, T, E)
+        b = x.shape[0]
+        
+        # [CLS] トークンを追加 (B, 1, E)
+        cls_tokens = self.cls_token.expand(b, -1, -1)
+        x = torch.cat([cls_tokens, x], dim=1) # (B, T+1, E)
+        
+        # 位置エンコーディングを追加
+        x = x + self.positional_embedding
+        
+        # (B, T+1, E) -> (T+1, B, E) (ResidualAttentionBlockの入力形式)
+        x = x.permute(1, 0, 2) 
+        
+        # Transformer
+        x = self.resblocks(x)
+        
+        # (T+1, B, E) -> (B, T+1, E)
+        x = x.permute(1, 0, 2)
+        
+        # [CLS] トークンの出力を取得し、LayerNormを適用
+        x = x[:, 0] # (B, E)
+        x = self.ln_final(x)
+        
+        return x
+
+class TextProjector(nn.Module):
+    """
+    (K, E) のテキスト特徴量を受け取り、
+    軽量なMLPでプロジェクションする。
+    """
+    def __init__(self, embed_dim: int, hidden_dim_ratio: float = 2.0):
+        super().__init__()
+        hidden_dim = int(embed_dim * hidden_dim_ratio)
+        self.mlp = nn.Sequential(
+            nn.Linear(embed_dim, hidden_dim),
+            nn.GELU(),
+            nn.Linear(hidden_dim, embed_dim)
+        )
+    
+    def forward(self, x):
+        return self.mlp(x)
+
+class VideoChangeWeightedCLIP(CLIP):
+    """
+    CLIPエンコーダを凍結し、学習可能な時系列Transformer (動画) と
+    MLP Projector (テキスト) を追加したモデル。
+    """
+    
+    def __init__(self,
+                 embed_dim: int,
+                 # vision
+                 image_resolution: int,
+                 vision_layers: Union[Tuple[int, int, int, int], int],
+                 vision_width: int,
+                 vision_patch_size: int,
+                 # text
+                 context_length: int,
+                 vocab_size: int,
+                 transformer_width: int,
+                 transformer_heads: int,
+                 transformer_layers: int,
+                 # VCW-CLIP (New) Params
+                 T: int = 8,
+                 temporal_layers: int = 2,
+                 temporal_heads: int = 8,
+                 device: str = "cuda"):
+        
+        # 親クラス (CLIP) の __init__ を呼び出す
+        super().__init__(
+            embed_dim,
+            image_resolution, vision_layers, vision_width, vision_patch_size,
+            context_length, vocab_size, transformer_width, transformer_heads, transformer_layers
+        )
+        
+        if temporal_heads <= 0:
+            temporal_heads = transformer_heads # 0以下が指定された場合、CLIPのヘッド数に合わせる
+        
+        # 1. 学習可能な時系列Transformerの追加
+        self.temporal_transformer = TemporalTransformer(
+            T=T,
+            width=embed_dim, # CLIPの出力次元に合わせる
+            layers=temporal_layers,
+            heads=temporal_heads
+        )
+        
+        # 2. 学習可能なテキストProjectorの追加
+        self.text_projector = TextProjector(
+            embed_dim=embed_dim
+        )
+        
+        # 3. CLIPエンコーダの凍結
+        self.freeze_clip_encoders()
+
+    def freeze_clip_encoders(self):
+        """CLIPのImage/Textエンコーダのパラメータを凍結する。"""
+        
+        # Image Encoder (visual)
+        for param in self.visual.parameters():
+            param.requires_grad = False
+            
+        # Text Encoder (transformer, token_embedding, positional_embedding, ln_final, text_projection)
+        for param in self.transformer.parameters():
+            param.requires_grad = False
+        for param in self.token_embedding.parameters():
+            param.requires_grad = False
+        
+        self.positional_embedding.requires_grad = False
+        
+        for param in self.ln_final.parameters():
+            param.requires_grad = False
+            
+        self.text_projection.requires_grad = False
+            
+        # logit_scale は学習対象として残す
+
+    def encode_video_frames(self, video_frames: torch.Tensor):
+        """
+        動画フレーム (B, T, C, H, W) を
+        CLIPのImage Encoderで個別にエンコードする。
+        """
+        b, t, c, h, w = video_frames.shape
+        video_frames_flat = video_frames.reshape(-1, c, h, w)
+        
+        # 凍結された self.visual (self.encode_image経由) を呼び出す
+        frame_features = self.encode_image(video_frames_flat)
+        frame_features = frame_features.reshape(b, t, -1)
+        
+        return frame_features
+
+    def forward(self, video_frames: torch.Tensor, text: torch.Tensor, *args, **kwargs):
+        """
+        VCW-CLIP の forward。
+        XCLIPとの互換性のため、*args, **kwargs で余計な引数
+        (animal_labels, animal_pred, edges) を受け取れるようにするが、使用しない。
+        
+        video_frames: (B, T, C, H, W)
+        text: (N, L) または (N, K, L)
+        """
+        
+        # 1. Image Encoder (凍結)
+        with torch.no_grad():
+            frame_features = self.encode_video_frames(video_frames.type(self.visual.conv1.weight.dtype))
+
+        # 2. Temporal Transformer (学習対象)
+        video_vector = self.temporal_transformer(frame_features.float())
+
+        # 3. Text Encoder (凍結)
+        with torch.no_grad():
+            
+            # 1対多 (N, K, 77) か 1対1 (N, 77) かを
+            # 入力 text の次元数で判定する。
+            
+            if text.dim() == 3:
+                # 入力形状: (N, K, 77) (N=クラス数, K=プロンプト数)
+                n_classes, n_prompts, _ = text.shape
+                # (N, K, 77) -> (N * K, 77)
+                text_input = text.view(n_classes * n_prompts, -1)
+            else:
+                # 入力形状: (N, 77)
+                n_classes = text.shape[0]
+                n_prompts = 1
+                text_input = text
+            
+            # (N * K, 77) or (N, 77) -> (N * K, E) or (N, E)
+            # E は CLIP の embed_dim
+            text_features = self.encode_text(text_input)
+
+            if n_prompts > 1:
+                # (N * K, E) -> (N, K, E)
+                # K=n_prompts, E=embed_dim
+                text_features = text_features.view(n_classes, n_prompts, -1) 
+                
+                # (N, K, E) -> (N, E) (K次元で Max-Pooling)
+                text_features, _ = torch.max(text_features, dim=1)
+            
+            # n_prompts = 1 の場合、
+            # text_features は (N, E) のまま変更されない。
+            
+        # 4. Text Projector (学習対象)
+        # (N, E) -> (N, E)
+        text_features_proj = self.text_projector(text_features.float())
+
+        # 5. 類似度計算
+        video_vector = video_vector / video_vector.norm(dim=-1, keepdim=True)
+        text_features_proj = text_features_proj / text_features_proj.norm(dim=-1, keepdim=True)
+        
+        logit_scale = self.logit_scale.exp()
+        
+        # video_vector (B, E), text_features_proj (N, E)
+        # -> logits (B, N)
+        logits = logit_scale * video_vector @ text_features_proj.t()
+        
+        # XCLIPの出力形式 (logits, video_features) に合わせる
+        return logits, video_vector
+
+def build_vcw_model(
+    state_dict: dict, 
+    T: int, 
+    temporal_layers: int, 
+    temporal_heads: int,
+    device="cuda"
+):
+    """
+    OpenAI CLIPのstate_dictからVideoChangeWeightedCLIPモデルを構築する。
+    """
+    vit = "visual.proj" in state_dict
+
+    if vit:
+        vision_width = state_dict["visual.conv1.weight"].shape[0]
+        vision_layers = len([k for k in state_dict.keys() if k.startswith("visual.") and k.endswith(".attn.in_proj_weight")])
+        vision_patch_size = state_dict["visual.conv1.weight"].shape[-1]
+        grid_size = round((state_dict["visual.positional_embedding"].shape[0] - 1) ** 0.5)
+        image_resolution = vision_patch_size * grid_size
+    else:
+        # ResNetベースのCLIP (RN50など)
+        counts: list = [len(set(k.split(".")[2] for k in state_dict if k.startswith(f"visual.layer{b}"))) for b in [1, 2, 3, 4]]
+        vision_layers = tuple(counts)
+        vision_width = state_dict["visual.layer1.0.conv1.weight"].shape[0]
+        output_width = round((state_dict["visual.attnpool.positional_embedding"].shape[0] - 1) ** 0.5)
+        vision_patch_size = None
+        assert output_width ** 2 + 1 == state_dict["visual.attnpool.positional_embedding"].shape[0]
+        image_resolution = output_width * 32
+    embed_dim = state_dict["text_projection"].shape[1]
+    context_length = state_dict["positional_embedding"].shape[0]
+    vocab_size = state_dict["token_embedding.weight"].shape[0]
+    transformer_width = state_dict["ln_final.weight"].shape[0]
+    transformer_heads = transformer_width // 64
+    transformer_layers = len(set(k.split(".")[2] for k in state_dict if k.startswith(f"transformer.resblocks")))
+    
+    model = VideoChangeWeightedCLIP(
+        embed_dim,
+        image_resolution, vision_layers, vision_width, vision_patch_size,
+        context_length, vocab_size, transformer_width, transformer_heads, transformer_layers,
+        # --- [修正箇所] 新しい引数を渡す ---
+        T=T,
+        temporal_layers=temporal_layers,
+        temporal_heads=temporal_heads,
+        # --- ここまで ---
+        device=device
+    )
+
+    for key in ["input_resolution", "context_length", "vocab_size"]:
+        if key in state_dict:
+            del state_dict[key]
+
+    # CLIP部分の重みのみロードする (strict=False)
+    # TemporalTransformer と TextProjector の重みは state_dict に含まれていない
+    msg = model.load_state_dict(state_dict, strict=False)
+    
+    # ロードされなかったキー (学習対象モジュール) を確認
+    print("Keys not loaded (expected for VCW-CLIP):", msg.missing_keys)
+    
+    return model.eval() # .eval() は main.py 側で制御するなら不要
+
+def vcw_clip_load(
+    config: "yacs.config.CfgNode", # config全体を受け取る
+    device: Union[str, torch.device] = "cuda" if torch.cuda.is_available() else "cpu"
+):
+    """
+    VCW-CLIPモデルをロードする。
+    config.MODEL.HF_FINETUNED_PATH が指定されている場合は、
+    HF形式のファインチューニング済み重みをベースとしてロードする。
+    それ以外の場合は、標準のCLIP重み (PRETRAINED or ARCH) をロードする。
+    """
+    
+    hf_path = config.MODEL.HF_FINETUNED_PATH
+    expected_arch = config.MODEL.ARCH
+    state_dict = None
+
+    if hf_path:
+        # --- 1. HF Finetuned モデルのロードと変換 ---
+        print(f"--- Loading Fine-Tuned HF Model from {hf_path} for VCW-CLIP ---")
+        
+        # ステップ1: HF形式のモデルをロード
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            # HFモデルをロード (DDPのため 'cpu' を指定)
+            ft_model = CLIPModel.from_pretrained(hf_path).to("cpu")
+        
+        hf_state_dict = ft_model.state_dict()
+        
+        # --- アーキテクチャ検証 ---
+        hf_config = ft_model.config
+        vision_layers = hf_config.vision_config.num_hidden_layers
+        text_layers = hf_config.text_config.num_hidden_layers
+        
+        expected_layers = 0
+        if expected_arch == 'ViT-B/32' or expected_arch == 'ViT-B/16':
+            expected_layers = 12
+        # (必要なら ViT-L などを追加)
+            
+        if expected_layers == 0:
+            raise ValueError(
+                f"Unsupported expected_arch: '{expected_arch}'. "
+                "Conversion logic only supports 'ViT-B/16' or 'ViT-B/32'."
+            )
+        
+        if (vision_layers != expected_layers or text_layers != expected_layers):
+            raise ValueError(
+                f"Architecture mismatch: Config specifies '{expected_arch}' ({expected_layers} layers), "
+                f"but HF model has {vision_layers} vision layers "
+                f"and {text_layers} text layers."
+            )
+
+        del ft_model
+        
+        print("--- Converting HF state_dict to OpenAI format ---")
+        
+        # ステップ2: HF state_dict を OpenAI state_dict に変換
+        openai_state_dict = {}
+        hf_key_prefix_text = "text_model."
+        hf_key_prefix_vision = "vision_model."
+
+        # --- Text Model 変換 ---
+        openai_state_dict["token_embedding.weight"] = hf_state_dict[hf_key_prefix_text + "embeddings.token_embedding.weight"]
+        openai_state_dict["positional_embedding"] = hf_state_dict[hf_key_prefix_text + "embeddings.position_embedding.weight"]
+        
+        for i in range(text_layers):
+            q_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.q_proj.weight"]
+            k_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.k_proj.weight"]
+            v_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.v_proj.weight"]
+            openai_state_dict[f"transformer.resblocks.{i}.attn.in_proj_weight"] = torch.cat([q_w, k_w, v_w], dim=0)
+            
+            q_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.q_proj.bias"]
+            k_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.k_proj.bias"]
+            v_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.v_proj.bias"]
+            openai_state_dict[f"transformer.resblocks.{i}.attn.in_proj_bias"] = torch.cat([q_b, k_b, v_b], dim=0)
+
+            openai_state_dict[f"transformer.resblocks.{i}.attn.out_proj.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.out_proj.weight"]
+            openai_state_dict[f"transformer.resblocks.{i}.attn.out_proj.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.out_proj.bias"]
+            openai_state_dict[f"transformer.resblocks.{i}.ln_1.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm1.weight"]
+            openai_state_dict[f"transformer.resblocks.{i}.ln_1.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm1.bias"]
+            openai_state_dict[f"transformer.resblocks.{i}.mlp.c_fc.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc1.weight"]
+            openai_state_dict[f"transformer.resblocks.{i}.mlp.c_fc.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc1.bias"]
+            openai_state_dict[f"transformer.resblocks.{i}.mlp.c_proj.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc2.weight"]
+            openai_state_dict[f"transformer.resblocks.{i}.mlp.c_proj.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc2.bias"]
+            openai_state_dict[f"transformer.resblocks.{i}.ln_2.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm2.weight"]
+            openai_state_dict[f"transformer.resblocks.{i}.ln_2.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm2.bias"]
+
+        openai_state_dict["ln_final.weight"] = hf_state_dict[hf_key_prefix_text + "final_layer_norm.weight"]
+        openai_state_dict["ln_final.bias"] = hf_state_dict[hf_key_prefix_text + "final_layer_norm.bias"]
+
+        # --- Vision Model 変換 (ViT-B) ---
+        openai_state_dict["visual.conv1.weight"] = hf_state_dict[hf_key_prefix_vision + "embeddings.patch_embedding.weight"]
+        openai_state_dict["visual.class_embedding"] = hf_state_dict[hf_key_prefix_vision + "embeddings.class_embedding"]
+        openai_state_dict["visual.positional_embedding"] = hf_state_dict[hf_key_prefix_vision + "embeddings.position_embedding.weight"]
+        openai_state_dict["visual.ln_pre.weight"] = hf_state_dict[hf_key_prefix_vision + "pre_layrnorm.weight"]
+        openai_state_dict["visual.ln_pre.bias"] = hf_state_dict[hf_key_prefix_vision + "pre_layrnorm.bias"]
+
+        for i in range(vision_layers):
+            q_w = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.q_proj.weight"]
+            k_w = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.k_proj.weight"]
+            v_w = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.v_proj.weight"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.attn.in_proj_weight"] = torch.cat([q_w, k_w, v_w], dim=0)
+            
+            q_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.q_proj.bias"]
+            k_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.k_proj.bias"]
+            v_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.v_proj.bias"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.attn.in_proj_bias"] = torch.cat([q_b, k_b, v_b], dim=0)
+            
+            openai_state_dict[f"visual.transformer.resblocks.{i}.attn.out_proj.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.out_proj.weight"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.attn.out_proj.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.out_proj.bias"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.ln_1.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm1.weight"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.ln_1.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm1.bias"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_fc.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc1.weight"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_fc.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc1.bias"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_proj.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc2.weight"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_proj.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc2.bias"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.ln_2.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm2.weight"]
+            openai_state_dict[f"visual.transformer.resblocks.{i}.ln_2.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm2.bias"]
+
+        openai_state_dict["visual.ln_post.weight"] = hf_state_dict[hf_key_prefix_vision + "post_layernorm.weight"]
+        openai_state_dict["visual.ln_post.bias"] = hf_state_dict[hf_key_prefix_vision + "post_layernorm.bias"]
+
+        # --- Projections 変換 ---
+        openai_state_dict["text_projection"] = hf_state_dict["text_projection.weight"].T
+        openai_state_dict["visual.proj"] = hf_state_dict["visual_projection.weight"].T
+        
+        openai_state_dict["logit_scale"] = hf_state_dict["logit_scale"]
+
+        print("Conversion complete.")
+        state_dict = openai_state_dict
+
+    else:
+        # --- 2. 標準のCLIP重みのロード (従来処理) ---
+        model_path = config.MODEL.PRETRAINED
+        name = config.MODEL.ARCH
+        
+        if model_path is None:
+            # clipライブラリからダウンロード
+            model_path = clip._download(clip._MODELS[name])
+        
+        try:
+            # JITモデル (.pt) の場合
+            jit_model = torch.jit.load(model_path, map_location="cpu").eval()
+            state_dict = jit_model.state_dict()
+        except RuntimeError:
+            # PyTorch Checkpoint (.pth) の場合
+            state_dict = torch.load(model_path, map_location="cpu")
+        except FileNotFoundError:
+             raise FileNotFoundError(f"Model file not found at {model_path} (or failed to download {name})")
+
+    # --- 3. VCW-CLIP モデルの構築 ---
+    # (HF変換後、または標準ロード後)
+    model = build_vcw_model(
+        state_dict=state_dict, 
+        T=config.DATA.NUM_FRAMES,
+        temporal_layers=config.MODEL.VCW_TEMPORAL_LAYERS,
+        temporal_heads=config.MODEL.VCW_TEMPORAL_HEADS,
+        device=device # 'cpu' が渡される想定
+    )
+    
+    # 呼び出し側 (main.py) が 'cpu' を期待しているため、
+    # deviceが 'cuda' であっても .float() 処理を統一する
+    if str(device) == "cpu":
+        model.float()
+        
+    return model
+
 
 class GraphConvolution(nn.Module):
     def __init__(self, input_size, output_size):
@@ -59,12 +510,15 @@ class GraphConvolution(nn.Module):
         self.output_size = output_size
 
     def edges2matrix(self, edges, num1, num2):
-
         num = num1 + num2
-        matrix = torch.zeros(num, num).cuda()
+        matrix = torch.zeros(num, num).cuda() 
         
         for i in edges:
-            matrix[i[0], i[1]] = 1
+            idx0 = i[0] - 1
+            idx1 = i[1] - 1
+            
+            if (0 <= idx0 < num) and (0 <= idx1 < num):
+                matrix[idx0, idx1] = 1
             
         return matrix
 
@@ -183,8 +637,11 @@ class XCLIP(CLIP):
         return self.visual(image)
 
     def encode_text(self, text):
-        text = text.to(torch.int)
+        # テンソルが long (int64) 型であることを保証する
+        text = text.to(torch.long)
         x = self.token_embedding(text)
+        
+        # <EOS> トークンIDが最大値であるという前提のロジック
         eos_indx = text.argmax(dim=-1)
         K, N1, C = x.shape
         
@@ -193,8 +650,12 @@ class XCLIP(CLIP):
         x = self.transformer(x)
         x = x.permute(1, 0, 2)  # LND -> NLD
         x = self.ln_final(x)
+        
+        # [K, C] の形状を抽出
         x = x[torch.arange(x.shape[0]), eos_indx] @ self.text_projection
-        x = x.reshape(K, -1)
+        
+        # 元のコードにあった x.reshape(K, -1) は、
+        # x が既に [K, C] であるため不要であり、削除した。
         return x
 
     def encode_video(self, image, name=''):
@@ -212,51 +673,98 @@ class XCLIP(CLIP):
         return video_features, img_features
     
     def cache_text(self, text):
+        """
+        テキスト特徴量を計算しキャッシュする。
+        入力 text の形状が (N, K, 77) の場合、(N, K, 512) にエンコード後、
+        (N, 512) に集約 (max-pooling) する。
+        形状が (N, 77) の場合は、(N, 512) にエンコードするのみ。
+        """
         self.eval()
         with torch.no_grad():
             if self.cache_text_features is None:
-                data_loader = DataLoader(text, batch_size=50, shuffle=False)
-                text_features = torch.zeros([int(text.shape[0]), 512]).cuda()
+                
+                # 入力の次元数に基づいて、クラス数とプロンプト数を決定する
+                if text.dim() == 3:
+                    # 入力形状: (N, K, 77)
+                    n_classes, n_prompts, _ = text.shape
+                    # (N, K, 77) -> (N * K, 77)
+                    text_input = text.view(n_classes * n_prompts, -1)
+                else:
+                    # 入力形状: (N, 77)
+                    n_classes = text.shape[0]
+                    n_prompts = 1
+                    text_input = text
+                
+                total_prompts = text_input.shape[0]
+
+                # DataLoader は (N * K, 77) または (N, 77) に対して動作
+                data_loader = DataLoader(text_input, batch_size=50, shuffle=False)
+                
+                # embed_dim は 512 と仮定
+                text_features = torch.zeros([total_prompts, 512]).cuda()
                 start_index = 0
                 for data in data_loader:
                     text_feature = self.encode_text(data)
                     end_index = int(start_index + text_feature.size(0))
-                    # 将 text_feature 填充到 text_features 中的对应位置
                     text_features[start_index:end_index] = text_feature
-
-                    # 更新起始索引
                     start_index = end_index
-                if text_features.shape[0] != 140 and text_features.shape[0] != 12 and text_features.shape[0] != 21 and text_features.shape[0] != 14:
-                    text_features = text_features.view(int(text_features.shape[0]/50), 50, 512)
-                    text_features, _ = torch.max(text_features, dim = 1)
+                
+                # 1クラス1プロンプトより多い場合、集約処理を行う
+                if n_prompts > 1:
+                    # (N * K, 512) -> (N, K, 512)
+                    text_features = text_features.view(n_classes, n_prompts, 512)
+                    # (N, K, 512) -> (N, 512) (K次元で Max-Pooling)
+                    text_features, _ = torch.max(text_features, dim=1)
+                
+                # n_prompts = 1 の場合、
+                # text_features は (N, 512) のまま変更されない。
+                
                 print('text_features', text_features.shape)
                 self.cache_text_features = text_features
         self.train()
         return self.cache_text_features
-    
+
     def cache_animal_text(self, text):
+        """
+        animal_text 特徴量を計算しキャッシュする。
+        cache_text と全く同じロジックで動作する。
+        """
         self.eval()
         with torch.no_grad():
             if self.cache_animal_text_features is None:
-                data_loader = DataLoader(text, batch_size=50, shuffle=False)
-                text_features = torch.zeros([int(text.shape[0]), 512]).cuda()
+                
+                if text.dim() == 3:
+                    # (N, K, 77)
+                    n_classes, n_prompts, _ = text.shape
+                    text_input = text.view(n_classes * n_prompts, -1)
+                else:
+                    # (N, 77)
+                    n_classes = text.shape[0]
+                    n_prompts = 1
+                    text_input = text
+                
+                total_prompts = text_input.shape[0]
+
+                data_loader = DataLoader(text_input, batch_size=50, shuffle=False)
+                text_features = torch.zeros([total_prompts, 512]).cuda()
                 start_index = 0
                 for data in data_loader:
                     text_feature = self.encode_text(data)
                     end_index = int(start_index + text_feature.size(0))
-                    # 将 text_feature 填充到 text_features 中的对应位置
                     text_features[start_index:end_index] = text_feature
-
-                    # 更新起始索引
                     start_index = end_index
-                if text_features.shape[0] != 897 and text_features.shape[0] != 11 and text_features.shape[0] != 173:
-                    text_features = text_features.view(int(text_features.shape[0]/50), 50, 512)
-                    text_features, _ = torch.max(text_features, dim = 1)
+
+                if n_prompts > 1:
+                    # (N * K, 512) -> (N, K, 512)
+                    text_features = text_features.view(n_classes, n_prompts, 512)
+                    # (N, K, 512) -> (N, 512)
+                    text_features, _ = torch.max(text_features, dim=1)
+                
                 print('animal_text_features', text_features.shape)
                 self.cache_animal_text_features = text_features
         self.train()
         return self.cache_animal_text_features
-    
+
     def cache_animal_logits(self, text, image_features, animal_text_features):
         self.eval()
         with torch.no_grad():
@@ -267,61 +775,79 @@ class XCLIP(CLIP):
         self.train()
         return animal_logits
 
-    def forward(self, image, text, animal_text, animal_pred, edges, name='',pred=False):
+    def forward(self, image, text, animal_text, animal_pred, edges, name='', pred=False):
         b = image.shape[0]
         T = image.shape[1]
         video_features, img_features = self.encode_video(image, name)
-        if text.shape[0] % 50 == 0:
-            num2 = int(text.shape[0] / 50)
-            num1 = int(animal_text.shape[0] /50)
+        
+        if text.dim() == 3:
+            num2 = text.shape[0]  # クラス数 N
         else:
-            num2 = int(text.shape[0])
-            num1 = int(animal_text.shape[0])
+            num2 = text.shape[0]  # クラス数 N
+            
+        if animal_text.dim() == 3:
+            num1 = animal_text.shape[0] # クラス数 N
+        else:
+            num1 = animal_text.shape[0] # クラス数 N
+        
         logit_scale = self.logit_scale.exp()
         
         if self.use_cache:
-            if len(text.shape) == 3:
-                A, B, _ = text.shape
-                text = text.view(A*B, -1)
-            else:
-                pass
+            # cache_text / cache_animal_text は、入力が 3D (N, K, 77) でも 
+            # 2D (N, 77) でも、常に 2D (N, 512) を返すように修正された。
+            # したがって、forward 側での 3D -> 2D への view 処理は不要である。
             text_features = self.cache_text(text)
-            if len(animal_text.shape) == 3:
-                A, B, _ = animal_text.shape
-                animal_text = animal_text.view(A*B, -1)
-            else:
-                pass
             animal_text_features = self.cache_animal_text(animal_text)
-        else:
-            if len(text.shape) == 3:
-                A, B, _ = text.shape
-                text = text.view(A*B, -1)
+        else:            
+            # (1) animal_text の処理
+            if animal_text.dim() == 3:
+                n_classes, n_prompts, _ = animal_text.shape
+                animal_text_input = animal_text.view(n_classes * n_prompts, -1)
             else:
-                pass
-            text_features = self.encode_text(text)
-            if len(animal_text.shape) == 3:
-                A, B, _ = animal_text.shape
-                animal_text = animal_text.view(A*B, -1)
+                n_classes = animal_text.shape[0]
+                n_prompts = 1
+                animal_text_input = animal_text
+
+            animal_text_features = self.encode_text(animal_text_input)
+            
+            if n_prompts > 1:
+                animal_text_features = animal_text_features.view(n_classes, n_prompts, 512)
+                animal_text_features, _ = torch.max(animal_text_features, dim=1)
+            
+            # (2) text の処理
+            if text.dim() == 3:
+                n_classes, n_prompts, _ = text.shape
+                text_input = text.view(n_classes * n_prompts, -1)
             else:
-                pass
-            animal_text_features = self.encode_text(animal_text)
+                n_classes = text.shape[0]
+                n_prompts = 1
+                text_input = text
+            
+            text_features = self.encode_text(text_input)
+
+            if n_prompts > 1:
+                text_features = text_features.view(n_classes, n_prompts, 512)
+                text_features, _ = torch.max(text_features, dim=1)
+
+        # [num1, 512] -> [b, num1, 512]
+        animal_text_features = animal_text_features.unsqueeze(0).expand(b, -1, -1) 
+        # [num2, 512] -> [b, num2, 512]
+        text_features = text_features.unsqueeze(0).expand(b, -1, -1) 
         
-        animal_text_features = animal_text_features.unsqueeze(0).expand(b, -1, -1) # 16, 897, 512
-        text_features = text_features.unsqueeze(0).expand(b, -1, -1) # 16, 140, 512
-        
-        animal_pred = animal_pred.unsqueeze(1) # 16, 1, 512
+        animal_pred = animal_pred.unsqueeze(1) # [b, 1, 512]
         
         animal_text_feature = torch.einsum('bac, bcm->bam', [animal_pred.to(animal_text_features.dtype), animal_text_features])
         
-        animal_pred = animal_pred.squeeze(1).unsqueeze(-1) # 16, 897
+        animal_pred = animal_pred.squeeze(1).unsqueeze(-1) # [b, 512, 1]
+        
         animal_text_features = torch.mul(animal_pred.to(animal_text_features.dtype), animal_text_features)
         
         edges = edges.clone().detach()
 
-        x = torch.cat([animal_text_features, text_features], dim=1)
-        text_features = self.graph(x, edges, num1, num2)[:,animal_text_features.shape[1]:,:] # 2, 140, 512
+        x = torch.cat([animal_text_features, text_features], dim=1) # [b, num1 + num2, 512]
+        text_features = self.graph(x, edges, num1, num2)[:, animal_text_features.shape[1]:, :] # [b, num2, 512]
         
-        text_features = text_features + self.prompts_generator1(text_features, animal_text_feature) # 16, 140, 512     16, 1, 512
+        text_features = text_features + self.prompts_generator1(text_features, animal_text_feature)
         
         video_features = video_features.unsqueeze(1)
         video_features = video_features + self.prompts_generator2(video_features, animal_text_feature)
@@ -374,7 +900,7 @@ def build_model(state_dict: dict, T=8, droppath=0., use_checkpoint=False, logger
             del state_dict[key]
 
     msg = model.load_state_dict(state_dict,strict=False)
-   
+
     return model.eval()
 
 
@@ -407,6 +933,150 @@ def xclip_load(model_path, name: str, device: Union[str, torch.device] = "cuda" 
     if str(device) == "cpu":
         model.float()
     return model, model.state_dict()
+
+
+def load_finetuned_xclip_model(
+    hf_model_path: str, 
+    device: str,
+    xclip_params: dict,
+    expected_arch: str # config.MODEL.ARCH を受け取る
+) -> XCLIP:
+    """
+    Hugging Face形式のファインチューニング済みCLIPモデルをロードし、
+    OpenAI形式に変換してXCLIPモデルに読み込ませる。
+    
+    エラー抑制(try-except)は行わず、問題発生時にはエラーを送出する。
+    """
+    
+    print(f"--- Loading Fine-Tuned HF Model from {hf_model_path} ---")
+    
+    # ステップ1: HF形式のモデルをロード
+    # OSErrorが発生した場合、ここで停止する
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore") # config.json の警告を抑制
+        ft_model = CLIPModel.from_pretrained(hf_model_path).to(device)
+    
+    hf_state_dict = ft_model.state_dict()
+    
+    # --- アーキテクチャ検証 ---
+    config = ft_model.config
+    vision_layers = config.vision_config.num_hidden_layers
+    text_layers = config.text_config.num_hidden_layers
+    
+    # ViT-B (12層) の変換ロジックを前提としているため、レイヤー数を確認
+    expected_layers = 0
+    if expected_arch == 'ViT-B/32' or expected_arch == 'ViT-B/16':
+        expected_layers = 12
+    # elif expected_arch == 'ViT-L/14':
+    #     expected_layers = 24 # 注: 変換ロジックが ViT-L に未対応
+        
+    if expected_layers == 0:
+        raise ValueError(
+            f"Unsupported expected_arch: '{expected_arch}'. "
+            "Conversion logic only supports 'ViT-B/16' or 'ViT-B/32'."
+        )
+
+    if (vision_layers != expected_layers or text_layers != expected_layers):
+        raise ValueError(
+            f"Architecture mismatch: Config specifies '{expected_arch}' ({expected_layers} layers), "
+            f"but HF model has {vision_layers} vision layers "
+            f"and {text_layers} text layers. "
+            "Conversion logic will fail."
+        )
+
+    del ft_model # メモリ解放
+
+    print("--- Converting HF state_dict to OpenAI format ---")
+    
+    # ステップ2: HF state_dict を OpenAI state_dict に変換
+    # KeyError が発生した場合、ここで停止する
+    openai_state_dict = {}
+    hf_key_prefix_text = "text_model."
+    hf_key_prefix_vision = "vision_model."
+
+    # --- Text Model 変換 ---
+    openai_state_dict["token_embedding.weight"] = hf_state_dict[hf_key_prefix_text + "embeddings.token_embedding.weight"]
+    openai_state_dict["positional_embedding"] = hf_state_dict[hf_key_prefix_text + "embeddings.position_embedding.weight"]
+    
+    for i in range(text_layers):
+        q_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.q_proj.weight"]
+        k_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.k_proj.weight"]
+        v_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.v_proj.weight"]
+        openai_state_dict[f"transformer.resblocks.{i}.attn.in_proj_weight"] = torch.cat([q_w, k_w, v_w], dim=0)
+        
+        q_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.q_proj.bias"]
+        k_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.k_proj.bias"]
+        v_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.v_proj.bias"]
+        openai_state_dict[f"transformer.resblocks.{i}.attn.in_proj_bias"] = torch.cat([q_b, k_b, v_b], dim=0)
+
+        openai_state_dict[f"transformer.resblocks.{i}.attn.out_proj.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.out_proj.weight"]
+        openai_state_dict[f"transformer.resblocks.{i}.attn.out_proj.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.out_proj.bias"]
+        openai_state_dict[f"transformer.resblocks.{i}.ln_1.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm1.weight"]
+        openai_state_dict[f"transformer.resblocks.{i}.ln_1.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm1.bias"]
+        openai_state_dict[f"transformer.resblocks.{i}.mlp.c_fc.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc1.weight"]
+        openai_state_dict[f"transformer.resblocks.{i}.mlp.c_fc.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc1.bias"]
+        openai_state_dict[f"transformer.resblocks.{i}.mlp.c_proj.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc2.weight"]
+        openai_state_dict[f"transformer.resblocks.{i}.mlp.c_proj.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.mlp.fc2.bias"]
+        openai_state_dict[f"transformer.resblocks.{i}.ln_2.weight"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm2.weight"]
+        openai_state_dict[f"transformer.resblocks.{i}.ln_2.bias"] = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.layer_norm2.bias"]
+
+    openai_state_dict["ln_final.weight"] = hf_state_dict[hf_key_prefix_text + "final_layer_norm.weight"]
+    openai_state_dict["ln_final.bias"] = hf_state_dict[hf_key_prefix_text + "final_layer_norm.bias"]
+
+    # --- Vision Model 変換 (ViT-B) ---
+    openai_state_dict["visual.conv1.weight"] = hf_state_dict[hf_key_prefix_vision + "embeddings.patch_embedding.weight"]
+    
+    openai_state_dict["visual.class_embedding"] = hf_state_dict[hf_key_prefix_vision + "embeddings.class_embedding"]
+    openai_state_dict["visual.positional_embedding"] = hf_state_dict[hf_key_prefix_vision + "embeddings.position_embedding.weight"]
+    
+    openai_state_dict["visual.ln_pre.weight"] = hf_state_dict[hf_key_prefix_vision + "pre_layrnorm.weight"]
+    openai_state_dict["visual.ln_pre.bias"] = hf_state_dict[hf_key_prefix_vision + "pre_layrnorm.bias"]
+
+    for i in range(vision_layers):
+        q_w = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.q_proj.weight"]
+        k_w = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.k_proj.weight"]
+        v_w = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.v_proj.weight"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.attn.in_proj_weight"] = torch.cat([q_w, k_w, v_w], dim=0)
+        
+        q_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.q_proj.bias"]
+        k_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.k_proj.bias"]
+        v_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.v_proj.bias"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.attn.in_proj_bias"] = torch.cat([q_b, k_b, v_b], dim=0)
+        
+        openai_state_dict[f"visual.transformer.resblocks.{i}.attn.out_proj.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.out_proj.weight"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.attn.out_proj.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.out_proj.bias"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.ln_1.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm1.weight"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.ln_1.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm1.bias"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_fc.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc1.weight"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_fc.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc1.bias"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_proj.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc2.weight"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.mlp.c_proj.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.mlp.fc2.bias"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.ln_2.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm2.weight"]
+        openai_state_dict[f"visual.transformer.resblocks.{i}.ln_2.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm2.bias"]
+
+    openai_state_dict["visual.ln_post.weight"] = hf_state_dict[hf_key_prefix_vision + "post_layernorm.weight"]
+    openai_state_dict["visual.ln_post.bias"] = hf_state_dict[hf_key_prefix_vision + "post_layernorm.bias"]
+
+    # --- Projections 変換 ---
+    openai_state_dict["text_projection"] = hf_state_dict["text_projection.weight"].T
+    openai_state_dict["visual.proj"] = hf_state_dict["visual_projection.weight"].T
+    
+    openai_state_dict["logit_scale"] = hf_state_dict["logit_scale"]
+
+    print("Conversion complete.")
+
+    # ステップ3: build_model を使用して XCLIP モデルを構築・ロード
+    print("--- Building XCLIP model with converted state_dict ---")
+    
+    # build_model は渡された state_dict からアーキテクチャを推論する
+    model = build_model(
+        openai_state_dict, 
+        **xclip_params
+    )
+    model = model.to(device)
+
+    print("XCLIP model loaded successfully with fine-tuned weights.")
+    return model
 
 
 _MODEL_STAGE_DEPTH = {50: (3, 4, 6, 3), 101: (3, 4, 23, 3)}
@@ -1498,7 +2168,7 @@ class EVLTransformer(nn.Module):
     def __init__(
         self, config,
         backbone_type: str = 'clip',
-        backbone_path: str = '/home/jingyinuo/.cache/clip/ViT-B-16.pt',
+        backbone_path: str = '~/.cache/clip/ViT-B-16.pt',
         backbone_mode: str = 'freeze_fp16',
         decoder_num_layers: int = 4,
         decoder_qkv_dim: int = 768,
