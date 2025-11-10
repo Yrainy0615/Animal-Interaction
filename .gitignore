@@ -4,7 +4,8 @@ exp*/
 runs/
 .gerbage/
 __pycache__/
-runs/backup/
+runs_backup/
 docker_build.sh
 docker_run.sh
 checkpoints/
+Dockerfile
