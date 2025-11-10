@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 from utils.config import get_config
 from utils.optimizer import build_optimizer, build_scheduler
-from utils.tools import AverageMeter, reduce_tensor, epoch_saving, load_checkpoint, generate_text, auto_resume_helper, all_gather, get_map, get_animal, compute_F1, lt_map, compute_precision_recall, compute_average_precision, get_relation, lt_acc, plot_tsne, openai_imagenet_template
+from utils.tools import AverageMeter, compute_action_interaction_acc, reduce_tensor, epoch_saving, load_checkpoint, generate_text, auto_resume_helper, all_gather, get_map, get_animal, compute_F1, lt_map, compute_precision_recall, compute_average_precision, get_relation, lt_acc, plot_tsne, openai_imagenet_template, compute_action_interaction_acc
 from datasets.tools import pack_pathway_output
 from utils.visualize import visualize
 from utils.loss import ResampleLoss, AsymmetricLoss
@@ -223,6 +223,8 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
         if config.DATA.MULTI_CLASSES == True:
             hd, md, ta = lt_map(aps)
             logger.info(f' * hd {hd:.4f} md {md:.4f} ta {ta:.4f}')
+            logger.info(f'[WARN] Acc1 (Action/Interaction): * action notimplement! interaction notimplement!')
+            logger.info(f'[WARN] Acc5 (Action/Interaction): * action notimplement! interaction notimplement!')
         else:
             lt_acc1, lt_acc5 = lt_acc(torch.cat(map_meter.all_preds).cpu().numpy(), torch.cat(map_meter.all_labels).cpu().numpy(), config.DATA.DATASET)
             for i in ['hd', 'md', 'tl']:
@@ -231,4 +233,20 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
                     lt_acc5[i] = lt_acc5[i] / lt_acc5[i+'_num']
             logger.info(f'Acc1: * hd {(lt_acc1["hd"]):.4f} md {(lt_acc1["md"]):.4f} ta {(lt_acc1["tl"]):.4f}')
             logger.info(f'Acc5: * hd {(lt_acc5["hd"]):.4f} md {(lt_acc5["md"]):.4f} ta {(lt_acc5["tl"]):.4f}')
+
+            act_int_acc1, act_int_acc5 = compute_action_interaction_acc(
+                torch.cat(map_meter.all_preds).cpu().numpy(), 
+                torch.cat(map_meter.all_labels).cpu().numpy(), 
+                config.DATA.DATASET
+            )
+            if act_int_acc1 is not None and act_int_acc5 is not None:
+                # Acc@1 の計算とログ
+                action_acc1 = (act_int_acc1['action'] / act_int_acc1['action_num']) if act_int_acc1['action_num'] > 0 else 0
+                interaction_acc1 = (act_int_acc1['interaction'] / act_int_acc1['interaction_num']) if act_int_acc1['interaction_num'] > 0 else 0
+                logger.info(f'Acc1 (Action/Interaction): * action {action_acc1:.4f} interaction {interaction_acc1:.4f}')
+                
+                # Acc@5 の計算とログ
+                action_acc5 = (act_int_acc5['action'] / act_int_acc5['action_num']) if act_int_acc5['action_num'] > 0 else 0
+                interaction_acc5 = (act_int_acc5['interaction'] / act_int_acc5['interaction_num']) if act_int_acc5['interaction_num'] > 0 else 0
+                logger.info(f'Acc5 (Action/Interaction): * action {action_acc5:.4f} interaction {interaction_acc5:.4f}')
     return map, acc1_meter.avg

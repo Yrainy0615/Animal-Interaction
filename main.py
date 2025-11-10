@@ -68,7 +68,7 @@ def parse_option():
         default=None,
         nargs='+',
     )
-    parser.add_argument('--output', type=str, default="exp")
+    parser.add_argument('--output', type=str, default=None)
     parser.add_argument('--resume', type=str)
     parser.add_argument('--pretrained', type=str)
     parser.add_argument('--only_test', action='store_true')

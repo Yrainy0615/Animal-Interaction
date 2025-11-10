@@ -99,6 +99,62 @@ def plot_tsne(features, ani_labels, labels, ani_label_map, label_map):
     
     return plt
 
+def compute_action_interaction_acc(preds, labels, dataset):
+    """
+    Compute Acc@1 and Acc@5 for Action (single) and Interaction classes.
+    Only supports 'mmnet' dataset.
+    
+    Args:
+        preds (numpy tensor): num_examples x num_classes.
+        labels (numpy tensor): num_examples x num_classes (assuming single-label one-hot).
+        dataset (str): Name of the dataset.
+    Returns:
+        acc1 (dict): Top-1 accuracy stats.
+        acc5 (dict): Top-5 accuracy stats.
+    """
+    if dataset != 'mmnet':
+        # This stratification is defined only for 'mmnet'
+        return None, None
+
+    # MammalNet Action/Interaction class indices
+    category_map = {
+        'action': [0, 1, 2, 5, 7, 10, 11],
+        'interaction': [3, 4, 6, 8, 9]
+    }
+
+    acc1 = {'action': 0, 'interaction': 0, 'action_num': 0, 'interaction_num': 0}
+    acc5 = {'action': 0, 'interaction': 0, 'action_num': 0, 'interaction_num': 0}
+
+    try:
+        for i in range(len(labels)):
+            # Assuming single-label based on lt_acc logic
+            label_id = int(np.nonzero(labels[i])[0])
+            
+            found_category = None
+            for key, indices in category_map.items():
+                if label_id in indices:
+                    found_category = key
+                    break
+            
+            if found_category:
+                key = found_category
+                acc1[key + '_num'] += 1
+                acc5[key + '_num'] += 1
+                
+                indices_1 = np.argsort(-preds[i])[:1] # Top-1
+                indices_5 = np.argsort(-preds[i])[:5] # Top-5
+
+                if int(indices_1) == label_id:
+                    acc1[key] += 1
+                if label_id in indices_5:
+                    acc5[key] += 1
+                    
+    except Exception as e:
+        print(f"Error during action/interaction accuracy calculation: {e}")
+        return None, None
+        
+    return acc1, acc5
+
 def lt_acc(preds, labels, dataset):
     """
     Compute mAP for multi-label case.
