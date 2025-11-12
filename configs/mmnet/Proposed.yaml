@@ -23,3 +23,5 @@ TRAIN:
     LOSS: 'ce'
     ACCUMULATION_STEPS: 16
     EPOCHS: 30
+
+OUTPUT: 'exp_proposed'

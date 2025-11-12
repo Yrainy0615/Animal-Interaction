@@ -94,9 +94,24 @@ def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_load
         use_amp = config.TRAIN.OPT_LEVEL != 'O0' and scaler is not None
         
         with autocast(enabled=use_amp):
-            if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP', 'VCW-CLIP']:
+            if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP']:
+                # images (B), texts (B), animal_labels (173), animal_pred (B), edges (B)
                 output, _ = model(images, texts, animal_labels, animal_pred, edges)
-                
+            
+            elif config.MODEL.MODEL_NAME == 'VCW-CLIP':
+                # 1. images (B)
+                # 2. texts (N, L) - 全行動クエリ (L77 で定義)
+                # 3. animal_labels (173, L) - 全動物キャプション (L72 引数)
+                # 4. *args[0] = animal_pred (B, 173) - One-Hot (L85)
+                # 5. *args[1] = edges (L79)
+                output, _ = model(
+                    images,         
+                    texts,          
+                    animal_labels,  
+                    animal_pred,    
+                    edges           
+                )
+
             elif config.MODEL.MODEL_NAME == 'VideoPrompt':
             # for id in action_id:
                 name_map = pd.read_csv(config.DATA.LABEL_LIST).values.tolist()

@@ -1,0 +1,147 @@
+[2025-11-12 12:55:45 ViT-B/16] (main.py 392): INFO working dir: 
+[2025-11-12 12:55:45 ViT-B/16] (main.py 396): INFO AUG:
+  COLOR_JITTER: 0.8
+  CUTMIX: 1.0
+  GRAY_SCALE: 0.2
+  LABEL_SMOOTH: 0.1
+  MIXUP: 0.8
+  MIXUP_SWITCH_PROB: 0.5
+BASE: ['']
+BN:
+  NORM_TYPE: batchnorm
+  NUM_BATCHES_PRECISE: 200
+  NUM_SPLITS: 1
+  NUM_SYNC_DEVICES: 1
+  USE_PRECISE_STATS: False
+  WEIGHT_DECAY: 0.0
+DATA:
+  ANIMAL_LABEL_LIST: /mnt/nfs/mammal_net/annotation/genus_to_id.txt
+  CLASSES: None
+  DATASET: mmnet
+  FEATURE_ROOT: None
+  INPUT_CHANNEL_NUM: []
+  INPUT_SIZE: 224
+  LABEL_LIST: /mnt/nfs/mammal_net/annotation/behavior_to_id.txt
+  MULTI_CLASSES: False
+  NUM_ANIMAL_CLASSES: 173
+  NUM_CLASSES: 12
+  NUM_FRAMES: 8
+  RELATION_FILE: /mnt/nfs/mammal_net/annotation/composition/relation.txt
+  ROOT: /mnt/nfs/mammal_net/
+  TRAIN_FILE: /mnt/nfs/mammal_net/annotation/composition/train.csv
+  VAL_FILE: /mnt/nfs/mammal_net/annotation/composition/test.csv
+  animal_description: None
+  description: None
+LOCAL_RANK: 0
+MODEL:
+  ARCH: ViT-B/16
+  CONVERT_FROM_CAFFE2: False
+  DROPCONNECT_RATE: 0.0
+  DROPOUT_RATE: 0.5
+  DROP_PATH_RATE: 0.0
+  FC_INIT_STD: 0.01
+  FIX_TEXT: True
+  HEAD_ACT: softmax
+  HF_FINETUNED_PATH: /home/nakagawa/large_dataset/ap_10k/clip_finetuned_caption_model_merged/
+  MIT_LAYERS: 1
+  MODEL_NAME: VCW-CLIP
+  MULTI_PATHWAY_ARCH: ['slowfast']
+  PRETRAINED: None
+  PROMPTS_ALPHA: 0.1
+  PROMPTS_LAYERS: 3
+  RESUME: None
+  SINGLE_PATHWAY_ARCH: ['2d', 'c2d', 'i3d', 'slow', 'x3d', 'mvit', 'xclip', 'ViT-B/16', 'ViT-B/32', 'ViT-L/14']
+  VCW_TEMPORAL_HEADS: 8
+  VCW_TEMPORAL_LAYERS: 2
+MULTIGRID:
+  SHORT_CYCLE: False
+MVIT:
+  CLS_EMBED_ON: True
+  DEPTH: 16
+  DIM_MUL: []
+  DROPOUT_RATE: 0.0
+  DROPPATH_RATE: 0.1
+  EMBED_DIM: 96
+  HEAD_MUL: []
+  MLP_RATIO: 4.0
+  MODE: conv
+  NORM: layernorm
+  NORM_STEM: False
+  NUM_HEADS: 1
+  PATCH_2D: False
+  PATCH_KERNEL: [3, 7, 7]
+  PATCH_PADDING: [2, 4, 4]
+  PATCH_STRIDE: [2, 4, 4]
+  POOL_KV_KERNEL: [[]]
+  POOL_KV_STRIDE: [[]]
+  POOL_Q_KERNEL: [[]]
+  POOL_Q_STRIDE: [[]]
+  POOL_SKIP_KERNEL: [[]]
+  POOL_SKIP_STRIDE: [[]]
+  QKV_BIAS: True
+  SEP_POS_EMBED: False
+  ZERO_DECAY_POS_CLS: True
+NONLOCAL:
+  GROUP: [[1], [1], [1], [1]]
+  INSTANTIATION: dot_product
+  LOCATION: [[[]], [[]], [[]], [[]]]
+  POOL: [[[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]], [[1, 2, 2], [1, 2, 2]]]
+NUM_SHARDS: 1
+NUM_WORKERS: 16
+OUTPUT: 
+PRED: False
+PRINT_FREQ: 50
+RESNET:
+  DEPTH: 50
+  INPLACE_RELU: True
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  NUM_GROUPS: 1
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  STRIDE_1X1: False
+  TRANS_FUNC: bottleneck_transform
+  WIDTH_PER_GROUP: 64
+  ZERO_INIT_FINAL_BN: False
+SAVE_FREQ: 1
+SEED: 1024
+SLOWFAST:
+  ALPHA: 8
+  BETA_INV: 8
+  FUSION_CONV_CHANNEL_RATIO: 2
+  FUSION_KERNEL_SZ: 5
+TEST:
+  NUM_CLIP: 1
+  NUM_CROP: 1
+  ONLY_TEST: False
+  TEST_LONG_TAIL: True
+  TSNE: False
+TRAIN:
+  ACCUMULATION_STEPS: 16
+  AUTO_RESUME: False
+  BASE_LR_SCALE_NUM_SHARDS: False
+  BATCH_SIZE: 8
+  DAMPENING: 0.0
+  EPOCHS: 30
+  LOSS: ce
+  LR: 8e-06
+  LRS: []
+  LR_POLICY: cosine
+  MOMENTUM: 0.9
+  NESTEROV: True
+  OPTIMIZER: adamw
+  OPT_LEVEL: O1
+  STEPS: []
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 5.0
+  WEIGHT_DECAY: 0.001
+  WEIGHT_DECAY_STEPS: 200000.0
+  ZERO_WD_1D_PARAM: False
+X3D:
+  BN_LIN5: False
+  BOTTLENECK_FACTOR: 1.0
+  CHANNELWISE_3x3x3: True
+  DEPTH_FACTOR: 1.0
+  DIM_C1: 12
+  DIM_C5: 2048
+  SCALE_RES2: False
+  WIDTH_FACTOR: 1.0

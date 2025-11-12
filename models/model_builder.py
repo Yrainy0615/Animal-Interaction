@@ -105,37 +105,65 @@ class TemporalTransformer(nn.Module):
         
         return x
 
-class TextProjector(nn.Module):
+class SemanticFuser(nn.Module):
     """
-    (K, E) のテキスト特徴量を受け取り、
-    軽量なMLPでプロジェクションする。
+    Cross-Attention機構 (Transformer Decoder Layer)。
+    Q (行動クエリ) が K/V (動物コンテキスト) を参照し、
+    セマンティックが融合されたベクトルを生成する。
     """
-    def __init__(self, embed_dim: int, hidden_dim_ratio: float = 2.0):
+    def __init__(self, embed_dim: int, nhead: int, dropout: float = 0.1):
         super().__init__()
-        hidden_dim = int(embed_dim * hidden_dim_ratio)
-        self.mlp = nn.Sequential(
-            nn.Linear(embed_dim, hidden_dim),
-            nn.GELU(),
-            nn.Linear(hidden_dim, embed_dim)
+        self.embed_dim = embed_dim
+        self.nhead = nhead
+        
+        # Q (行動), K (動物), V (動物)
+        self.cross_attn = nn.MultiheadAttention(
+            embed_dim, nhead, dropout=dropout, batch_first=True
         )
-    
-    def forward(self, x):
-        return self.mlp(x)
+        
+        # Decoder Layer に倣い、FeedForward と LayerNorm を追加
+        self.ln_1 = LayerNorm(embed_dim)
+        self.mlp = nn.Sequential(
+            nn.Linear(embed_dim, embed_dim * 4),
+            nn.GELU(),
+            nn.Linear(embed_dim * 4, embed_dim)
+        )
+        self.ln_2 = LayerNorm(embed_dim)
+        
+    def forward(self, 
+                query_vectors: torch.Tensor, # (B, N, E) - 行動クエリ (Q)
+                context_vectors: torch.Tensor # (B, 1, E) - 動物コンテキスト (K, V)
+               ):
+        
+        # 1. Cross-Attention (QがK/Vを参照)
+        # Q=(B, N, E), K=(B, 1, E), V=(B, 1, E)
+        attn_output, _ = self.cross_attn(
+            query=query_vectors, 
+            key=context_vectors, 
+            value=context_vectors
+        )
+        
+        # 2. Add & Norm (Residual)
+        x = self.ln_1(query_vectors + attn_output)
+        
+        # 3. FeedForward & Add & Norm (Residual)
+        x = self.ln_2(x + self.mlp(x))
+        
+        return x # (B, N, E) - 融合された行動ベクトル
 
 class VideoChangeWeightedCLIP(CLIP):
     """
     CLIPエンコーダを凍結し、学習可能な時系列Transformer (動画) と
-    MLP Projector (テキスト) を追加したモデル。
+    Semantic Fuser (テキスト融合) を追加したモデル。
     """
     
     def __init__(self,
                  embed_dim: int,
-                 # vision
+                 # ... (既存のCLIPパラメータ) ...
                  image_resolution: int,
                  vision_layers: Union[Tuple[int, int, int, int], int],
                  vision_width: int,
                  vision_patch_size: int,
-                 # text
                  context_length: int,
                  vocab_size: int,
                  transformer_width: int,
@@ -147,7 +175,6 @@ class VideoChangeWeightedCLIP(CLIP):
                  temporal_heads: int = 8,
                  device: str = "cuda"):
         
-        # 親クラス (CLIP) の __init__ を呼び出す
         super().__init__(
             embed_dim,
             image_resolution, vision_layers, vision_width, vision_patch_size,
@@ -155,19 +182,20 @@ class VideoChangeWeightedCLIP(CLIP):
         )
         
         if temporal_heads <= 0:
-            temporal_heads = transformer_heads # 0以下が指定された場合、CLIPのヘッド数に合わせる
+            temporal_heads = transformer_heads
         
         # 1. 学習可能な時系列Transformerの追加
         self.temporal_transformer = TemporalTransformer(
             T=T,
-            width=embed_dim, # CLIPの出力次元に合わせる
+            width=embed_dim,
             layers=temporal_layers,
             heads=temporal_heads
         )
-        
-        # 2. 学習可能なテキストProjectorの追加
-        self.text_projector = TextProjector(
-            embed_dim=embed_dim
+          
+        # 2. 学習可能な Semantic Fuser (Cross-Attention) の追加
+        self.semantic_fuser = SemanticFuser(
+            embed_dim=embed_dim,
+            nhead=temporal_heads 
         )
         
         # 3. CLIPエンコーダの凍結
@@ -175,102 +203,155 @@ class VideoChangeWeightedCLIP(CLIP):
 
     def freeze_clip_encoders(self):
         """CLIPのImage/Textエンコーダのパラメータを凍結する。"""
-        
-        # Image Encoder (visual)
+        # ... (既存の凍結ロジック) ...
         for param in self.visual.parameters():
             param.requires_grad = False
-            
-        # Text Encoder (transformer, token_embedding, positional_embedding, ln_final, text_projection)
         for param in self.transformer.parameters():
             param.requires_grad = False
         for param in self.token_embedding.parameters():
             param.requires_grad = False
-        
         self.positional_embedding.requires_grad = False
-        
         for param in self.ln_final.parameters():
             param.requires_grad = False
-            
         self.text_projection.requires_grad = False
-            
-        # logit_scale は学習対象として残す
+        # logit_scale は学習対象
 
     def encode_video_frames(self, video_frames: torch.Tensor):
-        """
-        動画フレーム (B, T, C, H, W) を
-        CLIPのImage Encoderで個別にエンコードする。
-        """
+        """動画フレーム (B, T, C, H, W) をエンコードする。"""
+        # ... (既存のロジック) ...
         b, t, c, h, w = video_frames.shape
         video_frames_flat = video_frames.reshape(-1, c, h, w)
-        
-        # 凍結された self.visual (self.encode_image経由) を呼び出す
         frame_features = self.encode_image(video_frames_flat)
         frame_features = frame_features.reshape(b, t, -1)
-        
         return frame_features
 
-    def forward(self, video_frames: torch.Tensor, text: torch.Tensor, *args, **kwargs):
+    def forward(self, 
+                video_frames: torch.Tensor, # 1. images (B)
+                text: torch.Tensor,         # 2. texts (N, L) [Long] - 行動クエリ
+                animal_labels: torch.Tensor, # 3. animal_labels (173, L) [Long] - 全動物キャプション
+                *args, **kwargs             # 4. args[0] = animal_pred (B, 173) [Float]
+               ):
         """
-        VCW-CLIP の forward。
-        XCLIPとの互換性のため、*args, **kwargs で余計な引数
-        (animal_labels, animal_pred, edges) を受け取れるようにするが、使用しない。
+        VCW-CLIP (Semantic Fusion版) の forward。
+        XCLIP同様の「ルックアップ方式」を採用。
         
-        video_frames: (B, T, C, H, W)
-        text: (N, L) または (N, K, L)
+        video_frames: (B, T, C, H, W) - 動画フレーム
+        text: (N, L) - 行動記述テキスト (Q)
+        animal_labels: (173, L) - ★全動物★キャプション (K, V ルックアップテーブル用)
+        args[0] (animal_pred): (B, 173) - ★バッチ対応★ One-Hot [Float]
         """
+        
+        # args[0] から animal_pred (One-Hot) を取得
+        if not args:
+            raise ValueError("Missing required argument 'animal_pred' in *args for Lookup Mode.")
+        animal_pred = args[0] # (B, 173) [Float]
+
+        B = video_frames.shape[0]
         
         # 1. Image Encoder (凍結)
         with torch.no_grad():
             frame_features = self.encode_video_frames(video_frames.type(self.visual.conv1.weight.dtype))
 
         # 2. Temporal Transformer (学習対象)
+        # (B, T, E) -> (B, E)
         video_vector = self.temporal_transformer(frame_features.float())
 
         # 3. Text Encoder (凍結)
         with torch.no_grad():
             
-            # 1対多 (N, K, 77) か 1対1 (N, 77) かを
-            # 入力 text の次元数で判定する。
-            
+            # 3a. 行動クエリ (Q) の生成 (N, E)
+            # text = action description (N, L) or (N, K, L)
             if text.dim() == 3:
-                # 入力形状: (N, K, 77) (N=クラス数, K=プロンプト数)
                 n_classes, n_prompts, _ = text.shape
-                # (N, K, 77) -> (N * K, 77)
                 text_input = text.view(n_classes * n_prompts, -1)
             else:
-                # 入力形状: (N, 77)
-                n_classes = text.shape[0]
+                n_classes, _ = text.shape
                 n_prompts = 1
                 text_input = text
             
-            # (N * K, 77) or (N, 77) -> (N * K, E) or (N, E)
-            # E は CLIP の embed_dim
-            text_features = self.encode_text(text_input)
+            action_query_vectors = self.encode_text(text_input)
 
             if n_prompts > 1:
-                # (N * K, E) -> (N, K, E)
-                # K=n_prompts, E=embed_dim
-                text_features = text_features.view(n_classes, n_prompts, -1) 
-                
-                # (N, K, E) -> (N, E) (K次元で Max-Pooling)
-                text_features, _ = torch.max(text_features, dim=1)
+                action_query_vectors = action_query_vectors.view(n_classes, n_prompts, -1) 
+                action_query_vectors, _ = torch.max(action_query_vectors, dim=1)
             
-            # n_prompts = 1 の場合、
-            # text_features は (N, E) のまま変更されない。
-            
-        # 4. Text Projector (学習対象)
-        # (N, E) -> (N, E)
-        text_features_proj = self.text_projector(text_features.float())
+            N = action_query_vectors.shape[0]
 
+            # 3b. 動物コンテキスト (K, V) の生成 (ルックアップ方式)
+            
+            # (1) 全動物キャプション (animal_labels) をエンコード
+            # animal_labels: (173, L) or (173, K, L)
+            if animal_labels.dim() == 3:
+                a_classes, a_prompts, _ = animal_labels.shape
+                animal_input = animal_labels.view(a_classes * a_prompts, -1)
+            else:
+                a_classes = animal_labels.shape[0] # 173
+                a_prompts = 1
+                animal_input = animal_labels
+
+            # (173*K or 173, 512)
+            animal_vectors_lookup_table = self.encode_text(animal_input)
+
+            if a_prompts > 1:
+                animal_vectors_lookup_table = animal_vectors_lookup_table.view(a_classes, a_prompts, -1)
+                animal_vectors_lookup_table, _ = torch.max(animal_vectors_lookup_table, dim=1)
+            
+            # animal_vectors_lookup_table 最終形状: (173, 512)
+
+            # (2) One-Hot (animal_pred) でルックアップ
+            # animal_pred: (B, 173) [Float]
+            
+            if B != animal_pred.shape[0]:
+                raise ValueError(
+                    f"Batch size mismatch: video_frames ({B}) vs animal_pred ({animal_pred.shape[0]})"
+                )
+            if a_classes != animal_pred.shape[1]:
+                raise ValueError(
+                    f"Animal class mismatch: animal_labels ({a_classes}) vs animal_pred ({animal_pred.shape[1]})"
+                )
+
+            # (B, 173) -> (B, 1, 173)
+            animal_pred_expanded = animal_pred.unsqueeze(1)
+            # (173, 512) -> (B, 173, 512)
+            animal_vectors_lookup_table_expanded = animal_vectors_lookup_table.unsqueeze(0).expand(B, -1, -1) 
+
+            # [B, 1, 173] @ [B, 173, 512] -> [B, 1, 512]
+            animal_vectors = torch.bmm(
+                animal_pred_expanded.to(animal_vectors_lookup_table_expanded.dtype), 
+                animal_vectors_lookup_table_expanded
+            )
+            # animal_vectors 最終形状: (B, 1, 512)
+
+        # 4. Semantic Fuser (学習対象)
+        # Q (B, N, E), K/V (B, 1, E) を用意
+      
+        # Q: (N, E) -> (B, N, E)
+        Q = action_query_vectors.unsqueeze(0).expand(B, -1, -1)
+        
+        # K, V: (B, 1, 512) (bmm の結果をそのまま K として使用)
+        K = animal_vectors
+        
+        # (B, N, E) と (B, 1, E) -> (B, N, E)
+        # Q (行動クエリ) が K (動物コンテキスト) を参照
+        fused_action_vectors = self.semantic_fuser(query_vectors=Q, context_vectors=K)
+        
         # 5. 類似度計算
-        video_vector = video_vector / video_vector.norm(dim=-1, keepdim=True)
-        text_features_proj = text_features_proj / text_features_proj.norm(dim=-1, keepdim=True)
+        video_vector_norm = video_vector / video_vector.norm(dim=-1, keepdim=True)
+        fused_action_vectors_norm = fused_action_vectors / fused_action_vectors.norm(dim=-1, keepdim=True)
         
         logit_scale = self.logit_scale.exp()
         
-        # video_vector (B, E), text_features_proj (N, E)
-        # -> logits (B, N)
-        logits = logit_scale * video_vector @ text_features_proj.t()
+        # video_vector_norm (B, E) -> (B, 1, E)
+        video_vector_norm = video_vector_norm.unsqueeze(1)
+        
+        # (B, 1, E) @ (B, N, E).transpose(1, 2) -> (B, 1, N)
+        logits = logit_scale * torch.bmm(
+            video_vector_norm, 
+            fused_action_vectors_norm.transpose(1, 2)
+        )
+        
+        # (B, 1, N) -> (B, N)
+        logits = logits.squeeze(1)
         
         # XCLIPの出力形式 (logits, video_features) に合わせる
         return logits, video_vector

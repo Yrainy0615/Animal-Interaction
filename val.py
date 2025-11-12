@@ -101,13 +101,35 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
                 use_amp = config.TRAIN.OPT_LEVEL != 'O0'
                 
                 with autocast(enabled=use_amp):
-                    if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP', 'VCW-CLIP']:
+                    if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP']:
                         animal_labels = animal_labels.cuda(non_blocking=True)
                         animal_pred = animal_pred.cuda(non_blocking=True)
                         
                         animal_classes = val_data.animal_classes
                         
-                        output, vf = model(image_input, text_inputs, animal_labels, animal_pred, edges, filename, config.PRED) # + output
+                        output, vf = model(image_input, text_inputs, animal_labels, animal_pred, edges, filename, config.PRED) 
+                        ani_map_meter.update_predictions(animal_pred, animal_gt)
+
+                    elif config.MODEL.MODEL_NAME == 'VCW-CLIP':
+                        animal_pred_cuda = animal_pred.cuda(non_blocking=True)
+                        animal_labels_cuda = animal_labels.cuda(non_blocking=True) 
+
+                        animal_classes = val_data.animal_classes
+                        
+                        # 1. image_input (B)
+                        # 2. text_inputs (N, L) - 全行動クエリ
+                        # 3. animal_labels_cuda (173, L) - 全動物キャプション
+                        # 4. *args[0] = animal_pred_cuda (B, 173) - One-Hot
+                        output, vf = model(
+                            image_input,          
+                            text_inputs,          
+                            animal_labels_cuda,   # [修正] 3番目に変更
+                            animal_pred_cuda,     # [修正] 4番目 (*args[0]) に変更
+                            edges,                
+                            filename,            
+                            config.PRED           
+                        )
+                        
                         ani_map_meter.update_predictions(animal_pred, animal_gt)
                         
                     elif config.MODEL.MODEL_NAME == 'VideoPrompt':
