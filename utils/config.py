@@ -52,6 +52,7 @@ _C.DATA.INPUT_CHANNEL_NUM = []
 _C.DATA.FEATURE_ROOT = None
 _C.DATA.description = None
 _C.DATA.animal_description = None
+_C.DATA.SPLIT_DESCRIPTION = False
 _C.DATA.RELATION_FILE = ''
 # -----------------------------------------------------------------------------
 # Model settings

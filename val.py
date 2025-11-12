@@ -51,7 +51,14 @@ from PIL import Image
 writer = SummaryWriter()
 
 @torch.no_grad()
-def validate(val_loader, val_data, text_labels, animal_labels, model, config, logger, vis=False, noi=True):
+def validate(
+    # mainからの呼び出しに合わせ、description_labels を引数に追加
+    val_loader, val_data, 
+    text_labels,        # Q (Action)
+    animal_labels, 
+    description_labels, # K/V (Description)
+    model, config, logger, vis=False, noi=True
+):
     model.eval()
     
     acc1_meter = AverageMeter()
@@ -69,13 +76,17 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
     
     if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP', 'VCW-CLIP']:
         clip_model, _ = clip.load('ViT-B/16', device)
-        # resnet_model = torch.hub.load('pytorch/vision:v0.6.0', 'resnet18', pretrained=True).eval()
 
     with torch.no_grad():
-        text_inputs = text_labels.cuda()
+        text_inputs = text_labels.cuda(non_blocking=True) # Q (Action)
+        
+        # K/V (Description) を CUDA に転送
+        description_inputs = description_labels.cuda(non_blocking=True)
+        
         logger.info(f"{config.TEST.NUM_CLIP * config.TEST.NUM_CROP} views inference")
         edges = get_relation(config.DATA.LABEL_LIST, config.DATA.RELATION_FILE)
         edges = torch.tensor(edges).cuda(non_blocking=True)
+        
         for idx, batch_data in enumerate(val_loader):
             _image = batch_data["imgs"]
             label_id = batch_data["label"]
@@ -89,25 +100,23 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
             b, tn, c, h, w = _image.size()
             t = config.DATA.NUM_FRAMES
             n = tn // t
-            _image = _image.view(b, n, t, c, h, w) # 2, 12, 8, 3, 224, 224
+            _image = _image.view(b, n, t, c, h, w)
             
             tot_similarity = torch.zeros((b, config.DATA.NUM_CLASSES)).cuda()
             for i in range(n):
-                image = _image[:, i, :, :, :, :] # [b,t,c,h,w]
+                image = _image[:, i, :, :, :, :]
                 label_id = label_id.cuda(non_blocking=True)
                 image_input = image.cuda(non_blocking=True) 
 
-                # Use autocast for mixed precision inference
                 use_amp = config.TRAIN.OPT_LEVEL != 'O0'
                 
                 with autocast(enabled=use_amp):
                     if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP']:
-                        animal_labels = animal_labels.cuda(non_blocking=True)
-                        animal_pred = animal_pred.cuda(non_blocking=True)
+                        animal_labels_cuda = animal_labels.cuda(non_blocking=True)
+                        animal_pred_cuda = animal_pred.cuda(non_blocking=True)
                         
                         animal_classes = val_data.animal_classes
-                        
-                        output, vf = model(image_input, text_inputs, animal_labels, animal_pred, edges, filename, config.PRED) 
+                        output, vf = model(image_input, text_inputs, animal_labels_cuda, animal_pred_cuda, edges, filename, config.PRED) 
                         ani_map_meter.update_predictions(animal_pred, animal_gt)
 
                     elif config.MODEL.MODEL_NAME == 'VCW-CLIP':
@@ -116,38 +125,34 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
 
                         animal_classes = val_data.animal_classes
                         
-                        # 1. image_input (B)
-                        # 2. text_inputs (N, L) - 全行動クエリ
-                        # 3. animal_labels_cuda (173, L) - 全動物キャプション
-                        # 4. *args[0] = animal_pred_cuda (B, 173) - One-Hot
+                        # model.forward(video, text(Q), animal_labels, description_labels(K/V), *args...)
                         output, vf = model(
-                            image_input,          
-                            text_inputs,          
-                            animal_labels_cuda,   # [修正] 3番目に変更
-                            animal_pred_cuda,     # [修正] 4番目 (*args[0]) に変更
-                            edges,                
-                            filename,            
-                            config.PRED           
+                            image_input, 
+                            text_inputs,         # 2. text (Q)
+                            animal_labels_cuda,  # 3. animal_labels
+                            description_inputs,  # 4. description_labels (K/V) [追加]
+                            animal_pred_cuda,    # 5. *args[0]
+                            edges,               # 6. *args[1]
+                            filename,            # 7. *args[2]
+                            config.PRED          # 8. *args[3]
                         )
                         
                         ani_map_meter.update_predictions(animal_pred, animal_gt)
                         
                     elif config.MODEL.MODEL_NAME == 'VideoPrompt':
-                    # for id in action_id:
                         name_map = pd.read_csv(config.DATA.LABEL_LIST).values.tolist()
                         inp_actionlist = [name_map[i][1] for i in range(len(name_map))]
                         output = model(image_input, inp_actionlist)
                     else:
                         image_input = pack_pathway_output(config, image_input)
                         output = model(image_input)
-        
+            
                 similarity = output.view(b, -1).softmax(dim=-1)
                 tot_similarity += similarity
             
             values_1, indices_1 = tot_similarity.topk(1, dim=-1)
             values_5, indices_5 = tot_similarity.topk(5, dim=-1)
             
-            # 标签序号
             label_id = label_id.reshape((b,-1))
             
             label_real = []
@@ -168,15 +173,15 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
                         acc1 += 1
                     if label_real[i] in indices_5[i]:
                         acc5 += 1
-            acc1_meter.update(float(acc1) / b, b)
-            acc5_meter.update(float(acc5) / b, b)
+                acc1_meter.update(float(acc1) / b, b)
+                acc5_meter.update(float(acc5) / b, b)
             
             if noi == True:
                 try:
                     rela = {}
                     fin = open(config.DATA.RELATION_FILE, 'r')
                     for line in fin:
-                        animal, labels, num = line.strip().split("	")
+                        animal, labels, num = line.strip().split("  ") # (※注: 元のコードの区切り文字)
                         labels = eval(labels)
                         rela[animal] = labels
                     for i in range(b):
@@ -190,10 +195,9 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
                                 if str(animal_key) in rela and j not in rela[str(animal_key)]:
                                     tot = tot + 1
                 except Exception as e:
-                    # Skip noi calculation if there's any error
                     logger.info(f"Skipping noi calculation due to error: {e}")
                     pass
-            # 结果可视化
+            
             if vis == True:
                 print("######## vis start ########")
                 classes = val_data.classes
@@ -205,17 +209,16 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
                     for lab in label_real[i]:
                         label = label + '  ' + classes[int(lab)][1]
                     
-                    values_5, indices_5 = tot_similarity[i].topk(5, dim=-1)
+                    values_5, indices_5_vis = tot_similarity[i].topk(5, dim=-1)
                     pred = ''
-                    for j in range(len(indices_5)):
-                        pred = pred + '  ' + classes[indices_5[j]][1]
+                    for j in range(len(indices_5_vis)):
+                        pred = pred + '  ' + classes[indices_5_vis[j]][1]
                     visualize(video, video_read, pred, label)
-                    
                 print("######## vis end ########")
             
             
-            tot_similarity, label_id = all_gather([tot_similarity, label_id])
-            map_meter.update_predictions(tot_similarity / n, label_id)
+            tot_similarity_gathered, label_id_gathered = all_gather([tot_similarity, label_id])
+            map_meter.update_predictions(tot_similarity_gathered / n, label_id_gathered)
             map, aps = get_map(torch.cat(map_meter.all_preds).cpu().numpy(), torch.cat(map_meter.all_labels).cpu().numpy())
             if idx % config.PRINT_FREQ == 0:
                 logger.info(
@@ -226,12 +229,10 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
                 
     acc1_meter.sync()
     acc5_meter.sync()
-    # map_meter.sync()
     
     ani_map, _ = get_map(torch.cat(ani_map_meter.all_preds).cpu().numpy(), torch.cat(ani_map_meter.all_labels).cpu().numpy())
     print(f'ani_map {ani_map:.4f}')
     
-    # 计算mAp, F1@3, F1@5
     map, aps = get_map(torch.cat(map_meter.all_preds).cpu().numpy(), torch.cat(map_meter.all_labels).cpu().numpy())
     pred = torch.cat(map_meter.all_preds).cpu().numpy()
     label = torch.cat(map_meter.all_labels).cpu().numpy()
@@ -262,13 +263,12 @@ def validate(val_loader, val_data, text_labels, animal_labels, model, config, lo
                 config.DATA.DATASET
             )
             if act_int_acc1 is not None and act_int_acc5 is not None:
-                # Acc@1 の計算とログ
                 action_acc1 = (act_int_acc1['action'] / act_int_acc1['action_num']) if act_int_acc1['action_num'] > 0 else 0
                 interaction_acc1 = (act_int_acc1['interaction'] / act_int_acc1['interaction_num']) if act_int_acc1['interaction_num'] > 0 else 0
                 logger.info(f'Acc1 (Action/Interaction): * action {action_acc1:.4f} interaction {interaction_acc1:.4f}')
                 
-                # Acc@5 の計算とログ
                 action_acc5 = (act_int_acc5['action'] / act_int_acc5['action_num']) if act_int_acc5['action_num'] > 0 else 0
                 interaction_acc5 = (act_int_acc5['interaction'] / act_int_acc5['interaction_num']) if act_int_acc5['interaction_num'] > 0 else 0
                 logger.info(f'Acc5 (Action/Interaction): * action {action_acc5:.4f} interaction {interaction_acc5:.4f}')
+                
     return map, acc1_meter.avg

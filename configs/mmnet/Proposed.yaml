@@ -10,11 +10,14 @@ DATA:
     MULTI_CLASSES: False
     ANIMAL_LABEL_LIST: '/mnt/nfs/mammal_net/annotation/genus_to_id.txt'
     RELATION_FILE: '/mnt/nfs/mammal_net/annotation/composition/relation.txt'
+    description: '/mnt/nfs/mammal_net/annotation/action_description_with_posebit.csv'
+    animal_description: '/mnt/nfs/mammal_net/annotation/animal_description.csv'
+    SPLIT_DESCRIPTION: False
 
 MODEL:
     ARCH: ViT-B/16
     MODEL_NAME: 'VCW-CLIP'
-    HF_FINETUNED_PATH: '/home/nakagawa/large_dataset/ap_10k/clip_finetuned_caption_model_merged/' 
+    HF_FINETUNED_PATH: '/home/nakagawa/large_dataset/ap_10k/clip_finetuned_caption_model_merged/'
     VCW_TEMPORAL_LAYERS: 2
     VCW_TEMPORAL_HEADS: 8
 

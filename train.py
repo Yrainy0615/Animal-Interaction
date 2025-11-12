@@ -54,7 +54,14 @@ def get_trainable_para_num(model):
             lst.append(para.nelement())
     print(f"trainable paras number: {sum(lst)}")
 
-def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_loader, text_labels, animal_labels, config, mixup_fn, train_data, logger, scaler=None):
+def train_one_epoch(
+    epoch, model, criterion, optimizer, lr_scheduler, 
+    train_loader, 
+    text_labels,        # Q (Action)
+    animal_labels, 
+    description_labels, # K/V (Description)
+    config, mixup_fn, train_data, logger, scaler=None
+):
     get_para_num(model)
     get_trainable_para_num(model)
     model.train()
@@ -69,8 +76,10 @@ def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_load
     
     device = "cuda" if torch.cuda.is_available() else "cpu"
         
-    texts = text_labels.cuda(non_blocking=True)
-    # animals = animal_labels.cuda(non_blocking=True)
+    texts = text_labels.cuda(non_blocking=True) # Q
+    
+    descriptions = description_labels.cuda(non_blocking=True) # K/V
+    
     edges = get_relation(config.DATA.LABEL_LIST, config.DATA.RELATION_FILE)
     edges = torch.tensor(edges).cuda(non_blocking=True)
     
@@ -81,7 +90,6 @@ def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_load
         animal_pred = batch_data["animal"].cuda(non_blocking=True)
         mid_frame = batch_data["mid_frame"].cuda(non_blocking=True)
         
-        # label_id = label_id.reshape(-1)
         images = images.view((-1,config.DATA.NUM_FRAMES,3)+images.size()[-2:])
         
         if mixup_fn is not None:
@@ -89,31 +97,28 @@ def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_load
             
         if texts.shape[0] == 1:
             texts = texts.view(1, -1)
-        
-        # Use autocast for mixed precision forward pass
+            
+        if descriptions.shape[0] == 1:
+            descriptions = descriptions.view(1, -1)
+            
         use_amp = config.TRAIN.OPT_LEVEL != 'O0' and scaler is not None
         
         with autocast(enabled=use_amp):
             if config.MODEL.MODEL_NAME in ['XCLIP', 'FT-XCLIP']:
-                # images (B), texts (B), animal_labels (173), animal_pred (B), edges (B)
                 output, _ = model(images, texts, animal_labels, animal_pred, edges)
             
             elif config.MODEL.MODEL_NAME == 'VCW-CLIP':
-                # 1. images (B)
-                # 2. texts (N, L) - 全行動クエリ (L77 で定義)
-                # 3. animal_labels (173, L) - 全動物キャプション (L72 引数)
-                # 4. *args[0] = animal_pred (B, 173) - One-Hot (L85)
-                # 5. *args[1] = edges (L79)
+                # model.forward 呼び出しを修正
                 output, _ = model(
-                    images,         
-                    texts,          
-                    animal_labels,  
-                    animal_pred,    
-                    edges           
+                    images, 
+                    texts,         # Q (text引数へ)
+                    animal_labels, 
+                    descriptions,  # K/V (description_labels引数へ)
+                    animal_pred,   
+                    edges          
                 )
 
             elif config.MODEL.MODEL_NAME == 'VideoPrompt':
-            # for id in action_id:
                 name_map = pd.read_csv(config.DATA.LABEL_LIST).values.tolist()
                 inp_actionlist = [name_map[i][1] for i in range(len(name_map))]
                 output = model(images, inp_actionlist)
@@ -122,31 +127,20 @@ def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_load
                 images = pack_pathway_output(config, images)
                 output = model(images)
             
-            # label_id (ターゲット) の形状を整形する。
-            # nn.CrossEntropyLoss は [BatchSize] の 1D テンソル (long 型) を期待する。
-            
-            # label_id が 2D テンソル ([B, N] または [B, 1]) の場合
+            # label_id (ターゲット) の形状整形
             if label_id.ndim == 2:
                 if label_id.shape[1] > 1:
-                    # [B, N] (One-hot) -> [B] (クラスインデックス)
                     label_id = label_id.argmax(dim=1)
                 else:
-                    # [B, 1] -> [B]
                     label_id = label_id.squeeze(dim=1)
             
-            # 既に 1D ([B]) の場合、squeeze() は何もしない。
-            # 最終的に long 型に変換する。
             label_id = label_id.squeeze().long()
             
             # アサーションエラー (t < n_classes) 対策
-            # config.DATA.NUM_CLASSES は 12
             if label_id.max() >= config.DATA.NUM_CLASSES:
-                # 12 以上の値がある場合、1-based (1-12) と仮定し
-                # 0-based (0-11) にデクリメントする
                 logger.warning(f"Label index >= {config.DATA.NUM_CLASSES} detected. Assuming 1-based index and shifting to 0-based.")
                 label_id = label_id - 1
             
-            # 負の値もチェック (安全のため)
             if label_id.min() < 0:
                 logger.error(f"Negative label index detected: {label_id.min()}")
 
@@ -156,7 +150,6 @@ def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_load
         if (idx == 0) or (config.TRAIN.ACCUMULATION_STEPS == 1) or ((idx + 1) % config.TRAIN.ACCUMULATION_STEPS == 0):
             optimizer.zero_grad()
         
-        # Use GradScaler for backward pass with mixed precision
         if use_amp:
             scaler.scale(total_loss).backward()
         else:
@@ -201,6 +194,7 @@ def train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_load
                 f'time {batch_time.val:.4f} ({batch_time.avg:.4f})\t'
                 f'tot_loss {tot_loss_meter.val:.4f} ({tot_loss_meter.avg:.4f})\t'
                 f'mem {memory_used:.0f}MB')
+            
     epoch_time = time.time() - start
     logger.info(f"EPOCH {epoch} training takes {datetime.timedelta(seconds=int(epoch_time))}")
     writer.add_scalar('loss', tot_loss_meter.avg, epoch)

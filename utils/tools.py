@@ -701,30 +701,58 @@ def sliding_window(text, window_size, step_size):
 #         segments.append(segment)
 #     return segments
 
-def generate_text(data, n_classes):
+import torch
+# import clip # CLIPライブラリがインポートされている前提
+
+def generate_text(data, n_classes, split=False):
     """
     テキストプロンプトのリストをトークン化する。
-    1クラスあたりのプロンプト数に基づき、テンソルの形状を動的に変更する。
+    split=True の場合、まず data リストをピリオドで分割したセグメントリストに置き換える。
+    その後、1クラスあたりのプロンプト数に基づき、テンソルの形状を動的に変更する。
     """
     
+    # 1. 前処理 (split=True の場合)
+    if split:
+        all_segments = []
+        for text_block in data:
+            # ピリオドで分割し、空でない（空白のみでない）セグメントを抽出
+            raw_segments = text_block.split('.')
+            # 各セグメントの前後空白を除去し、文の区切りとしてピリオドを再付加する
+            segments = [seg.strip() + '.' for seg in raw_segments if seg.strip()]
+            
+            # ピリオドによる分割が行われなかった場合
+            if not segments:
+                # 元のテキストブロックが空でないなら、それを単一のプロンプトとして扱う
+                if text_block.strip():
+                    segments = [text_block.strip()]
+            
+            all_segments.extend(segments)
+        
+        # data を、分割後のセグメントリストで上書きする
+        data = all_segments
+
+    # 2. トークン化と形状変更 (ご提示いただいた2番目のコードのロジック)
+    
     total_prompts = len(data)
+    
+    # 処理対象のプロンプトが一つもない場合
+    if total_prompts == 0:
+        return torch.empty(0, 77, dtype=torch.long)
+
     text_aug = f"{{}}"
 
     # 抽出したテキストをリスト内包表記でトークン化し、torch.cat で結合する。
-    # 各テキストは clip.tokenize により 77 トークンに切り詰められる (truncate=True)。
     classes = torch.cat([
         clip.tokenize(text_aug.format(text), truncate=True) 
         for text in data
     ])
     
-    # この時点で classes の形状は (total_prompts, 77) である。
+    # この時点で classes の形状は (total_prompts, 77)
 
-    # 総プロンプト数がクラス数で割り切れるか判定する。
+    # 総プロンプト数がクラス数で割り切れない（不均等）か判定する。
     if total_prompts % n_classes != 0:
-        # 割り切れない場合 (例: 13 プロンプト / 12 クラス)、
-        # 形状が (n_classes, n_prompts) にならないため、
-        # (total_prompts, 77) のまま返す。
-        # (1クラス1プロンプトの場合: 12 % 12 == 0 となるため、このブロックには入らない)
+        # 割り切れない場合 (例: split=True で 3 プロンプト / 2 クラス)
+        # 形状変更ができないため、(total_prompts, 77) のまま返す。
         return classes
 
     # 1クラスあたりのプロンプト数を計算する。

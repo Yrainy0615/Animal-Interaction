@@ -167,12 +167,12 @@ def read_description_csv_custom(filepath: str, header: bool = True) -> List[List
         raise
 
 
-
 def main(config): 
-    ##########  DataLoader  ##########
+    ##########  DataLoader  ##########
     print('Building DataLoader')
     train_data, val_data, train_loader, val_loader = build_dataloader(logger, config)
-    ##########  ModelBuilder  ##########
+    
+    ##########  ModelBuilder  ##########
     print('Building ModelBuilder')
     if config.MODEL.MODEL_NAME == 'XCLIP':
         model, _ = model_builder.xclip_load(
@@ -184,16 +184,12 @@ def main(config):
             use_cache=config.MODEL.FIX_TEXT,
             pred=config.PRED,
             logger=logger,
-            # XCLIP 固有パラメータを config から読み込む
             prompts_alpha=config.MODEL.PROMPTS_ALPHA,
             prompts_layers=config.MODEL.PROMPTS_LAYERS,
             mit_layers=config.MODEL.MIT_LAYERS,
         )
-    # --- FT-XCLIP の分岐を追加 ---
     elif config.MODEL.MODEL_NAME == 'FT-XCLIP':
         logger.info(f"Building FT-XCLIP model using weights from: {config.MODEL.HF_FINETUNED_PATH}")
-        
-        # build_model (load_finetuned_xclip_model内部) に渡す XCLIP 固有パラメータ
         xclip_params = {
             "T": config.DATA.NUM_FRAMES,
             "droppath": config.MODEL.DROP_PATH_RATE,
@@ -205,27 +201,21 @@ def main(config):
             "mit_layers": config.MODEL.MIT_LAYERS,
             "pred": config.PRED,
         }
-        
-        # model_builder に追加したヘルパー関数を呼び出す
         model = model_builder.load_finetuned_xclip_model(
             hf_model_path=config.MODEL.HF_FINETUNED_PATH, 
-            device="cpu", # DDPの前に 'cpu' でロード
+            device="cpu", 
             xclip_params=xclip_params,
-            expected_arch=config.MODEL.ARCH # config からアーキテクチャ名を渡す
+            expected_arch=config.MODEL.ARCH
         )
     elif config.MODEL.MODEL_NAME == 'VCW-CLIP':
-        # ログ表示の分岐
         if config.MODEL.HF_FINETUNED_PATH:
              logger.info(f"Building VCW-CLIP model using HF finetuned weights: {config.MODEL.HF_FINETUNED_PATH}")
         else:
              logger.info(f"Building VCW-CLIP model using base weights: {config.MODEL.PRETRAINED or config.MODEL.ARCH}")
-        # model_builder.vcw_clip_load の呼び出しを config を渡すように変更
         model = model_builder.vcw_clip_load(
-            config=config, # config オブジェクト全体を渡す
-            device="cpu",  # DDPの前に 'cpu' でロード
+            config=config, 
+            device="cpu",
         )
-    elif config.MODEL.MODEL_NAME == 'I3D':
-        model = model_builder.ResNet(config)
     elif config.MODEL.MODEL_NAME == 'I3D':
         model = model_builder.ResNet(config)
     elif config.MODEL.MODEL_NAME == 'SLOWFAST':
@@ -240,47 +230,47 @@ def main(config):
     elif config.MODEL.MODEL_NAME == 'EVL':
         model = model_builder.EVLTransformer(config)
     
+    # model.cuda() を DDP ラップの *前* に移動 (元のコードの順序)
     model = model.cuda()
     
-    ##########  Optimizer and Lr_scheduler  ##########
+    ##########  Optimizer and Lr_scheduler  ##########
     optimizer = build_optimizer(config, model)
     lr_scheduler = build_scheduler(config, optimizer, len(train_loader))
     
-    ##########  LossFunction  ##########
+    ##########  LossFunction  ##########
     if config.TRAIN.LOSS == 'ce':
         criterion = nn.CrossEntropyLoss()
-    
-    if config.TRAIN.LOSS == 'bce':
+    elif config.TRAIN.LOSS == 'bce':
         criterion = nn.BCEWithLogitsLoss()
-    
-    if config.TRAIN.LOSS == 'dbl':
+    elif config.TRAIN.LOSS == 'dbl':
         freq_file = ''
         criterion = ResampleLoss(
-                    use_sigmoid=True,
-                    reweight_func='rebalance',
-                    focal=dict(focal=True, balance_param=2.0, gamma=2),
-                    logit_reg=dict(neg_scale=2.0, init_bias=0.05),
-                    map_param=dict(alpha=0.1, beta=10.0, gamma=0.2),
-                    loss_weight=1.0, freq_file=freq_file
-                )
-        
-    if config.TRAIN.LOSS == 'asl':
+            use_sigmoid=True,
+            reweight_func='rebalance',
+            focal=dict(focal=True, balance_param=2.0, gamma=2),
+            logit_reg=dict(neg_scale=2.0, init_bias=0.05),
+            map_param=dict(alpha=0.1, beta=10.0, gamma=0.2),
+            loss_weight=1.0, freq_file=freq_file
+        )
+    elif config.TRAIN.LOSS == 'asl':
         criterion = AsymmetricLoss(gamma_neg=2, gamma_pos=1, clip=0.05, disable_torch_grad_focal_loss=True)
     
-    ##########  DataAugmentation  ##########
+    ##########  DataAugmentation  ##########
     mixup_fn = None
     if config.AUG.MIXUP > 0:
-        mixup_fn = CutmixMixupBlending(num_classes=config.DATA.NUM_CLASSES,
-                                        smoothing=config.AUG.LABEL_SMOOTH,
-                                        mixup_alpha=config.AUG.MIXUP,
-                                        cutmix_alpha=config.AUG.CUTMIX,
-                                        switch_prob=config.AUG.MIXUP_SWITCH_PROB)
+        mixup_fn = CutmixMixupBlending(
+            num_classes=config.DATA.NUM_CLASSES,
+            smoothing=config.AUG.LABEL_SMOOTH,
+            mixup_alpha=config.AUG.MIXUP,
+            cutmix_alpha=config.AUG.CUTMIX,
+            switch_prob=config.AUG.MIXUP_SWITCH_PROB
+        )
 
-    # Initialize GradScaler for mixed precision training with torch.cuda.amp
     scaler = None
     if config.TRAIN.OPT_LEVEL != 'O0':
         scaler = GradScaler()
     
+    # DDP ラップ (元のコードの順序)
     model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[config.LOCAL_RANK], broadcast_buffers=False, find_unused_parameters=True)
 
     start_epoch, max_accuracy = 0, 0.0
@@ -297,38 +287,73 @@ def main(config):
 
     if config.MODEL.RESUME:
         start_epoch, max_accuracy = load_checkpoint(config, config.MODEL.RESUME, model, config.PRED, optimizer, lr_scheduler, logger, inflation=False, convert_from_caffe2=config.MODEL.CONVERT_FROM_CAFFE2)
-    if config.DATA.description:
-        print("########## using description ##########")
-        # カンマ区切りCSV (header=Falseを想定) をカスタム関数で読み込む
-        text_data = read_description_csv_custom(config.DATA.description, header=False)
-        text_labels = generate_text(text_data, config.DATA.NUM_CLASSES)
-    else:
-        # 空白区切り・名前に空白を含む可能性のあるファイルをカスタム関数で読み込む
-        text_data = read_label_file_custom(config.DATA.LABEL_LIST)
-        text_labels = generate_text(text_data, config.DATA.NUM_CLASSES)
-    print(text_labels.shape)
+    
+    # 1. Actionラベル (Q) のロード
+    print("########## loading action labels (Q) ##########")
+    text_data = read_label_file_custom(config.DATA.LABEL_LIST)
+    text_labels = generate_text(text_data, config.DATA.NUM_CLASSES, split=False)
+    print(f"Loaded Action Labels (Q) shape: {text_labels.shape}")
 
+    # 2. Description (K/V) のロード
+    if not config.DATA.description:
+         raise ValueError("config.DATA.description (for K/V) must be set for this VCW-CLIP model.")
+    
+    print("########## loading descriptions (K/V) ##########")
+    description_data = read_description_csv_custom(config.DATA.description, header=False)
+    description_labels = generate_text(description_data, config.DATA.NUM_CLASSES, split=config.DATA.SPLIT_DESCRIPTION)
+    print(f"Loaded Description (K/V) shape: {description_labels.shape}")
+
+    # 3. Animalラベル
     if config.DATA.animal_description:
         print("########## using animal descrition ##########")
-        # カンマ区切りCSV (header=Falseを想定) をカスタム関数で読み込む
         animal_data = read_description_csv_custom(config.DATA.animal_description, header=False)
         animal_labels = generate_text(animal_data, config.DATA.NUM_ANIMAL_CLASSES)
     else:
-        # 空白区切り・名前に空白を含む可能性のあるファイルをカスタム関数で読み込む
         animal_data = read_label_file_custom(config.DATA.ANIMAL_LABEL_LIST)
         animal_labels = generate_text(animal_data, config.DATA.NUM_ANIMAL_CLASSES)
-    print(animal_labels.shape)
+    print(f"Loaded Animal Labels shape: {animal_labels.shape}")
+    
+    # (OOM対策) 動物ルックアップテーブルの事前計算
+    # model.cuda() と DDP ラップの *後* に移動
+    if config.MODEL.MODEL_NAME == 'VCW-CLIP':
+        if dist.get_rank() == 0:
+            # DDP ラッパーの内側の model.module にアクセスする
+            # この時点で model.module は GPU 上にある
+            model.module.precompute_animal_lookup(animal_labels, device="cuda")
+        
+        dist.barrier()
+
     if config.TEST.ONLY_TEST:
-        map, acc1  = val.validate(val_loader, val_data, text_labels, animal_labels, model, config, logger, vis=False)
+        map, acc1  = val.validate(
+            val_loader, val_data, 
+            text_labels,        
+            animal_labels, 
+            description_labels, 
+            model, config, logger, vis=False
+        )
         logger.info(f"Accuracy of the network on the {len(val_data)} test videos: {map:.4f} {acc1:.4f}")
         return
 
     for epoch in range(start_epoch, config.TRAIN.EPOCHS):
         train_loader.sampler.set_epoch(epoch)
-        train.train_one_epoch(epoch, model, criterion, optimizer, lr_scheduler, train_loader, text_labels, animal_labels, config, mixup_fn, train_data, logger, scaler)
+        
+        train.train_one_epoch(
+            epoch, model, criterion, optimizer, lr_scheduler, 
+            train_loader, 
+            text_labels,        
+            animal_labels, 
+            description_labels, 
+            config, mixup_fn, train_data, logger, scaler
+        )
 
-        map, acc1  = val.validate(val_loader, val_data, text_labels, animal_labels, model, config, logger, vis=False)
-    
+        map, acc1  = val.validate(
+            val_loader, val_data, 
+            text_labels,        
+            animal_labels, 
+            description_labels, 
+            model, config, logger, vis=False
+        )
+        
         writer.add_scalar('map', map, epoch)
         writer.add_scalar('acc1', acc1, epoch)
         
@@ -341,6 +366,7 @@ def main(config):
             is_best = acc1 > max_accuracy
             max_accuracy = max(max_accuracy, acc1)
             logger.info(f'Acc1 max accuracy: {max_accuracy:.2f}')
+        
         if dist.get_rank() == 0 and (epoch % config.SAVE_FREQ == 0 or epoch == (config.TRAIN.EPOCHS - 1)):
             epoch_saving(config, epoch, model.module, max_accuracy, optimizer, lr_scheduler, logger, config.OUTPUT, is_best)
 
@@ -349,11 +375,26 @@ def main(config):
     config.TEST.NUM_CROP = 3
     config.freeze()
     train_data, val_data, train_loader, val_loader = build_dataloader(logger, config)
+    
     if config.DATA.FEATURE_ROOT != None:
-        map, acc1  = val.validate_feature_data(val_loader, val_data, text_labels, animal_labels, model, config, logger, vis=False)
+        map, acc1  = val.validate_feature_data(
+            val_loader, val_data, 
+            text_labels, 
+            animal_labels, 
+            description_labels, 
+            model, config, logger, vis=False
+        )
     else:
-        map, acc1  = val.validate(val_loader, val_data, text_labels, animal_labels, model, config, logger, vis=False)
+        map, acc1  = val.validate(
+            val_loader, val_data, 
+            text_labels,        
+            animal_labels, 
+            description_labels, 
+            model, config, logger, vis=False
+        )
+    
     logger.info(f"Accuracy of the network on the {len(val_data)} test videos: {map:.4f} {acc1:.4f}")
+
 
 if __name__ == '__main__':
     # prepare config
