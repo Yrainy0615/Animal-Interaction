@@ -181,7 +181,7 @@ def validate(
                     rela = {}
                     fin = open(config.DATA.RELATION_FILE, 'r')
                     for line in fin:
-                        animal, labels, num = line.strip().split("  ") # (※注: 元のコードの区切り文字)
+                        animal, labels, num = line.strip().split("\t")
                         labels = eval(labels)
                         rela[animal] = labels
                     for i in range(b):
