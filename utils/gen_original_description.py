@@ -15,11 +15,14 @@ from tenacity import (
 # --- 定数設定 ---
 
 # 入力ファイルパス (ユーザー指定)
-ANIMAL_LIST_PATH = "/mnt/nfs/mammal_net/annotation/genus_to_id.txt"
-ACTION_LIST_PATH = "/mnt/nfs/mammal_net/annotation/behavior_to_id.txt"
+# ANIMAL_LIST_PATH = "/mnt/nfs/mammal_net/annotation/genus_to_id.txt"
+# ACTION_LIST_PATH = "/mnt/nfs/mammal_net/annotation/behavior_to_id.txt"
+ANIMAL_LIST_PATH = "/mnt/nfs/lote/annotation/animal_label.csv"
+ACTION_LIST_PATH = "/mnt/nfs/lote/annotation/LoTE_label.csv"
 
 # 出力ファイルパス
-BASE_DIR = "/mnt/nfs/mammal_net/annotation/"
+# BASE_DIR = "/mnt/nfs/mammal_net/annotation/"
+BASE_DIR = "/mnt/nfs/lote/annotation/"
 ANIMAL_OUTPUT_CSV = "animal_description.csv"
 ACTION_OUTPUT_CSV = "action_description.csv"
 
