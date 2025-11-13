@@ -17,7 +17,7 @@ DATA:
 MODEL:
     ARCH: ViT-B/16
     MODEL_NAME: 'VCW-CLIP'
-    HF_FINETUNED_PATH: '/home/nakagawa/large_dataset/ap_10k/clip_adapter/'
+    HF_FINETUNED_PATH: '/home/nakagawa/large_dataset/ap_10k/clip_adapter_old/'
     VCW_TEMPORAL_LAYERS: 2
     VCW_TEMPORAL_HEADS: 8
 
