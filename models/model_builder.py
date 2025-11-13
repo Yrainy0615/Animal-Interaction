@@ -203,7 +203,6 @@ class ActionFuser(nn.Module):
         return x.squeeze(0)
 
 class VideoChangeWeightedCLIP(CLIP):
-    
     def __init__(self,
                  embed_dim: int,
                  image_resolution: int,
@@ -218,37 +217,49 @@ class VideoChangeWeightedCLIP(CLIP):
                  T: int = 8,
                  temporal_layers: int = 2,
                  temporal_heads: int = 8,
-                 device: str = "cuda"):
-        
+                 device: str = "cuda",
+                 use_logit_scale: bool = True  # 追加: ロジットスケール使用可否
+                 ):
+
         super().__init__(
             embed_dim,
             image_resolution, vision_layers, vision_width, vision_patch_size,
             context_length, vocab_size, transformer_width, transformer_heads, transformer_layers
         )
-        
+
         if temporal_heads <= 0:
             temporal_heads = transformer_heads
-        
+
         self.temporal_transformer = TemporalTransformer(
             T=T,
             width=embed_dim,
             layers=temporal_layers,
             heads=temporal_heads
         )
-            
+
         self.semantic_fuser = SemanticFuser(
             embed_dim=embed_dim,
-            nhead=temporal_heads 
+            nhead=temporal_heads
         )
-        
+
         self.action_fuser = ActionFuser(
             embed_dim=embed_dim,
-            nhead=temporal_heads 
+            nhead=temporal_heads
         )
-        
+
         self.register_buffer("animal_vectors_lookup_table", None, persistent=False)
-        
+
+        # 追加: ロジットスケール使用可否
+        self.use_logit_scale = bool(use_logit_scale)
+
         self.freeze_clip_encoders()
+
+        # ロジットスケールを使わない場合は学習も無効化
+        if not self.use_logit_scale:
+            try:
+                self.logit_scale.requires_grad = False
+            except Exception:
+                pass
 
     def freeze_clip_encoders(self):
         """CLIPのImage/Textエンコーダのパラメータを凍結する。"""
@@ -262,7 +273,7 @@ class VideoChangeWeightedCLIP(CLIP):
         for param in self.ln_final.parameters():
             param.requires_grad = False
         self.text_projection.requires_grad = False
-        # logit_scale は学習対象
+        # logit_scale はデフォルト学習対象（use_logit_scale=False の場合は上で無効化）
 
     def encode_video_frames(self, video_frames: torch.Tensor):
         """動画フレーム (B, T, C, H, W) をエンコードする。"""
@@ -279,7 +290,7 @@ class VideoChangeWeightedCLIP(CLIP):
         ミニバッチで実行する。
         """
         print("--- Pre-computing Animal Lookup Table (with mini-batching) ---")
-        
+
         text_encoder_parts = [
             self.token_embedding, self.positional_embedding,
             self.transformer, self.ln_final, self.text_projection
@@ -305,10 +316,10 @@ class VideoChangeWeightedCLIP(CLIP):
 
         total_inputs = animal_input.shape[0]
         all_features = []
-        
+
         print(f"Encoding {total_inputs} animal prompts in batches of {batch_size}...")
         for i in range(0, total_inputs, batch_size):
-            batch = animal_input[i : i + batch_size].to(device)
+            batch = animal_input[i: i + batch_size].to(device)
             batch_features = self.encode_text(batch)
             all_features.append(batch_features.cpu())
 
@@ -318,7 +329,7 @@ class VideoChangeWeightedCLIP(CLIP):
         if a_prompts > 1:
             lookup_table = lookup_table.view(a_classes, a_prompts, -1)
             lookup_table, _ = torch.max(lookup_table, dim=1)
-        
+
         for part in text_encoder_parts:
             if part in original_devices:
                 part.to(original_devices[part])
@@ -326,27 +337,26 @@ class VideoChangeWeightedCLIP(CLIP):
         self.animal_vectors_lookup_table = lookup_table.float()
         print(f"--- Animal Lookup Table pre-computed. Shape: {self.animal_vectors_lookup_table.shape} ---")
 
-
-    def forward(self, 
-                video_frames: torch.Tensor, 
-                text: torch.Tensor,         
-                animal_labels: torch.Tensor, 
-                description_labels: torch.Tensor, 
+    def forward(self,
+                video_frames: torch.Tensor,
+                text: torch.Tensor,
+                animal_labels: torch.Tensor,
+                description_labels: torch.Tensor,
                 *args, **kwargs
-               ):
-        
+                ):
+
         if not args:
             raise ValueError("Missing required argument 'animal_pred' in *args for Lookup Mode.")
-        animal_pred = args[0] 
+        animal_pred = args[0]
         B = video_frames.shape[0]
-        
+
         with torch.no_grad():
             frame_features = self.encode_video_frames(video_frames.type(self.visual.conv1.weight.dtype))
 
         video_vector = self.temporal_transformer(frame_features.float())
 
         with torch.no_grad():
-            
+
             # 3a. 行動クエリ (Q) と (K/V) の生成
             if text.dim() == 3:
                 n_classes, n_prompts, _ = text.shape
@@ -355,9 +365,9 @@ class VideoChangeWeightedCLIP(CLIP):
                 n_classes, _ = text.shape
                 n_prompts = 1
                 text_input = text
-            action_vectors_q = self.encode_text(text_input) 
+            action_vectors_q = self.encode_text(text_input)
             if n_prompts > 1:
-                action_vectors_q = action_vectors_q.view(n_classes, n_prompts, -1) 
+                action_vectors_q = action_vectors_q.view(n_classes, n_prompts, -1)
                 action_vectors_q, _ = torch.max(action_vectors_q, dim=1)
             N = n_classes
 
@@ -372,17 +382,17 @@ class VideoChangeWeightedCLIP(CLIP):
             if n_prompts_desc > 1:
                 description_vectors_kv = description_vectors_kv.view(n_desc, n_prompts_desc, -1)
                 description_vectors_kv, _ = torch.max(description_vectors_kv, dim=1)
-            
+
             if N != n_desc:
                 raise ValueError(
                     f"Action(Q)/Description(K/V) class count mismatch: "
                     f"text(Q) ({N} classes) vs description_labels(K/V) ({n_desc} classes)."
                 )
-            
+
             # 3b. 動物コンテキスト (K, V) の生成 (事前計算テーブルを使用)
             if self.animal_vectors_lookup_table is None:
                 raise RuntimeError("Animal lookup table has not been pre-computed. Call model.precompute_animal_lookup() after initialization.")
-            
+
             # CPUに保存されているルックアップテーブルを取得
             lookup_table_cpu = self.animal_vectors_lookup_table
 
@@ -394,16 +404,16 @@ class VideoChangeWeightedCLIP(CLIP):
 
             # animal_pred (GPU上) のデバイスを取得
             current_device = animal_pred.device
-            
+
             # ルックアップテーブルを animal_pred と同じデバイス (GPU) に転送
             lookup_table = lookup_table_cpu.to(current_device)
 
             animal_pred_expanded = animal_pred.unsqueeze(1)
-            lookup_table_expanded = lookup_table.unsqueeze(0).expand(B, -1, -1) 
+            lookup_table_expanded = lookup_table.unsqueeze(0).expand(B, -1, -1)
 
             # これで両方のテンソルがGPU上にある
             animal_vectors = torch.bmm(
-                animal_pred_expanded.to(lookup_table_expanded.dtype), 
+                animal_pred_expanded.to(lookup_table_expanded.dtype),
                 lookup_table_expanded
             )
 
@@ -417,28 +427,35 @@ class VideoChangeWeightedCLIP(CLIP):
         Q = action_query_vectors.unsqueeze(0).expand(B, -1, -1)
         K = animal_vectors
         fused_action_vectors = self.semantic_fuser(query_vectors=Q, context_vectors=K)
-        
+
         # 5. 類似度計算
         video_vector_norm = video_vector / video_vector.norm(dim=-1, keepdim=True)
         fused_action_vectors_norm = fused_action_vectors / fused_action_vectors.norm(dim=-1, keepdim=True)
-        
-        logit_scale = self.logit_scale.exp()
+
+        # 変更点: use_logit_scale=False の場合は温度=1.0を使用（logit_scale無効化）
+        if getattr(self, "use_logit_scale", True):
+            logit_scale = self.logit_scale.exp()
+        else:
+            logit_scale = torch.tensor(1.0, device=video_vector_norm.device, dtype=video_vector_norm.dtype)
+
         video_vector_norm = video_vector_norm.unsqueeze(1)
-        
+
         logits = logit_scale * torch.bmm(
-            video_vector_norm, 
+            video_vector_norm,
             fused_action_vectors_norm.transpose(1, 2)
         )
-        
+
         logits = logits.squeeze(1)
         return logits, video_vector
 
+
 def build_vcw_model(
-    state_dict: dict, 
-    T: int, 
-    temporal_layers: int, 
+    state_dict: dict,
+    T: int,
+    temporal_layers: int,
     temporal_heads: int,
-    device="cuda"
+    device="cuda",
+    use_logit_scale: bool = True  # 追加: 構築時にlogit_scale使用可否を指定
 ):
     """
     OpenAI CLIPのstate_dictからVideoChangeWeightedCLIPモデルを構築する。
@@ -466,17 +483,17 @@ def build_vcw_model(
     transformer_width = state_dict["ln_final.weight"].shape[0]
     transformer_heads = transformer_width // 64
     transformer_layers = len(set(k.split(".")[2] for k in state_dict if k.startswith(f"transformer.resblocks")))
-    
+
     model = VideoChangeWeightedCLIP(
         embed_dim,
         image_resolution, vision_layers, vision_width, vision_patch_size,
         context_length, vocab_size, transformer_width, transformer_heads, transformer_layers,
-        # --- [修正箇所] 新しい引数を渡す ---
+        # 追加: 引数として渡す
         T=T,
         temporal_layers=temporal_layers,
         temporal_heads=temporal_heads,
-        # --- ここまで ---
-        device=device
+        device=device,
+        use_logit_scale=use_logit_scale
     )
 
     for key in ["input_resolution", "context_length", "vocab_size"]:
@@ -486,14 +503,15 @@ def build_vcw_model(
     # CLIP部分の重みのみロードする (strict=False)
     # TemporalTransformer と TextProjector の重みは state_dict に含まれていない
     msg = model.load_state_dict(state_dict, strict=False)
-    
+
     # ロードされなかったキー (学習対象モジュール) を確認
     print("Keys not loaded (expected for VCW-CLIP):", msg.missing_keys)
-    
-    return model.eval() # .eval() は main.py 側で制御するなら不要
+
+    return model.eval()  # .eval() は main.py 側で制御するなら不要
+
 
 def vcw_clip_load(
-    config: "yacs.config.CfgNode", # config全体を受け取る
+    config: "yacs.config.CfgNode",  # config全体を受け取る
     device: Union[str, torch.device] = "cuda" if torch.cuda.is_available() else "cpu"
 ):
     """
@@ -501,8 +519,12 @@ def vcw_clip_load(
     config.MODEL.HF_FINETUNED_PATH が指定されている場合は、
     HF形式のファインチューニング済み重みをベースとしてロードする。
     それ以外の場合は、標準のCLIP重み (PRETRAINED or ARCH) をロードする。
+
+    変更点:
+    - finetuned_dir（HFパス）の有無に関わらず、常に VideoChangeWeightedCLIP を構築。
+    - HFパス未指定（= finetuned_dirなし）の場合は「純CLIP挙動」を観測するため、
+      logit_scale を forward 計算に使用しない（温度=1.0）。
     """
-    
     hf_path = config.MODEL.HF_FINETUNED_PATH
     expected_arch = config.MODEL.ARCH
     state_dict = None
@@ -510,31 +532,31 @@ def vcw_clip_load(
     if hf_path:
         # --- 1. HF Finetuned モデルのロードと変換 ---
         print(f"--- Loading Fine-Tuned HF Model from {hf_path} for VCW-CLIP ---")
-        
+
         # ステップ1: HF形式のモデルをロード
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             # HFモデルをロード (DDPのため 'cpu' を指定)
             ft_model = CLIPModel.from_pretrained(hf_path).to("cpu")
-        
+
         hf_state_dict = ft_model.state_dict()
-        
+
         # --- アーキテクチャ検証 ---
         hf_config = ft_model.config
         vision_layers = hf_config.vision_config.num_hidden_layers
         text_layers = hf_config.text_config.num_hidden_layers
-        
+
         expected_layers = 0
         if expected_arch == 'ViT-B/32' or expected_arch == 'ViT-B/16':
             expected_layers = 12
         # (必要なら ViT-L などを追加)
-            
+
         if expected_layers == 0:
             raise ValueError(
                 f"Unsupported expected_arch: '{expected_arch}'. "
                 "Conversion logic only supports 'ViT-B/16' or 'ViT-B/32'."
             )
-        
+
         if (vision_layers != expected_layers or text_layers != expected_layers):
             raise ValueError(
                 f"Architecture mismatch: Config specifies '{expected_arch}' ({expected_layers} layers), "
@@ -543,9 +565,9 @@ def vcw_clip_load(
             )
 
         del ft_model
-        
+
         print("--- Converting HF state_dict to OpenAI format ---")
-        
+
         # ステップ2: HF state_dict を OpenAI state_dict に変換
         openai_state_dict = {}
         hf_key_prefix_text = "text_model."
@@ -554,13 +576,13 @@ def vcw_clip_load(
         # --- Text Model 変換 ---
         openai_state_dict["token_embedding.weight"] = hf_state_dict[hf_key_prefix_text + "embeddings.token_embedding.weight"]
         openai_state_dict["positional_embedding"] = hf_state_dict[hf_key_prefix_text + "embeddings.position_embedding.weight"]
-        
+
         for i in range(text_layers):
             q_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.q_proj.weight"]
             k_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.k_proj.weight"]
             v_w = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.v_proj.weight"]
             openai_state_dict[f"transformer.resblocks.{i}.attn.in_proj_weight"] = torch.cat([q_w, k_w, v_w], dim=0)
-            
+
             q_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.q_proj.bias"]
             k_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.k_proj.bias"]
             v_b = hf_state_dict[f"{hf_key_prefix_text}encoder.layers.{i}.self_attn.v_proj.bias"]
@@ -592,12 +614,12 @@ def vcw_clip_load(
             k_w = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.k_proj.weight"]
             v_w = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.v_proj.weight"]
             openai_state_dict[f"visual.transformer.resblocks.{i}.attn.in_proj_weight"] = torch.cat([q_w, k_w, v_w], dim=0)
-            
+
             q_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.q_proj.bias"]
             k_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.k_proj.bias"]
             v_b = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.v_proj.bias"]
             openai_state_dict[f"visual.transformer.resblocks.{i}.attn.in_proj_bias"] = torch.cat([q_b, k_b, v_b], dim=0)
-            
+
             openai_state_dict[f"visual.transformer.resblocks.{i}.attn.out_proj.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.out_proj.weight"]
             openai_state_dict[f"visual.transformer.resblocks.{i}.attn.out_proj.bias"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.self_attn.out_proj.bias"]
             openai_state_dict[f"visual.transformer.resblocks.{i}.ln_1.weight"] = hf_state_dict[f"{hf_key_prefix_vision}encoder.layers.{i}.layer_norm1.weight"]
@@ -615,21 +637,31 @@ def vcw_clip_load(
         # --- Projections 変換 ---
         openai_state_dict["text_projection"] = hf_state_dict["text_projection.weight"].T
         openai_state_dict["visual.proj"] = hf_state_dict["visual_projection.weight"].T
-        
+
         openai_state_dict["logit_scale"] = hf_state_dict["logit_scale"]
 
         print("Conversion complete.")
         state_dict = openai_state_dict
 
+        # --- 3. VCW-CLIP 構築（logit_scale 有効のまま） ---
+        model = build_vcw_model(
+            state_dict=state_dict,
+            T=config.DATA.NUM_FRAMES,
+            temporal_layers=config.MODEL.VCW_TEMPORAL_LAYERS,
+            temporal_heads=config.MODEL.VCW_TEMPORAL_HEADS,
+            device=device,  # 'cpu' が渡される想定
+            use_logit_scale=True
+        )
+
     else:
         # --- 2. 標準のCLIP重みのロード (従来処理) ---
         model_path = config.MODEL.PRETRAINED
         name = config.MODEL.ARCH
-        
+
         if model_path is None:
             # clipライブラリからダウンロード
             model_path = clip._download(clip._MODELS[name])
-        
+
         try:
             # JITモデル (.pt) の場合
             jit_model = torch.jit.load(model_path, map_location="cpu").eval()
@@ -638,23 +670,23 @@ def vcw_clip_load(
             # PyTorch Checkpoint (.pth) の場合
             state_dict = torch.load(model_path, map_location="cpu")
         except FileNotFoundError:
-             raise FileNotFoundError(f"Model file not found at {model_path} (or failed to download {name})")
+            raise FileNotFoundError(f"Model file not found at {model_path} (or failed to download {name})")
 
-    # --- 3. VCW-CLIP モデルの構築 ---
-    # (HF変換後、または標準ロード後)
-    model = build_vcw_model(
-        state_dict=state_dict, 
-        T=config.DATA.NUM_FRAMES,
-        temporal_layers=config.MODEL.VCW_TEMPORAL_LAYERS,
-        temporal_heads=config.MODEL.VCW_TEMPORAL_HEADS,
-        device=device # 'cpu' が渡される想定
-    )
-    
+        # --- 3. VCW-CLIP 構築（ピュアCLIP挙動を観測: logit_scale 無効化） ---
+        model = build_vcw_model(
+            state_dict=state_dict,
+            T=config.DATA.NUM_FRAMES,
+            temporal_layers=config.MODEL.VCW_TEMPORAL_LAYERS,
+            temporal_heads=config.MODEL.VCW_TEMPORAL_HEADS,
+            device=device,  # 'cpu' が渡される想定
+            use_logit_scale=False  # ここがポイント：温度=1.0で計算
+        )
+
     # 呼び出し側 (main.py) が 'cpu' を期待しているため、
     # deviceが 'cuda' であっても .float() 処理を統一する
     if str(device) == "cpu":
         model.float()
-        
+
     return model
 
 
