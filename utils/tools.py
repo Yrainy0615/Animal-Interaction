@@ -99,58 +99,91 @@ def plot_tsne(features, ani_labels, labels, ani_label_map, label_map):
     
     return plt
 
+
+MMNET_CATEGORY_MAP = {
+    'action': [0, 1, 2, 5, 7, 10, 11],
+    'interaction': [3, 4, 6, 8, 9]
+}
+
+LOTE_CATEGORY_MAP = {
+    'action': [1, 2, 3, 7, 9, 10, 12, 13, 14, 15, 19, 20],
+    'interaction': [0, 4, 5, 6, 8, 11, 17, 18]
+}
+
+# サポートする全データセットのマップ
+DATASET_CATEGORY_MAPS = {
+    'mmnet': MMNET_CATEGORY_MAP,
+    'lote': LOTE_CATEGORY_MAP, # 'LoTE' でも 'lote' でもOK
+    'LoTE': LOTE_CATEGORY_MAP
+}
+
 def compute_action_interaction_acc(preds, labels, dataset):
     """
     Compute Acc@1 and Acc@5 for Action (single) and Interaction classes.
-    Only supports 'mmnet' dataset.
+    Supports 'mmnet' and 'lote' datasets.
     
     Args:
         preds (numpy tensor): num_examples x num_classes.
         labels (numpy tensor): num_examples x num_classes (assuming single-label one-hot).
-        dataset (str): Name of the dataset.
+        dataset (str): Name of the dataset (e.g., 'mmnet', 'lote').
     Returns:
         acc1 (dict): Top-1 accuracy stats.
         acc5 (dict): Top-5 accuracy stats.
     """
-    if dataset != 'mmnet':
-        # This stratification is defined only for 'mmnet'
+    if dataset not in DATASET_CATEGORY_MAPS:
+        # サポートされていないデータセット
+        print(f"Error: Dataset '{dataset}' is not supported or category map is not defined.")
         return None, None
-
-    # MammalNet Action/Interaction class indices
-    category_map = {
-        'action': [0, 1, 2, 5, 7, 10, 11],
-        'interaction': [3, 4, 6, 8, 9]
-    }
+    
+    # データセットに応じたマップを取得
+    category_map = DATASET_CATEGORY_MAPS[dataset]
 
     acc1 = {'action': 0, 'interaction': 0, 'action_num': 0, 'interaction_num': 0}
     acc5 = {'action': 0, 'interaction': 0, 'action_num': 0, 'interaction_num': 0}
+    
+    # 処理を高速化するため、全カテゴリをフラットな辞書にマッピング
+    # {label_id: 'action', label_id: 'interaction', ...}
+    label_to_category = {}
+    for category, indices in category_map.items():
+        for index in indices:
+            label_to_category[index] = category
 
     try:
-        for i in range(len(labels)):
-            # Assuming single-label based on lt_acc logic
-            label_id = int(np.nonzero(labels[i])[0])
+        # ラベルを one-hot から index に変換 (numpy 高速化)
+        # (np.nonzero(labels[i])[0] のループ処理を置き換え)
+        label_indices = np.argmax(labels, axis=1)
+        
+        # Top-5 の予測インデックスを取得 (numpy 高速化)
+        top5_indices = np.argsort(-preds, axis=1)[:, :5]
+        
+        for i in range(len(label_indices)):
+            label_id = label_indices[i]
             
-            found_category = None
-            for key, indices in category_map.items():
-                if label_id in indices:
-                    found_category = key
-                    break
-            
-            if found_category:
-                key = found_category
-                acc1[key + '_num'] += 1
-                acc5[key + '_num'] += 1
+            # ラベルが定義されたカテゴリに属するかチェック
+            if label_id not in label_to_category:
+                continue # (e.g., 'Miscellaneous' class)
                 
-                indices_1 = np.argsort(-preds[i])[:1] # Top-1
-                indices_5 = np.argsort(-preds[i])[:5] # Top-5
+            key = label_to_category[label_id]
+            
+            acc1[key + '_num'] += 1
+            acc5[key + '_num'] += 1
+            
+            current_top5 = top5_indices[i]
+            current_top1 = current_top5[0] # Top-1 は Top-5 の先頭
 
-                if int(indices_1) == label_id:
-                    acc1[key] += 1
-                if label_id in indices_5:
-                    acc5[key] += 1
-                    
+            # Top-1 Check
+            if current_top1 == label_id:
+                acc1[key] += 1
+                
+            # Top-5 Check
+            if label_id in current_top5:
+                acc5[key] += 1
+                
     except Exception as e:
+        # 開発理念に基づき、エラーを握りつぶさず明確に表示
         print(f"Error during action/interaction accuracy calculation: {e}")
+        import traceback
+        traceback.print_exc()
         return None, None
         
     return acc1, acc5

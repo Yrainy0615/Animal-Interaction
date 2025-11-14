@@ -22,6 +22,7 @@ from pathlib import Path
 from utils.config import get_config
 from utils.optimizer import build_optimizer, build_scheduler
 from utils.tools import AverageMeter, reduce_tensor, epoch_saving, load_checkpoint, generate_text, auto_resume_helper, all_gather, get_map, get_animal, compute_F1, lt_map
+from datasets.build import read_label_file_custom, read_description_csv_custom
 from datasets.tools import pack_pathway_output
 from utils.visualize import visualize
 from utils.loss import ResampleLoss, AsymmetricLoss
@@ -87,84 +88,6 @@ def parse_option():
     config = get_config(args)
 
     return args, config
-
-
-def read_label_file_custom(filepath: str) -> List[List[str]]:
-    """
-    空白区切りで、ラベル名に空白を含む可能性のあるラベルファイルをパースする。
-    行の最後の要素をID、それ以前を結合したものをラベル名として解釈する。
-
-    Args:
-        filepath (str): 読み込むファイルのパス。
-
-    Returns:
-        List[List[str]]: パースされたデータのリスト (例: [['lama', '60'], ['sea lion', '65']])。
-    """
-    data_rows: List[List[str]] = []
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            for line_num, line in enumerate(f, 1):
-                line_stripped = line.strip()
-                if not line_stripped:
-                    continue
-                
-                row_data = re.split(r'\s+', line_stripped)
-                
-                if len(row_data) == 2:
-                    data_rows.append(row_data)
-                elif len(row_data) > 2:
-                    label_id = row_data[-1]
-                    name = ' '.join(row_data[:-1])
-                    reconstructed_row = [name, label_id]
-                    data_rows.append(reconstructed_row)
-                else:
-                    logger.warning(f"Skipping malformed line {line_num} in {filepath}: '{line_stripped}'")
-        
-        return data_rows
-
-    except FileNotFoundError:
-        logger.error(f"File not found: {filepath}")
-        raise
-    except Exception as e:
-        logger.error(f"Error processing file {filepath}: {e}")
-        raise
-
-def read_description_csv_custom(filepath: str, header: bool = True) -> List[List[str]]:
-    """
-    標準的なCSVファイルを読み込み、リストのリストとして返す。
-    csvモジュールを使用し、クォート文字(")内のカンマを適切に処理する。
-
-    Args:
-        filepath (str): 読み込むCSVファイルのパス。
-        header (bool): 先頭行をヘッダーとして読み飛ばすか否か。
-                       元のpd.read_csvのデフォルト動作(header='infer')を模倣。
-
-    Returns:
-        List[List[str]]: CSVの行データ（文字列のリスト）のリスト。
-    """
-    data_rows: List[List[str]] = []
-    try:
-        with open(filepath, 'r', encoding='utf-8', newline='') as f:
-            reader = csv.reader(f, skipinitialspace=True)
-            
-            if header:
-                try:
-                    next(reader)  # ヘッダー行を読み飛ばす
-                except StopIteration:
-                    return []
-            
-            for row in reader:
-                if row:
-                    data_rows.append(row)
-        
-        return data_rows
-
-    except FileNotFoundError:
-        logger.error(f"File not found: {filepath}")
-        raise
-    except Exception as e:
-        logger.error(f"Error processing file {filepath}: {e}")
-        raise
 
 
 def main(config): 

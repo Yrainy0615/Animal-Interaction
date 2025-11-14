@@ -1,5 +1,5 @@
 DATA:
-    ROOT: '/mnt/nfs/lote/annotation/'
+    ROOT: '/mnt/nfs/lote/action/'
     TRAIN_FILE: '/mnt/nfs/lote/annotation/LoTE_train.txt' #00 /mnt/sdb/data/jingyinuo/mmnet/annotation/composition/train.csv
     VAL_FILE: '/mnt/nfs/lote/annotation/LoTE_test.txt'
     DATASET: LoTE
@@ -17,8 +17,8 @@ MODEL:
     ARCH: ViT-B/16
     MODEL_NAME: 'XCLIP'
 TRAIN:
-    BATCH_SIZE:  16
+    BATCH_SIZE:  8
     LOSS: 'ce'
-    ACCUMULATION_STEPS: 4
+    ACCUMULATION_STEPS: 16
     EPOCHS: 30
 OUTPUT: 'exp_animal_clip_lote'

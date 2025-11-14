@@ -36,9 +36,76 @@ from .visfeat import visfeat
 
 import re
 
+import csv
+from typing import List
+
+
 PIPELINES = Registry('pipeline')
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_bgr=False)
+
+
+def read_label_file_custom(filepath: str) -> List[List[str]]:
+    """
+    空白区切りで、ラベル名に空白を含む可能性のあるラベルファイルをパースする。
+    行の最後の要素をID、それ以前を結合したものをラベル名として解釈する。
+
+    Args:
+        filepath (str): 読み込むファイルのパス。
+
+    Returns:
+        List[List[str]]: パースされたデータのリスト (例: [['lama', '60'], ['sea lion', '65']])。
+    """
+    data_rows: List[List[str]] = []
+    with open(filepath, 'r', encoding='utf-8') as f:
+        for line_num, line in enumerate(f, 1):
+            line_stripped = line.strip()
+            if not line_stripped:
+                continue
+            
+            row_data = re.split(r'\s+', line_stripped)
+            
+            if len(row_data) == 2:
+                data_rows.append(row_data)
+            elif len(row_data) > 2:
+                label_id = row_data[-1]
+                name = ' '.join(row_data[:-1])
+                reconstructed_row = [name, label_id]
+                data_rows.append(reconstructed_row)
+            else:
+                raise ValueError(f"Line {line_num} in file {filepath} is malformed: '{line_stripped}'")
+        
+        return data_rows
+
+
+def read_description_csv_custom(filepath: str, header: bool = True) -> List[List[str]]:
+    """
+    標準的なCSVファイルを読み込み、リストのリストとして返す。
+    csvモジュールを使用し、クォート文字(")内のカンマを適切に処理する。
+
+    Args:
+        filepath (str): 読み込むCSVファイルのパス。
+        header (bool): 先頭行をヘッダーとして読み飛ばすか否か。
+                       元のpd.read_csvのデフォルト動作(header='infer')を模倣。
+
+    Returns:
+        List[List[str]]: CSVの行データ（文字列のリスト）のリスト。
+    """
+    data_rows: List[List[str]] = []
+    with open(filepath, 'r', encoding='utf-8', newline='') as f:
+        reader = csv.reader(f, skipinitialspace=True)
+        
+        if header:
+            try:
+                next(reader)  # ヘッダー行を読み飛ばす
+            except StopIteration:
+                return []
+        
+        for row in reader:
+            if row:
+                data_rows.append(row)
+    
+    return data_rows
 
 
 class BaseDataset(Dataset, metaclass=ABCMeta):
@@ -216,16 +283,36 @@ class VideoDataset(BaseDataset):
 
     @property
     def classes(self):
+        """
+        Actionラベル (Q) または Description (K/V) のクラス名リストを取得する。
+        self.description の有無に応じて分岐する。
+        
+        [注意] pd.read_csv はファイル形式(ヘッダ有無, 区切り文字)によっては
+        意図しない動作をする可能性があります。(val.py のエラー原因と同様)
+        可能であれば read_description_csv_custom / read_label_file_custom 
+        への置き換えを推奨します。
+        """
         if self.description:
+            # 現在の実装 (pd.read_csv) を維持
             classes_all = pd.read_csv(self.description)
         else:
+            # 現在の実装 (pd.read_csv) を維持
             classes_all = pd.read_csv(self.labels_file)
-        return classes_all.values.tolist()
+        
+        list_data = classes_all.values.tolist()
+        if list_data and isinstance(list_data[0], list):
+            return [row[0] for row in list_data if row]
+        else:
+            return list_data
     
     @property
     def animal_classes(self):
-        animal_classes_all = pd.read_csv(self.animal_labels_file)
-        return animal_classes_all.values.tolist()
+        if self.description:
+            data_rows = read_description_csv_custom(self.description, header=False)
+            return [row[0] for row in data_rows if row]
+        else:
+            data_rows = read_label_file_custom(self.labels_file)
+            return [row[0] for row in data_rows if row]
 
     def load_annotations(self):
         """Load annotation file to get video information."""

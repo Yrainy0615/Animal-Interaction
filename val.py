@@ -195,8 +195,14 @@ def validate(
                                 if str(animal_key) in rela and j not in rela[str(animal_key)]:
                                     tot = tot + 1
                 except Exception as e:
-                    logger.info(f"Skipping noi calculation due to error: {e}")
-                    pass
+                    logger.error(f"NOI calculation failed: {e}")
+                    logger.error(f"  Current index i: {i}, Batch size b: {b}")
+                    if 'indices_5' in locals():
+                        logger.error(f"  Length of indices_5: {len(indices_5)}")
+                    if 'animal_classes' in locals() and 'animals' in locals() and len(animals) > 0:
+                        idx = animals[0].item()
+                        logger.error(f"  Accessing animal_classes with index: {idx}")
+                        logger.error(f"  Length of animal_classes: {len(animal_classes)}")
             
             if vis == True:
                 print("######## vis start ########")

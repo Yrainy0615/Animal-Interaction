@@ -1,5 +1,5 @@
 DATA:
-    ROOT: '/mnt/nfs/lote/annotation/'
+    ROOT: '/mnt/nfs/lote/action/'
     TRAIN_FILE: '/mnt/nfs/lote/annotation/LoTE_train.txt' #00 /mnt/sdb/data/jingyinuo/mmnet/annotation/composition/train.csv
     VAL_FILE: '/mnt/nfs/lote/annotation/LoTE_test.txt'
     DATASET: LoTE
@@ -10,13 +10,13 @@ DATA:
     NUM_ANIMAL_CLASSES: 11
     ANIMAL_LABEL_LIST: '/mnt/nfs/lote/annotation/animal_label.csv'
     RELATION_FILE: '/mnt/nfs/lote/annotation/relation.txt'
-    description: '/mnt/nfs/lote/annotation/action_description_with_posebits_v2.csv'
+    description: '/mnt/nfs/lote/annotation/action_description_posebits_v2.csv'
     animal_description: '/mnt/nfs/lote/annotation/animal_description.csv'
     SPLIT_DESCRIPTION: False
 MODEL:
     ARCH: ViT-B/16
     MODEL_NAME: 'VCW-CLIP'
-    HF_FINETUNED_PATH: '/home/nakagawa/large_dataset/ap_10k/clip_adapter_old/'
+    HF_FINETUNED_PATH: '/home/nakagawa/large_dataset/ap_10k/clip_adapter_classifier/'
     VCW_TEMPORAL_LAYERS: 2
     VCW_TEMPORAL_HEADS: 8
 
@@ -26,4 +26,4 @@ TRAIN:
     ACCUMULATION_STEPS: 16
     EPOCHS: 30
 
-OUTPUT: 'exp_proposed_final'
+OUTPUT: 'exp_proposed_final_lote'
