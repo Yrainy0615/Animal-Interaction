@@ -202,7 +202,8 @@ def lt_acc(preds, labels, dataset):
     print('preds.shape', preds.shape)
     print('preds.shape', labels.shape)
     if dataset == 'mmnet':
-        map = {'hd':[2,8], 'md':[1,3,4], 'tl':[0,5,6,7,9,10,11]}
+        # map = {'hd':[2,8], 'md':[1,3,4], 'tl':[0,5,6,7,9,10,11]}  # animal_clip
+        map = {'hd':[2,8,1,3], 'md':[4,9,0,11], 'tl':[6,5,7,10]}  # mammal_net
     elif dataset == 'LoTE':
         map = {'hd':[1,3,9], 'md':[4,10,11,12,13,16], 'tl':[0,2,5,6,7,8,14,15,17,18,19,20]}
     acc1 = {'hd':0, 'md':0, 'tl':0, 'hd_num':0, 'md_num':0, 'tl_num':0}

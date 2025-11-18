@@ -35,15 +35,12 @@ from utils.tools import generate_text
 from .visfeat import visfeat
 
 import re
-
 import csv
 from typing import List
-
 
 PIPELINES = Registry('pipeline')
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_bgr=False)
-
 
 def read_label_file_custom(filepath: str) -> List[List[str]]:
     """
@@ -283,36 +280,16 @@ class VideoDataset(BaseDataset):
 
     @property
     def classes(self):
-        """
-        Actionラベル (Q) または Description (K/V) のクラス名リストを取得する。
-        self.description の有無に応じて分岐する。
-        
-        [注意] pd.read_csv はファイル形式(ヘッダ有無, 区切り文字)によっては
-        意図しない動作をする可能性があります。(val.py のエラー原因と同様)
-        可能であれば read_description_csv_custom / read_label_file_custom 
-        への置き換えを推奨します。
-        """
         if self.description:
-            # 現在の実装 (pd.read_csv) を維持
-            classes_all = pd.read_csv(self.description)
+            classes_all = read_description_csv_custom(self.description, header=False)
         else:
-            # 現在の実装 (pd.read_csv) を維持
-            classes_all = pd.read_csv(self.labels_file)
-        
-        list_data = classes_all.values.tolist()
-        if list_data and isinstance(list_data[0], list):
-            return [row[0] for row in list_data if row]
-        else:
-            return list_data
+            classes_all = read_label_file_custom(self.labels_file)
+        return classes_all
     
     @property
     def animal_classes(self):
-        if self.description:
-            data_rows = read_description_csv_custom(self.description, header=False)
-            return [row[0] for row in data_rows if row]
-        else:
-            data_rows = read_label_file_custom(self.labels_file)
-            return [row[0] for row in data_rows if row]
+        animal_classes_all = read_label_file_custom(self.animal_labels_file)
+        return animal_classes_all
 
     def load_annotations(self):
         """Load annotation file to get video information."""
@@ -321,8 +298,8 @@ class VideoDataset(BaseDataset):
         print('########### loading data ##########')
         if self.ann_file.endswith('.json'):
             return self.load_json_annotations()
-        all_classes = pd.read_csv(self.labels_file, delimiter='\t', header=None).values.tolist()
-        all_animal_classes = pd.read_csv(self.animal_labels_file, delimiter='\t', header=None).values.tolist()
+        all_classes = read_label_file_custom(self.labels_file)
+        all_animal_classes = read_label_file_custom(self.animal_labels_file)
         a = []
         for i in range(len(all_animal_classes)):
             a.append(all_animal_classes[i][1])

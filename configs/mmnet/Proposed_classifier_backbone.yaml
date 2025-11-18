@@ -18,7 +18,7 @@ MODEL:
     ARCH: ViT-B/16
     MODEL_NAME: 'VCW-CLIP'
     HF_FINETUNED_PATH: '/home/nakagawa/large_dataset/ap_10k/clip_adapter_classifier/'
-    VCW_TEMPORAL_LAYERS: 2
+    VCW_TEMPORAL_LAYERS: 3
     VCW_TEMPORAL_HEADS: 8
 
 TRAIN:
@@ -27,4 +27,4 @@ TRAIN:
     ACCUMULATION_STEPS: 16
     EPOCHS: 30
 
-OUTPUT: 'exp_proposed_final_classifier_backbone'
+OUTPUT: 'exp_proposed'

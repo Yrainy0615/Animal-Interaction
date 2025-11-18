@@ -42,7 +42,7 @@ from .vision_transformer import (
     model_to_fp16, vit_presets,
 )
 
-from typing import Dict, Iterable, List, Tuple, Union
+from typing import Dict, Iterable, List, Tuple, Union, Optional
 
 import torch
 import torch.nn as nn
@@ -237,7 +237,7 @@ class FrameFeatureAdapter(nn.Module):
     def load_from_local_contrast(
         self,
         directory: str,
-        state_filename: str = "local_contrast_state.pt",
+        state_filename: str = "global_adapter_state.pt",
         trainable: bool = False,
     ) -> bool:
         """
@@ -265,9 +265,19 @@ class FrameFeatureAdapter(nn.Module):
             w0 = adapter_sd.get("fc.0.weight", None)
             w2 = adapter_sd.get("fc.2.weight", None)
             if w0 is None or w2 is None:
-                print(f"[FrameFeatureAdapter] Unexpected state_dict keys in {state_path}")
-                self._active = False
-                return False
+                # --- キーが 'fc.' 始まりでない場合のフォールバック（修正案） ---
+                # もし '0.weight' が直接存在すれば、それを使う
+                w0_alt = adapter_sd.get("0.weight", None)
+                w2_alt = adapter_sd.get("2.weight", None)
+                
+                if w0_alt is not None and w2_alt is not None:
+                    print("[FrameFeatureAdapter] Note: Found adapter keys without 'fc.' prefix.")
+                    w0, w2 = w0_alt, w2_alt
+                else:
+                    print(f"[FrameFeatureAdapter] Unexpected state_dict keys in {state_path}. Expected 'fc.0.weight' or '0.weight'.")
+                    self._active = False
+                    return False
+                # --- フォールバックここまで ---
 
             hidden = int(w0.shape[0])
             c_in = int(w0.shape[1])
@@ -278,7 +288,17 @@ class FrameFeatureAdapter(nn.Module):
                 return False
 
             self._build(c_in=c_in, hidden=hidden)
-            self.fc.load_state_dict(adapter_sd, strict=True)
+            
+            cleaned_sd = {
+                k.replace("fc.", ""): v 
+                for k, v in adapter_sd.items() 
+                if k.startswith("fc.")
+            }
+            
+            # 変換後の state_dict をロードする
+            # もし cleaned_sd が空（fc.プレフィックスが無かった）なら、元の adapter_sd を試す
+            load_sd = cleaned_sd if cleaned_sd else adapter_sd
+            self.fc.load_state_dict(load_sd, strict=True)
 
             # ratio
             cfg = state.get("config", {})
@@ -295,6 +315,7 @@ class FrameFeatureAdapter(nn.Module):
             self._active = True
             return True
         except Exception as e:
+            # load_state_dict のエラーメッセージ (Missing keys, Unexpected keys) もここでキャッチされる
             print(f"[FrameFeatureAdapter] Failed to load adapter: {e}")
             self._active = False
             return False
@@ -307,16 +328,6 @@ class FrameFeatureAdapter(nn.Module):
         return (1.0 - a) * x + a * adapted
 
 class VideoChangeWeightedCLIP(CLIP):
-    """
-    パイプライン（仕様どおりに簡素化）:
-      - Original CLIP: frame --[CLIP]--> frame features --[TemporalTransformer]--> refined frames --[attention with text]--> video feature
-      - CLIP-Adapter:  frame --[CLIP]--> frame features --[Adapter blend (1-a:a)]--> features
-                       --[TemporalTransformer]--> refined frames --[attention with text]--> video feature
-
-    注意:
-      - FrameFeatureAdapter は「学習済み重みがロードできた時のみ」アクティブ。
-      - ロードできない/指定なしなら完全スキップ（通さない・学習もしない）。
-    """
     def __init__(self,
                  embed_dim: int,
                  image_resolution: int,
@@ -333,9 +344,8 @@ class VideoChangeWeightedCLIP(CLIP):
                  temporal_heads: int = 8,
                  device: str = "cuda",
                  use_logit_scale: bool = True,
-                 # 追加: 学習済み Adapter のディレクトリ（存在すれば自動ロード）
                  external_adapter_dir: str = "",
-                 external_state_filename: str = "local_contrast_state.pt",
+                 external_state_filename: str = "global_adapter_state.pt",
                  external_adapter_trainable: bool = False):
         super().__init__(
             embed_dim,
@@ -356,7 +366,20 @@ class VideoChangeWeightedCLIP(CLIP):
         self.semantic_fuser = SemanticFuser(embed_dim=embed_dim, nhead=temporal_heads)
         self.action_fuser = ActionFuser(embed_dim=embed_dim, nhead=temporal_heads)
 
-        # 単一のアダプタ（重みがあれば有効化）
+        # 理論 (数式 15-19) に必要なレイヤーの定義
+        self.dk_dim = embed_dim 
+        self.Wq_v = nn.Linear(embed_dim, self.dk_dim, bias=False) 
+        self.Wk_v = nn.Linear(embed_dim, self.dk_dim, bias=False) 
+        self.Wv_v = nn.Linear(embed_dim, embed_dim, bias=False)   
+        self.Ws = nn.Linear(embed_dim, embed_dim, bias=False) 
+        self.norm_1 = nn.LayerNorm(embed_dim) 
+        self.norm_2 = nn.LayerNorm(embed_dim) 
+        self.ffn = nn.Sequential(
+            nn.Linear(embed_dim, embed_dim * 4), 
+            nn.GELU(),
+            nn.Linear(embed_dim * 4, embed_dim)
+        )
+        
         self.frame_adapter = FrameFeatureAdapter(embed_dim=embed_dim)
         if external_adapter_dir:
             loaded = self.frame_adapter.load_from_local_contrast(
@@ -365,19 +388,11 @@ class VideoChangeWeightedCLIP(CLIP):
                 trainable=external_adapter_trainable
             )
             if not loaded:
-                # ロード失敗時はそのまま非アクティブ（スキップ）
-                pass
+                pass # ロード失敗時はそのまま非アクティブ（スキップ）
 
         self.register_buffer("animal_vectors_lookup_table", None, persistent=False)
-
-        # ロジットスケール使用可否
         self.use_logit_scale = bool(use_logit_scale)
         self.freeze_clip_encoders()
-        if not self.use_logit_scale:
-            try:
-                self.logit_scale.requires_grad = False
-            except Exception:
-                pass
 
     def freeze_clip_encoders(self):
         for param in self.visual.parameters():
@@ -396,7 +411,7 @@ class VideoChangeWeightedCLIP(CLIP):
         動画フレーム (B, T, C, H, W) -> CLIP 画像エンコーダ -> (B, T, D)
         """
         b, t, c, h, w = video_frames.shape
-        dtype_img = self.visual.conv1.weight.dtype
+        dtype_img = torch.float32 
         with torch.no_grad():
             video_frames_flat = video_frames.type(dtype_img).reshape(-1, c, h, w)
             frame_features = self.encode_image(video_frames_flat)  # (B*T, D)
@@ -468,11 +483,7 @@ class VideoChangeWeightedCLIP(CLIP):
                 description_labels: torch.Tensor,
                 *args, **kwargs):
         """
-        類似度計算（時間方向 Softmax 重み付きプール）:
-          frame -> (CLIP) -> [Adapter blend optional] -> (B,T,D)
-          -> TemporalTransformer -> refined frames (B,T,D) もしくは pooled (B,D)
-          -> refined frames と fused text の類似度で時間方向 softmax 重み付け平均
-          -> video feature と fused text のコサイン類似度をロジットに
+        類似度計算（理論: Part-category-specific visual promptingに基づく）
         """
         if not args:
             raise ValueError("Missing required argument 'animal_pred' in *args for Lookup Mode.")
@@ -482,11 +493,12 @@ class VideoChangeWeightedCLIP(CLIP):
         # 1) フレーム特徴（Adapter適用は encode_video_frames 内）
         frame_features = self.encode_video_frames(video_frames)  # (B, T, D)
         T_len = frame_features.shape[1]
+        D = frame_features.shape[-1] # D次元
 
         # 2) Temporal Transformer
         tt_out = self.temporal_transformer(frame_features.float())
         if tt_out.dim() == 3 and tt_out.shape[:2] == (B, T_len):
-            refined_frames = tt_out  # (B, T, D)
+            refined_frames = tt_out  # V: (B, T, D)
             video_vector = refined_frames.mean(dim=1)  # 返却用（互換）
         else:
             refined_frames = frame_features  # フォールバック
@@ -528,18 +540,20 @@ class VideoChangeWeightedCLIP(CLIP):
 
             # 動物コンテキスト（事前計算テーブル）
             if self.animal_vectors_lookup_table is None:
-                raise RuntimeError("Animal lookup table has not been pre-computed. Call model.precompute_animal_lookup() after initialization.")
+                raise ValueError("Animal vectors lookup table is not pre-computed. Call precompute_animal_lookup() first.")
+            
             lookup_table_cpu = self.animal_vectors_lookup_table
             a_classes = lookup_table_cpu.shape[0]
             if B != animal_pred.shape[0]:
                 raise ValueError(f"Batch size mismatch: video_frames ({B}) vs animal_pred ({animal_pred.shape[0]})")
             if a_classes != animal_pred.shape[1]:
                 raise ValueError(f"Animal class mismatch: lookup ({a_classes}) vs animal_pred ({animal_pred.shape[1]})")
+            
             current_device = animal_pred.device
             lookup_table = lookup_table_cpu.to(current_device)
 
-            animal_pred_expanded = animal_pred.unsqueeze(1)                      # (B, 1, A)
-            lookup_table_expanded = lookup_table.unsqueeze(0).expand(B, -1, -1)  # (B, A, D)
+            animal_pred_expanded = animal_pred.unsqueeze(1) 
+            lookup_table_expanded = lookup_table.unsqueeze(0).expand(B, -1, -1) 
             animal_vectors = torch.bmm(
                 animal_pred_expanded.to(lookup_table_expanded.dtype),
                 lookup_table_expanded
@@ -549,35 +563,61 @@ class VideoChangeWeightedCLIP(CLIP):
         action_query_vectors = self.action_fuser(
             query_vectors=action_vectors_q.float(),
             context_vectors=description_vectors_kv.float()
-        )  # (N, D)
+        ) 
 
-        Q = action_query_vectors.unsqueeze(0).expand(B, -1, -1)  # (B, N, D)
-        K = animal_vectors                                       # (B, 1, D)
-        fused_action_vectors = self.semantic_fuser(query_vectors=Q, context_vectors=K)  # (B, N, D)
+        Q = action_query_vectors.unsqueeze(0).expand(B, -1, -1) 
+        K = animal_vectors                                      
+        fused_action_vectors = self.semantic_fuser(query_vectors=Q, context_vectors=K) # A': (B, N, D)
+        
+        # --- 5) Part-category-specific visual prompting (数式 15-19) ---
+        
+        refined_frames = refined_frames.float()
+        fused_action_vectors = fused_action_vectors.float()
+        
+        # 5-1. 射影 (数式 15): Q_v, K_v, V_v の計算
+        Q_v = self.Wq_v(fused_action_vectors) # Q_v: (B, N, d_k)
+        K_v = self.Wk_v(refined_frames)       # K_v: (B, T, d_k)
+        V_v = self.Wv_v(refined_frames)       # V_v: (B, T, D)
+        
+        # 5-2. Scaled Dot-Product Attention (数式 16): 重み $\alpha$ の計算
+        # 類似度計算 Q_v K_v^T: (B, N, T)
+        sim_bnt = torch.bmm(Q_v, K_v.transpose(1, 2))
+        
+        # スケール項の適用 (数式 16 の分母 $\sqrt{d_k}$)
+        dk_dim_float = float(self.dk_dim)
+        scaled_sim_bnt = sim_bnt / math.sqrt(dk_dim_float)
 
-        # 5) 時間方向 Softmax 重み付きプール（refined_frames を使用）
+        # 時間方向 Softmax (重み $\alpha$)
+        alpha = F.softmax(scaled_sim_bnt, dim=2) # T次元(フレーム数)でSoftmax $\alpha$: (B, N, T)
+
+        # 5-3. 重み付き集約 (数式 17): $v_p$ の計算
+        v_p = torch.bmm(alpha, V_v) # v_p: (B, N, D)
+
+        # 5-4. Transformerスタイルの残差ブロック (数式 18, 19): $v'$ の計算
+        A_prime_Ws = self.Ws(fused_action_vectors) # (B, N, D)
+        
+        # 数式 (18): $\tilde{v} = \mathrm{LN}(v_p + A'W_s)$
+        v_tilde = self.norm_1(v_p + A_prime_Ws) 
+        
+        # 数式 (19): $v' = \mathrm{LN}(\tilde{v} + \mathrm{FFN}(\tilde{v}))$
+        v_prime = self.norm_2(v_tilde + self.ffn(v_tilde)) # $v'$: (B, N, D)
+        
+        final_video_vectors = v_prime
+        
+        # --- 6) 最終コサイン類似度 (ロジットスケールなし) ---
         eps = 1e-6
-        frame_norm = refined_frames / (refined_frames.norm(dim=-1, keepdim=True) + eps)             # (B, T, D)
-        text_norm = fused_action_vectors / (fused_action_vectors.norm(dim=-1, keepdim=True) + eps)  # (B, N, D)
+        
+        # $v'$ を正規化
+        pooled_norm = final_video_vectors / (final_video_vectors.norm(dim=-1, keepdim=True) + eps) # (B, N, D)
+        
+        # $A'$ を正規化
+        fused_norm = fused_action_vectors / (fused_action_vectors.norm(dim=-1, keepdim=True) + eps) # (B, N, D)
 
-        # 類似度 (B, T, N) と時間方向 softmax
-        sim_btn = torch.bmm(frame_norm, text_norm.transpose(1, 2))  # (B, T, N)
-        attn_btn = F.softmax(sim_btn, dim=1)
-
-        # 重み付き平均でクラス別動画ベクトル (B, N, D)
-        pooled_video_vectors = torch.einsum("btn,btd->bnd", attn_btn, refined_frames)
-
-        # 6) 最終コサイン類似度
-        pooled_norm = pooled_video_vectors / (pooled_video_vectors.norm(dim=-1, keepdim=True) + eps)  # (B, N, D)
-        fused_norm = text_norm  # (B, N, D)
-
-        if getattr(self, "use_logit_scale", True):
-            logit_scale = self.logit_scale.exp()
-        else:
-            logit_scale = torch.tensor(1.0, device=pooled_norm.device, dtype=pooled_norm.dtype)
-
-        logits = logit_scale * (pooled_norm * fused_norm).sum(dim=-1)  # (B, N)
+        # コサイン類似度を直接ロジットとする
+        logits = (pooled_norm * fused_norm).sum(dim=-1)  # (B, N)
+        
         return logits, video_vector
+
 
 def build_vcw_model(
     state_dict: dict,
@@ -588,12 +628,12 @@ def build_vcw_model(
     use_logit_scale: bool = True,
     # 学習済みアダプタを適用するための引数
     external_adapter_dir: str = "",
-    external_state_filename: str = "local_contrast_state.pt",
+    external_state_filename: str = "global_adapter_state.pt",
     external_adapter_trainable: bool = False,
 ):
     """
     OpenAI CLIPのstate_dictからVideoChangeWeightedCLIPモデルを構築する。
-    external_adapter_dir が指定され、かつ local_contrast_state.pt が存在する場合は
+    external_adapter_dir が指定され、かつ global_adapter_state.pt が存在する場合は
     CLIP-Adapter を (1-a):a でフレーム特徴にブレンドして使用する。
     """
     vit = "visual.proj" in state_dict
@@ -626,7 +666,7 @@ def build_vcw_model(
         if os.path.isfile(candidate):
             use_external_dir = external_adapter_dir
         else:
-            print(f"[VCW-CLIP] local_contrast_state not found at: {candidate}. Proceeding without adapter.")
+            print(f"[VCW-CLIP] global_adapter_state not found at: {candidate}. Proceeding without adapter.")
 
     model = VideoChangeWeightedCLIP(
         embed_dim,
@@ -657,7 +697,7 @@ def vcw_clip_load(
     """
     VCW-CLIPモデルをロードする。
     - HF_FINETUNED_PATH が指定されていれば HF 形式の CLIP を基に VCW-CLIP を構築。
-      同ディレクトリに local_contrast_state.pt がある場合はフレーム用 CLIP-Adapter を適用。
+      同ディレクトリに global_adapter_state.pt がある場合はフレーム用 CLIP-Adapter を適用。
     - 指定が無い場合は標準の CLIP 重みを基に VCW-CLIP を構築（アダプタ無し）。
     """
     hf_path = config.MODEL.HF_FINETUNED_PATH
@@ -762,7 +802,7 @@ def vcw_clip_load(
             device=device,
             use_logit_scale=True,
             external_adapter_dir=hf_path,  # build_vcw_model 内で存在チェック
-            external_state_filename="local_contrast_state.pt",
+            external_state_filename="global_adapter_state.pt",
             external_adapter_trainable=False,  # 微調整したければ True
         )
 
